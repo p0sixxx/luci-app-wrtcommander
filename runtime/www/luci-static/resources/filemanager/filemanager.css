@@ -1,0 +1,324 @@
+/* Proton File Manager - layout only; colors/typography inherit from the
+   active LuCI theme so the app follows light/dark automatically. */
+
+.proton-fm {
+	display: flex;
+	flex-direction: column;
+	gap: .5em;
+}
+
+.proton-breadcrumb-inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .15em;
+	padding: .4em .6em;
+	border: 1px solid rgba(128, 128, 128, .3);
+	border-radius: 4px;
+	font-family: monospace;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+
+.proton-crumb {
+	cursor: pointer;
+	padding: .1em .3em;
+	border-radius: 3px;
+}
+
+.proton-crumb:hover {
+	background: rgba(128, 128, 128, .2);
+	text-decoration: underline;
+}
+
+.proton-crumb-ellipsis {
+	font-weight: bold;
+}
+
+.proton-crumb-hidden-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 50vh;
+	overflow-y: auto;
+}
+
+.proton-crumb-hidden-list li {
+	padding: .5em;
+	cursor: pointer;
+	border-bottom: 1px solid rgba(128, 128, 128, .2);
+}
+
+.proton-crumb-hidden-list li:hover {
+	background: rgba(128, 128, 128, .15);
+}
+
+.proton-toolbar-inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .4em;
+}
+
+.proton-sel-count {
+	font-weight: bold;
+	margin-right: .5em;
+}
+
+.proton-search {
+	flex: 1 1 10em;
+	min-width: 8em;
+	max-width: 20em;
+}
+
+.proton-diskinfo {
+	font-size: .85em;
+	opacity: .8;
+}
+
+.proton-dropdown-wrap {
+	position: relative;
+	display: inline-block;
+}
+
+.proton-dropdown-menu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 60;
+	min-width: 12em;
+	background: var(--background-color-medium, #fff);
+	border: 1px solid rgba(128, 128, 128, .4);
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+	padding: .3em 0;
+}
+
+.proton-dropdown-menu.open {
+	display: block;
+}
+
+.proton-settings .proton-dropdown-menu {
+	right: 0;
+	left: auto;
+}
+
+.proton-dropdown-item {
+	display: block;
+	padding: .5em .8em;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.proton-dropdown-item:hover {
+	background: rgba(128, 128, 128, .2);
+}
+
+.proton-table-wrap {
+	overflow-x: auto;
+}
+
+.proton-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.proton-sortable {
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+}
+
+.proton-col-check {
+	width: 2em;
+	text-align: center;
+}
+
+.proton-col-actions {
+	width: 2.5em;
+	text-align: center;
+}
+
+.proton-name-link {
+	cursor: pointer;
+}
+
+.proton-name-link:hover {
+	text-decoration: underline;
+}
+
+.proton-hidden-row {
+	opacity: .55;
+}
+
+.proton-more-btn {
+	padding: .1em .5em;
+}
+
+.proton-ctx-menu {
+	position: fixed;
+	z-index: 1000;
+	min-width: 12em;
+	background: var(--background-color-medium, #fff);
+	border: 1px solid rgba(128, 128, 128, .4);
+	border-radius: 4px;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+	padding: .3em 0;
+}
+
+.proton-ctx-item {
+	padding: .55em 1em;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.proton-ctx-item:hover {
+	background: rgba(128, 128, 128, .2);
+}
+
+.proton-picker-list {
+	max-height: 40vh;
+	overflow-y: auto;
+	border: 1px solid rgba(128, 128, 128, .3);
+	border-radius: 4px;
+}
+
+.proton-picker-item {
+	padding: .5em .7em;
+	cursor: pointer;
+	border-bottom: 1px solid rgba(128, 128, 128, .15);
+}
+
+.proton-picker-item:hover {
+	background: rgba(128, 128, 128, .2);
+}
+
+.proton-picker-empty {
+	padding: 1em;
+	opacity: .7;
+	text-align: center;
+}
+
+.proton-form-error {
+	color: #c0392b;
+	min-height: 1.2em;
+	font-size: .9em;
+}
+
+.proton-warn {
+	color: #c0392b;
+}
+
+.proton-warn-strong {
+	font-weight: bold;
+	padding: .5em;
+	border: 1px solid #c0392b;
+	border-radius: 4px;
+}
+
+.proton-preview-pre {
+	max-height: 60vh;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+	background: rgba(128, 128, 128, .1);
+	padding: .8em;
+	border-radius: 4px;
+	font-family: monospace;
+	text-align: left;
+}
+
+.proton-editor-modal textarea.proton-editor-textarea {
+	width: 100%;
+	height: 55vh;
+	box-sizing: border-box;
+	font-family: monospace;
+	font-size: .9em;
+	white-space: pre;
+}
+
+.proton-upload-filename {
+	font-family: monospace;
+	margin: .3em 0;
+	word-break: break-all;
+}
+
+.proton-progress-bar {
+	width: 100%;
+	height: 1em;
+	background: rgba(128, 128, 128, .25);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.proton-progress-fill {
+	height: 100%;
+	width: 0%;
+	background: #2a8f3f;
+	transition: width .15s ease;
+}
+
+/* ---- responsive: narrow / mobile viewports ---- */
+
+@media (max-width: 720px) {
+	.proton-table thead,
+	.proton-table .table-titles {
+		display: none;
+	}
+
+	.proton-table, .proton-table tbody, .proton-table tr, .proton-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.proton-table tr.tr {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		border: 1px solid rgba(128, 128, 128, .25);
+		border-radius: 6px;
+		margin-bottom: .4em;
+		padding: .4em;
+	}
+
+	.proton-col-check {
+		order: 1;
+		width: auto;
+	}
+
+	.proton-col-name {
+		order: 2;
+		flex: 1 1 auto;
+		min-width: 60%;
+	}
+
+	.proton-col-actions {
+		order: 3;
+		width: auto;
+		margin-left: auto;
+	}
+
+	.proton-col-type,
+	.proton-col-mtime,
+	.proton-col-perm {
+		display: none;
+	}
+
+	.proton-col-size {
+		order: 4;
+		width: auto;
+		font-size: .85em;
+		opacity: .75;
+		padding-left: 2.2em;
+	}
+
+	.proton-search {
+		max-width: none;
+		flex-basis: 100%;
+	}
+
+	.proton-editor-modal textarea.proton-editor-textarea {
+		height: 45vh;
+	}
+}

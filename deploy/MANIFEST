@@ -1,0 +1,18 @@
+# Proton File Manager - deployment manifest
+#
+# One "<source relative to runtime/>  <destination absolute path>" pair per
+# line. install.sh / uninstall.sh parse this file so the file list only
+# has to be maintained in one place. Lines starting with # are comments,
+# blank lines are ignored.
+#
+# The config file is handled specially by install.sh (only installed if
+# missing, never overwritten) and by uninstall.sh (only removed with
+# --purge) - see deploy/install.sh and deploy/uninstall.sh.
+
+etc/config/filemanager                                    /etc/config/filemanager
+usr/share/rpcd/ucode/filemanager.uc                        /usr/share/rpcd/ucode/filemanager.uc
+usr/share/rpcd/acl.d/luci-app-filemanager.json              /usr/share/rpcd/acl.d/luci-app-filemanager.json
+usr/share/luci/menu.d/luci-app-filemanager.json              /usr/share/luci/menu.d/luci-app-filemanager.json
+usr/lib/lua/luci/controller/filemanager.lua                 /usr/lib/lua/luci/controller/filemanager.lua
+www/luci-static/resources/view/filemanager.js                /www/luci-static/resources/view/filemanager.js
+www/luci-static/resources/filemanager/filemanager.css        /www/luci-static/resources/filemanager/filemanager.css

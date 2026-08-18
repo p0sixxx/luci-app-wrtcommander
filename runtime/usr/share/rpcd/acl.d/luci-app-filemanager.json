@@ -1,0 +1,63 @@
+{
+	"luci-app-filemanager-read": {
+		"description": "Proton File Manager: browse, stat, preview, search, disk usage",
+		"read": {
+			"ubus": {
+				"luci.filemanager": [ "list", "stat", "read", "search", "disk_info" ]
+			},
+			"uci": [ "filemanager" ]
+		}
+	},
+
+	"luci-app-filemanager-write": {
+		"description": "Proton File Manager: create, edit, rename, copy, move",
+		"write": {
+			"ubus": {
+				"luci.filemanager": [ "mkdir", "create", "rename", "write", "copy", "move" ]
+			}
+		}
+	},
+
+	"luci-app-filemanager-delete": {
+		"description": "Proton File Manager: delete files and directories",
+		"write": {
+			"ubus": {
+				"luci.filemanager": [ "remove" ]
+			}
+		}
+	},
+
+	"luci-app-filemanager-chmod": {
+		"description": "Proton File Manager: change permissions",
+		"write": {
+			"ubus": {
+				"luci.filemanager": [ "chmod" ]
+			}
+		}
+	},
+
+	"luci-app-filemanager-chown": {
+		"description": "Proton File Manager: change owner/group",
+		"write": {
+			"ubus": {
+				"luci.filemanager": [ "chown" ]
+			}
+		}
+	},
+
+	"luci-app-filemanager": {
+		"description": "Proton File Manager: full access (menu visibility + all operations)",
+		"read": {
+			"ubus": {
+				"luci.filemanager": [ "list", "stat", "read", "search", "disk_info" ]
+			},
+			"uci": [ "filemanager" ]
+		},
+		"write": {
+			"ubus": {
+				"luci.filemanager": [ "mkdir", "create", "rename", "write", "copy", "move", "remove", "chmod", "chown" ]
+			},
+			"uci": [ "filemanager" ]
+		}
+	}
+}

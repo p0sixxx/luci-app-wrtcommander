@@ -1,0 +1,11 @@
+
+config filemanager 'main'
+	option enabled '1'
+	option allowed_root '/'
+	option show_hidden '1'
+	option preview_max_size '524288'
+	option editor_max_size '1048576'
+	option search_max_results '500'
+	option search_max_depth '12'
+	option search_max_scanned '20000'
+	option debug '0'
