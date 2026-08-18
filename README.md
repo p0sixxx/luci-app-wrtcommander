@@ -428,22 +428,23 @@ container keeps its own centring, padding and any sidebar offset - and
 `widenContainer()` applies the class, measures, and takes it straight
 back off if the container no longer ends inside the window.
 
-The target is `max(var(--proton-page-max-width, 990px), 75%)`: three
-quarters of the window, so the panels get real room without stretching a
-file name into an uncomfortably long line to scan, and never below the
+The target is `max(var(--proton-page-max-width, 990px), 67.5%)`: about
+two thirds of the window, so the panels get real room without stretching
+a file name into an uncomfortably long line to scan, and never below the
 theme's own cap, so on a small screen this can only add room and never
 take it away. Measured on Proton2025:
 
 | viewport | before | after |
 |---------:|-------:|------:|
-| 1920 | 990 | 1440 |
-| 1600 | 990 | 1200 |
-| 1366 | 990 | 1025 |
+| 1920 | 990 | 1296 |
+| 1600 | 990 | 1080 |
+| 1366 | 990 | 990 |
 | 1280 | 990 | 990 |
 | 1024 | 990 | 990 |
 
-No horizontal scroll at any of those, nor at 414/360 where the header
-wraps instead.
+From 1366 down the floor is what applies, so the theme's own width is
+kept unchanged. No horizontal scroll at any of those, nor at 414/360
+where the header wraps instead.
 
 The revert check is not decoration. On Proton2025 `#maincontent` is a
 flex item that grows into the space the cap was holding back, so raising

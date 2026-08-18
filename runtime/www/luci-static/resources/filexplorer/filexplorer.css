@@ -50,12 +50,12 @@
  * width instead of spilling off the screen.
  */
 #maincontent.fx-wide {
-	/* Three quarters of the window: wide enough that the two panels stop
+	/* Two thirds of the window: wide enough that the two panels stop
 	   feeling cramped, narrow enough that a row of file names is still a
 	   comfortable line to scan on a large display. Never below the
 	   theme's own cap, so this can only ever add room, never take it
 	   away on a small screen. */
-	max-width: max(var(--proton-page-max-width, 990px), 75%);
+	max-width: max(var(--proton-page-max-width, 990px), 67.5%);
 }
 
 /* ------------------------------------------------- header (one row) */
