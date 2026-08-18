@@ -126,6 +126,7 @@ msgstr "Не сохранять"
 msgid "Download"
 msgstr "Скачать"
 
+msgctxt "filexplorer"
 msgid "Edit"
 msgstr "Правка"
 
@@ -174,6 +175,7 @@ msgstr "Группа"
 msgid "Group ID"
 msgstr "ID группы"
 
+msgctxt "filexplorer"
 msgid "Image"
 msgstr "Изображение"
 
@@ -203,6 +205,7 @@ msgstr "Загрузка…"
 
 #. Column header for the mode string (-rw-r--r--). Deliberately short:
 #. the full "Права доступа" does not fit a half-width panel column.
+msgctxt "filexplorer"
 msgid "Mode"
 msgstr "Права"
 
@@ -320,6 +323,7 @@ msgstr "Поиск в: %s"
 msgid "Searching…"
 msgstr "Идёт поиск…"
 
+msgctxt "filexplorer"
 msgid "Select"
 msgstr "Отметить"
 
@@ -428,6 +432,7 @@ msgstr "битая"
 msgid "failed"
 msgstr "ошибка"
 
+msgctxt "filexplorer"
 msgid "up"
 msgstr "вверх"
 

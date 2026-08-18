@@ -16,20 +16,13 @@
 	min-height: 24em;
 }
 
-/* LuCI centres page content in a fairly narrow fixed-width container.
-   That is fine for a form, but two file panels side by side - each with
-   name, size, date and mode columns - end up with truncated headers in
-   it, especially once translated (German and Russian labels are longer
-   than the English ones).
-   So widen just this view towards the viewport edges while keeping it
-   centred inside its container. The 3em inset leaves room for the
-   vertical scrollbar, which a bare 100vw would sit underneath. */
-@media (min-width: 1024px) {
-	.fx-app {
-		width: min(calc(100vw - 3em), 1920px);
-		margin-left: calc((100% - min(100vw - 3em, 1920px)) / 2);
-	}
-}
+/* The view is widened past LuCI's centred content container by
+   fitWidth() in filexplorer.js, not here. A pure-CSS version of this
+   (width:100vw plus a negative margin) looks right on the stock theme
+   but breaks on any theme whose content column is offset - for example
+   one with a left sidebar - because CSS cannot know that offset: the
+   element ends up shifted off the screen edge. fitWidth() measures the
+   element's real position instead, so it works on any theme. */
 
 /* ---------------------------------------------------------- panels */
 

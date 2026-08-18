@@ -125,9 +125,6 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-msgid "Edit"
-msgstr ""
-
 msgid "Enter — open, Backspace — go up"
 msgstr ""
 
@@ -170,9 +167,6 @@ msgstr ""
 msgid "Group ID"
 msgstr ""
 
-msgid "Image"
-msgstr ""
-
 msgid "Insert or Space — select, Ctrl+A — select all"
 msgstr ""
 
@@ -195,9 +189,6 @@ msgid "Left panel"
 msgstr ""
 
 msgid "Loading…"
-msgstr ""
-
-msgid "Mode"
 msgstr ""
 
 msgid "Modified"
@@ -314,9 +305,6 @@ msgstr ""
 msgid "Searching…"
 msgstr ""
 
-msgid "Select"
-msgstr ""
-
 msgid "Select destination"
 msgstr ""
 
@@ -422,10 +410,27 @@ msgstr ""
 msgid "failed"
 msgstr ""
 
-msgid "up"
+msgid "…and %d more"
 msgstr ""
 
-msgid "…and %d more"
+msgctxt "filexplorer"
+msgid "Edit"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "Image"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "Mode"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "Select"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "up"
 msgstr ""
 
 msgid "%d item"

@@ -132,7 +132,7 @@ function typeLabel(cls) {
 		case 'device': return _('Device');
 		case 'fifo': return _('FIFO');
 		case 'socket': return _('Socket');
-		case 'image': return _('Image');
+		case 'image': return _('Image', 'filexplorer');
 		case 'archive': return _('Archive');
 		case 'text': return _('Text');
 		default: return _('Binary');
@@ -271,10 +271,91 @@ return view.extend({
 		this.keyHandler = function (ev) { self.onKeyDown(ev); };
 		document.addEventListener('keydown', this.keyHandler);
 
+		this.scheduleWidthFit();
+
 		this.loadPane('left');
 		this.loadPane('right');
 
 		return this.root;
+	},
+
+	/* ------------------------------------------------------------------
+	 * Widen the view past LuCI's centred content container.
+	 *
+	 * Two panels with four columns each need more width than a theme's
+	 * default content column gives them, especially once translated.
+	 * This cannot be done in CSS alone: a width:100vw plus negative
+	 * margin trick assumes the container is centred in the viewport, and
+	 * silently pushes the whole app off-screen on any theme whose
+	 * content column is offset (a left sidebar, for instance).
+	 *
+	 * So measure the real geometry instead, and only grow into space
+	 * that is demonstrably free: the amount of empty room on the
+	 * narrower side of the container. On a theme that centres its
+	 * content this is the (equal) margin on either side, so the view
+	 * expands symmetrically towards the window edges. On a theme with a
+	 * sidebar the room on one side is zero, so it does not move at all
+	 * - which is right, because there the container is already using
+	 * the full width that is actually available.
+	 *
+	 * Reading clientWidth (not innerWidth) keeps the scrollbar out of
+	 * the calculation, so this never creates a horizontal scrollbar of
+	 * its own.
+	 * ------------------------------------------------------------------ */
+
+	scheduleWidthFit: function () {
+		var self = this;
+		var run = function () { self.fitWidth(); };
+
+		/* the node is not in the document yet when render() returns */
+		window.requestAnimationFrame(run);
+		window.setTimeout(run, 100);
+
+		if (!this.resizeHandler) {
+			this.resizeHandler = function () {
+				if (!self.root || !document.body.contains(self.root)) {
+					window.removeEventListener('resize', self.resizeHandler);
+					self.resizeHandler = null;
+					return;
+				}
+				self.fitWidth();
+			};
+			window.addEventListener('resize', this.resizeHandler);
+		}
+	},
+
+	fitWidth: function () {
+		var el = this.root;
+		if (!el || !document.body.contains(el))
+			return;
+
+		/* always measure the untouched geometry, so this is idempotent */
+		el.style.width = '';
+		el.style.marginLeft = '';
+
+		var vw = document.documentElement.clientWidth;
+		if (vw < 1024)
+			return;   /* one panel at a time down here; leave the theme alone */
+
+		var host = el.parentNode;
+		if (!host || !host.getBoundingClientRect)
+			return;
+
+		var rect = el.getBoundingClientRect();
+		var box = host.getBoundingClientRect();
+		var gutter = 12;
+
+		/* free room on each side of whatever contains us; the smaller of
+		   the two is all we may take without covering something */
+		var grow = Math.min(box.left, vw - box.right) - gutter;
+		if (grow < 8)
+			return;   /* nothing worth taking (or a sidebar sits there) */
+
+		var width = Math.min(rect.width + 2 * grow, 1920);
+		var shift = (width - rect.width) / 2;
+
+		el.style.width = Math.round(width) + 'px';
+		el.style.marginLeft = Math.round(-shift) + 'px';
 	},
 
 	/* view.extend() calls this when navigating away */
@@ -546,7 +627,7 @@ return view.extend({
 				/* short label on purpose: this column shows the mode string
 				   (-rw-r--r--), and the full word does not fit a half-width
 				   panel once translated */
-				sortHeader(_('Mode'), 'mode_octal', 'fx-c-perm')
+				sortHeader(_('Mode', 'filexplorer'), 'mode_octal', 'fx-c-perm')
 			])
 		];
 
@@ -558,7 +639,7 @@ return view.extend({
 			}, [
 				E('div', { class: 'fx-cell fx-c-mark' }, ''),
 				E('div', { class: 'fx-cell fx-c-name' }, '↑ ..'),
-				E('div', { class: 'fx-cell fx-c-size' }, _('up')),
+				E('div', { class: 'fx-cell fx-c-size' }, _('up', 'filexplorer')),
 				E('div', { class: 'fx-cell fx-c-time' }, ''),
 				E('div', { class: 'fx-cell fx-c-perm' }, '')
 			]));
@@ -585,7 +666,7 @@ return view.extend({
 
 		var mark = E('span', {
 			class: 'fx-mark' + (isSel ? ' fx-mark-on' : ''),
-			title: _('Select'),
+			title: _('Select', 'filexplorer'),
 			click: function (ev) {
 				ev.stopPropagation();
 				self.setActive(id);
@@ -685,7 +766,7 @@ return view.extend({
 
 		dom.content(this.fnbarNode, [
 			fk('F3', _('View'), function () { self.actF3(); }),
-			fk('F4', _('Edit'), function () { self.actF4(); }),
+			fk('F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
 			fk('F5', _('Copy'), function () { self.actF5(); }),
 			fk('F6', _('Move'), function () { self.actF6(); }),
 			fk('F7', _('New folder'), function () { self.actF7(); }),
@@ -826,7 +907,7 @@ return view.extend({
 
 		if (!isDir) {
 			items.push([_('View'), function () { self.previewEntry(entry); }]);
-			items.push([_('Edit'), function () { self.editEntry(entry); }]);
+			items.push([_('Edit', 'filexplorer'), function () { self.editEntry(entry); }]);
 			items.push([_('Download'), function () { self.downloadEntry(entry); }]);
 		}
 		items.push([_('Copy'), function () { self.copyOrMove('copy', id, [entry]); }]);
@@ -1286,7 +1367,7 @@ return view.extend({
 				E('div', { class: 'right fx-modal-actions' }, [
 					E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit')),
+					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit', 'filexplorer')),
 					' ',
 					E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
 				])

@@ -36,7 +36,48 @@ a valid msgid looks like:
    picking the index via the `Plural-Forms` expression, which is stored
    under key id `00000000`.
 
-Two consequences:
+### Every package shares one keyspace — beware generic words
+
+`window.TR` is **one flat table built from every `*.<lang>.lmo` in the
+directory**, keyed only by the hash of the source string. There is no
+per-package namespace, so if two catalogs translate the same msgid
+differently, whichever one rpcd happens to read last wins, and the
+result is not predictable.
+
+This is not theoretical: 22 of this app's 141 strings also exist in
+`luci-base`, and five of them had a different translation there —
+including `Mode`, which `luci-base` renders as "Режим работы"
+("operating mode", for wireless). That leaked into the permissions
+column header on a real router and was both wrong and too long for the
+column.
+
+The fix is gettext's message context. In the view:
+
+```js
+_('Mode', 'filexplorer')
+```
+
+and in the catalog:
+
+```
+msgctxt "filexplorer"
+msgid "Mode"
+msgstr "Права"
+```
+
+which changes the lookup key to `filexplorer\x01Mode` and makes it ours
+alone. Use a context for any short, generic word whose meaning here
+differs from its meaning elsewhere in LuCI. Currently that is `Edit`,
+`Image`, `Mode`, `Select` and `up`.
+
+To re-check after adding strings, diff your msgids against LuCI's:
+
+```sh
+curl -sO https://raw.githubusercontent.com/openwrt/luci/master/modules/luci-base/po/ru/base.po
+# then compare the msgid sets and look for differing msgstr values
+```
+
+### Two more consequences of how `_()` builds its key
 
 - **msgids must already be whitespace-normalised.** `trimws()` strips
   the string and collapses internal whitespace runs to one space. A

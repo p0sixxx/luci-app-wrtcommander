@@ -103,26 +103,39 @@ def parse_lmo(path):
 
 
 def parse_po(path):
-    """Minimal .po reader: returns (header_dict, [(ctxt, id, plural, [strs])])."""
+    """Minimal .po reader: yields (msgid, msgid_plural, [msgstrs], msgctxt)."""
     msgs = []
-    cur = {'id': None, 'plural': None, 'strs': {}}
+    cur = {'id': None, 'plural': None, 'strs': {}, 'ctxt': None}
+    pending_ctxt = None
     field = None
     idx = 0
 
     def flush():
         if cur['id'] is not None:
             msgs.append((cur['id'], cur['plural'],
-                         [cur['strs'][k] for k in sorted(cur['strs'])]))
+                         [cur['strs'][k] for k in sorted(cur['strs'])],
+                         cur['ctxt']))
 
     for raw in open(path, encoding='utf-8'):
         line = raw.rstrip('\n')
         if not line.strip() or line.lstrip().startswith('#'):
             continue
 
-        m = re.match(r'^msgid "(.*)"$', line)
+        m = re.match(r'^msgctxt "(.*)"$', line)
         if m:
             flush()
-            cur = {'id': unescape(m.group(1)), 'plural': None, 'strs': {}}
+            cur = {'id': None, 'plural': None, 'strs': {}, 'ctxt': None}
+            pending_ctxt = unescape(m.group(1))
+            field = 'ctxt'
+            continue
+
+        m = re.match(r'^msgid "(.*)"$', line)
+        if m:
+            if pending_ctxt is None:
+                flush()
+            cur = {'id': unescape(m.group(1)), 'plural': None, 'strs': {},
+                   'ctxt': pending_ctxt}
+            pending_ctxt = None
             field = 'id'
             continue
         m = re.match(r'^msgid_plural "(.*)"$', line)
@@ -145,7 +158,9 @@ def parse_po(path):
         m = re.match(r'^"(.*)"$', line)
         if m:
             piece = unescape(m.group(1))
-            if field == 'id':
+            if field == 'ctxt':
+                pending_ctxt += piece
+            elif field == 'id':
                 cur['id'] += piece
             elif field == 'plural':
                 cur['plural'] += piece
@@ -175,7 +190,7 @@ def main():
     problems = []
     checked_plural_header = False
 
-    for msgid, plural, strs in msgs:
+    for msgid, plural, strs, ctxt in msgs:
         if msgid == '':
             # header: po2lmo stores only the Plural-Forms expression, key 0
             header = strs[0] if strs else ''
@@ -191,10 +206,15 @@ def main():
                                     % (want, got))
             continue
 
+        # po2lmo builds the lookup key as
+        #   ctxt \1 id \2 n   /   ctxt \1 id   /   id \2 n   /   id
+        # and LuCI's client-side _() / N_() build the very same string.
+        prefix = (ctxt + '\x01') if ctxt else ''
         if plural is None:
-            targets = [(msgid, strs[0] if strs else '')]
+            targets = [(prefix + msgid, strs[0] if strs else '')]
         else:
-            targets = [('%s\x02%d' % (msgid, i), s) for i, s in enumerate(strs)]
+            targets = [('%s%s\x02%d' % (prefix, msgid, i), s)
+                       for i, s in enumerate(strs)]
 
         for key, want in targets:
             if want == '':
