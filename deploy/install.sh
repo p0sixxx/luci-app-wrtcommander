@@ -125,5 +125,5 @@ fi
 
 echo
 echo "FileXplorer installed successfully."
-echo "Open LuCI -> System -> FileXplorer in your browser."
+echo "Open LuCI -> Services -> FileXplorer in your browser."
 echo "(If the menu entry is missing, log out and back in, or hard-refresh the page.)"

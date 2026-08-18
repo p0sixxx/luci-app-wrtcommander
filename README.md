@@ -97,6 +97,15 @@ the same canonical path-validation pipeline as the ucode backend
 see **Known limitations** for why this one piece of logic exists
 twice, and what that implies for future changes.
 
+> **Moving the menu entry moves those endpoints too.** The app lives at
+> `admin/services/filexplorer`, and the upload/download URLs are
+> `admin/services/filexplorer/upload` and `…/download`. That path is
+> spelled out in four places - `menu.d/luci-app-filexplorer.json`, the
+> `entry()` calls in the Lua controller, the `L.url(…)` calls in the JS
+> view, and the two HTTP test scripts. Change one and the file transfers
+> break silently (the UI keeps working, uploads just 404), so change all
+> four together.
+
 ### Why ucode for the backend, and Lua only for streaming
 
 OpenWrt/LuCI is actively moving away from Lua toward ucode + rpcd for
@@ -165,7 +174,7 @@ sh install.sh
 It deliberately never restarts `uhttpd` - static files and the Lua
 controller are picked up on the next request with no restart needed.
 
-Open **LuCI -> System -> FileXplorer**.
+Open **LuCI -> Services -> FileXplorer**.
 
 ### Re-deploying after a change
 

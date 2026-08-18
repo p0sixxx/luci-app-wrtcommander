@@ -1,5 +1,5 @@
 {
-	"admin/system/filexplorer": {
+	"admin/services/filexplorer": {
 		"title": "FileXplorer",
 		"order": 45,
 		"action": {

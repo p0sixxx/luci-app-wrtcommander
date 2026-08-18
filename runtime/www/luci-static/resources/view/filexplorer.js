@@ -1428,7 +1428,7 @@ return view.extend({
 	/* ------------------------------------------------------ download */
 
 	downloadUrl: function (path) {
-		return L.url('admin', 'system', 'filexplorer', 'download') + '?path=' + encodeURIComponent(path);
+		return L.url('admin', 'services', 'filexplorer', 'download') + '?path=' + encodeURIComponent(path);
 	},
 
 	downloadEntry: function (entry) {
@@ -1480,7 +1480,7 @@ return view.extend({
 			var fd = new FormData();
 			fd.append('file', file, file.name);
 			xhr = new XMLHttpRequest();
-			xhr.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') +
+			xhr.open('POST', L.url('admin', 'services', 'filexplorer', 'upload') +
 				'?dest=' + encodeURIComponent(dest) + '&overwrite=' + (overwrite ? '1' : '0'));
 			xhr.upload.addEventListener('progress', function (ev) {
 				if (ev.lengthComputable)

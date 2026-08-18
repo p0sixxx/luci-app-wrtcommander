@@ -20,8 +20,8 @@ two in sync if the policy ever changes.
 module("luci.controller.filexplorer", package.seeall)
 
 function index()
-	entry({"admin", "system", "filexplorer", "upload"}, call("action_upload")).leaf = true
-	entry({"admin", "system", "filexplorer", "download"}, call("action_download")).leaf = true
+	entry({"admin", "services", "filexplorer", "upload"}, call("action_upload")).leaf = true
+	entry({"admin", "services", "filexplorer", "download"}, call("action_download")).leaf = true
 end
 
 -- ------------------------------------------------------------------
@@ -174,7 +174,7 @@ local function send_json_error(http, status, code, message)
 end
 
 -- ------------------------------------------------------------------
--- download: GET /admin/system/filexplorer/download?path=/etc/config/network
+-- download: GET /admin/services/filexplorer/download?path=/etc/config/network
 -- ------------------------------------------------------------------
 
 function action_download()
@@ -232,7 +232,7 @@ function action_download()
 end
 
 -- ------------------------------------------------------------------
--- upload: POST /admin/system/filexplorer/upload?dest=/etc/config&overwrite=0
+-- upload: POST /admin/services/filexplorer/upload?dest=/etc/config&overwrite=0
 -- multipart/form-data body, file field(s) named "file"
 -- ------------------------------------------------------------------
 
