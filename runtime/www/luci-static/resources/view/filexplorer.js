@@ -678,6 +678,11 @@ return view.extend({
 				ev.stopPropagation();
 				self.setActive(id);
 				self.toggleSelect(id, entry);
+				/* redraw: the box glyph, the row highlight, the footer
+				   total and the toolbar counter all follow this */
+				self.renderBody(id);
+				self.renderFoot(id);
+				self.renderFnBar();
 			}
 		}, isSel ? '■' : '□');
 
@@ -759,7 +764,11 @@ return view.extend({
 	renderFnBar: function () {
 		var self = this;
 		var p = this.activePane();
-		var n = p ? this.targetEntries(p).length : 0;
+		/* Explicit marks only, not targetEntries(): that one falls back to
+		   the row under the cursor so an action always has something to
+		   work on, which would make this counter read "1 selected" for
+		   ever. It reports what the user marked, like the panel footer. */
+		var n = p ? this.selectedEntries(p).length : 0;
 
 		function fk(key, label, fn, cls) {
 			return E('button', {
