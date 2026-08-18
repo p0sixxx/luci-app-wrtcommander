@@ -377,11 +377,79 @@ return view.extend({
 			host.classList.remove('fx-wide');
 	},
 
+	/* On a phone the theme's content container can end up a good deal
+	 * narrower than the screen, leaving a band of empty space beside the
+	 * file list where it is least affordable.
+	 *
+	 * Which property causes that differs between themes and between
+	 * their own breakpoints - a max-width, an auto margin, a percentage
+	 * width, a padding - so this does not try to identify it. It
+	 * measures: if the container is leaving more than a small gutter, it
+	 * neutralises all four at once, measures again, and puts everything
+	 * back if the result is not strictly better and still fully on
+	 * screen. A theme this does not suit therefore keeps its own layout,
+	 * exactly as with the .fx-wide class.
+	 *
+	 * Only below the mobile breakpoint. On a desktop the container is
+	 * deliberately narrower than the window and .fx-wide already decides
+	 * how much of that to take back. */
+	stretchContainer: function () {
+		var host = this.contentContainer();
+		if (!host)
+			return;
+
+		var vw = document.documentElement.clientWidth;
+
+		if (vw > 900) {
+			this.clearStretch(host);
+			return;
+		}
+
+		var before = host.getBoundingClientRect();
+
+		/* already using the screen: nothing to do, and nothing to undo */
+		if (vw - before.width <= 24) {
+			this.clearStretch(host);
+			return;
+		}
+
+		var saved = {
+			maxWidth: host.style.maxWidth,
+			width: host.style.width,
+			marginLeft: host.style.marginLeft,
+			marginRight: host.style.marginRight
+		};
+
+		host.style.maxWidth = 'none';
+		host.style.width = '100%';
+		host.style.marginLeft = '0';
+		host.style.marginRight = '0';
+
+		var after = host.getBoundingClientRect();
+		var fits = (after.right <= vw + 1 && after.left >= -1 && after.width <= vw + 1);
+
+		if (!fits || after.width <= before.width) {
+			host.style.maxWidth = saved.maxWidth;
+			host.style.width = saved.width;
+			host.style.marginLeft = saved.marginLeft;
+			host.style.marginRight = saved.marginRight;
+		}
+	},
+
+	clearStretch: function (host) {
+		host.style.maxWidth = '';
+		host.style.width = '';
+		host.style.marginLeft = '';
+		host.style.marginRight = '';
+	},
+
 	/* The container outlives this view, so hand it back untouched. */
 	resetContainer: function () {
 		var host = this.contentContainer() || document.getElementById('maincontent');
-		if (host)
+		if (host) {
 			host.classList.remove('fx-wide');
+			this.clearStretch(host);
+		}
 	},
 
 	fitLayout: function () {
@@ -390,6 +458,7 @@ return view.extend({
 			return;
 
 		this.widenContainer();
+		this.stretchContainer();
 
 		/* start from the untouched geometry, so this is idempotent */
 		el.style.height = '';

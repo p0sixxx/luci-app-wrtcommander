@@ -593,6 +593,25 @@ The page also takes back the theme's 16px side gutters, down to 6px —
 width more than the margin. That rule lives inside `#maincontent.fx-wide`
 too, so the same guard that can remove the class removes this with it.
 
+Trimming the padding is not enough on its own, because a theme can leave
+the container itself narrower than the screen — a phone showed it at 77%
+of the viewport, left-aligned, with a band of empty space down the right
+side. Which property causes that varies (a `max-width`, an auto margin, a
+percentage width) and it is not something a stylesheet can anticipate, so
+`stretchContainer()` does not try to identify it. Below 900px it measures
+the container; if more than a small gutter is going spare it neutralises
+`max-width`, `width` and both margins together, measures again, and puts
+all four back unless the result is both wider than before and still fully
+on screen. A layout it does not suit therefore keeps its own geometry,
+the same contract as `.fx-wide`. Desktop is excluded outright — there the
+container is *meant* to be narrower than the window, and `.fx-wide`
+already decides how much of that to take back.
+
+The `.fx-wide` max-width rule is scoped to `min-width: 901px` for the
+same reason: below that the container should simply use the screen, and a
+cap of ours in play there would be one more thing for the measurement to
+fight.
+
 Commander conventions worth knowing:
 
 - **Cursor and selection are different things.** The cursor is the

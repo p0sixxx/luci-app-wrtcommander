@@ -64,6 +64,12 @@
  * a way this rule does not anticipate therefore just keeps its own
  * width instead of spilling off the screen.
  */
+/* Desktop only. Below the mobile breakpoint the container should simply
+   use the screen, which stretchContainer() in the view handles by
+   measurement - leaving a max-width of our own in play there would just
+   be one more thing for it to fight. */
+@media (min-width: 901px) {
+
 #maincontent.fx-wide {
 	/* Two thirds of the window: wide enough that the two panels stop
 	   feeling cramped, narrow enough that a row of file names is still a
@@ -71,6 +77,8 @@
 	   theme's own cap, so this can only ever add room, never take it
 	   away on a small screen. */
 	max-width: max(var(--proton-page-max-width, 990px), 67.5%);
+}
+
 }
 
 /* ------------------------------------------------- header (one row) */
