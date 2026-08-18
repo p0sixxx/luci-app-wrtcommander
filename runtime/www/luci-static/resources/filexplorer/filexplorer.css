@@ -50,7 +50,12 @@
  * width instead of spilling off the screen.
  */
 #maincontent.fx-wide {
-	max-width: 2400px;
+	/* Three quarters of the window: wide enough that the two panels stop
+	   feeling cramped, narrow enough that a row of file names is still a
+	   comfortable line to scan on a large display. Never below the
+	   theme's own cap, so this can only ever add room, never take it
+	   away on a small screen. */
+	max-width: max(var(--proton-page-max-width, 990px), 75%);
 }
 
 /* ------------------------------------------------- header (one row) */
@@ -95,7 +100,10 @@ h2.fx-title {
 }
 
 .fx-act-ico {
-	font-size: 1.05em;
+	/* the glyph is the label here - the wording only exists in the
+	   tooltip - so it is sized to be read at a glance rather than to
+	   match the text next to it */
+	font-size: 1.35em;
 	line-height: 1;
 }
 

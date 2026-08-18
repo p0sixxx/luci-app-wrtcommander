@@ -18,7 +18,7 @@ other one".
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│ FileXplorer │ 👁F3 ✏F4 📋F5 ➡F6 📁F7 🏷F2 🗑F8 │ 📄 ⬆ ⬇ 🔍  ⌨ ⚙ │
+│ FileXplorer │ 👁F3 📝F4 📋F5 ➡F6 📂F7 🏷F2 🗑F8 │ 📄 ⬆ ⬇ 🔍  ⌨ ⚙ │
 ├─ /etc/config ───────────────┬─ /tmp ──────────────────────┤
 │ ↑ ..                        │ ↑ ..                        │
 │ 📁 wireless        DIR      │ 📄 dhcp.leases      1.2 KiB │
@@ -376,7 +376,16 @@ actions that have no function key (New file, Upload, Download, Search),
 and finally, pushed to the right, the selection count and the two
 page-level buttons (Keyboard shortcuts, Settings). Every button carries
 a `title` and an `aria-label` with the full wording, so the icons are
-labelled for both hover and screen readers. Separators group the three
+labelled for both hover and screen readers.
+
+The glyphs were picked by rendering the candidates for each action at
+button size and comparing them, not from the code point names. Two
+results worth recording: the eye needs its `U+FE0F` variation selector
+to keep its colour while the keyboard (`U+2328`) must *not* have one or
+it renders washed out, and Upload/Download use the boxed arrows rather
+than the outbox/inbox trays - the trays are the better metaphor, but
+they differ only by the direction of a small arrow and side by side they
+read as the same icon twice. Separators group the three
 runs. Below 768 px the row wraps: the title takes a line of its own, the
 separators are hidden and the buttons share the width.
 
@@ -408,18 +417,33 @@ container keeps its own centring, padding and any sidebar offset - and
 `widenContainer()` applies the class, measures, and takes it straight
 back off if the container no longer ends inside the window.
 
-That check is not decoration. On Proton2025 `#maincontent` is a flex
-item that grows into the space the cap was holding back, so a 990 px
-column becomes the full window width (measured: 990 -> 1920 px at a
-1920 px viewport, no horizontal scroll at 1024/1280/1366/1600/1920). A
-classic sidebar theme instead combines `width: 100%` with a left margin
-for the menu, and there the same rule pushes the right edge off screen -
-so the class is reverted and that theme simply keeps its own width.
-Earlier versions tried to widen the app itself (CSS `100vw` plus a
-negative margin, then a position computed from measured geometry) and
-both shipped a layout that hung off the edge of the screen on a real
-router, which is why this one changes one property of the theme's
-container and verifies the result rather than trusting it.
+The target is `max(var(--proton-page-max-width, 990px), 75%)`: three
+quarters of the window, so the panels get real room without stretching a
+file name into an uncomfortably long line to scan, and never below the
+theme's own cap, so on a small screen this can only add room and never
+take it away. Measured on Proton2025:
+
+| viewport | before | after |
+|---------:|-------:|------:|
+| 1920 | 990 | 1440 |
+| 1600 | 990 | 1200 |
+| 1366 | 990 | 1025 |
+| 1280 | 990 | 990 |
+| 1024 | 990 | 990 |
+
+No horizontal scroll at any of those, nor at 414/360 where the header
+wraps instead.
+
+The revert check is not decoration. On Proton2025 `#maincontent` is a
+flex item that grows into the space the cap was holding back, so raising
+the cap simply works. A classic sidebar theme instead combines
+`width: 100%` with a left margin for the menu, and there the same rule
+can push the right edge off screen - so the class comes back off and that
+theme keeps its own width. Earlier versions tried to widen the app itself
+(CSS `100vw` plus a negative margin, then a position computed from
+measured geometry) and both shipped a layout that hung off the edge of
+the screen on a real router, which is why this one changes one property
+of the theme's container and verifies the result rather than trusting it.
 
 Commander conventions worth knowing:
 

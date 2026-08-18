@@ -484,16 +484,20 @@ return view.extend({
 			E('h2', { class: 'fx-title' }, _('FileXplorer')),
 			sep(),
 
-			act('\ud83d\udc41', 'F3', _('View'), function () { self.actF3(); }),
-			act('\u270f\ufe0f', 'F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
+			act('\ud83d\udc41\ufe0f', 'F3', _('View'), function () { self.actF3(); }),
+			act('\ud83d\udcdd', 'F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
 			act('\ud83d\udccb', 'F5', _('Copy'), function () { self.actF5(); }),
 			act('\u27a1\ufe0f', 'F6', _('Move'), function () { self.actF6(); }),
-			act('\ud83d\udcc1', 'F7', _('New folder'), function () { self.actF7(); }),
+			act('\ud83d\udcc2', 'F7', _('New folder'), function () { self.actF7(); }),
 			act('\ud83c\udff7\ufe0f', 'F2', _('Rename'), function () { self.actF2(); }),
 			act('\ud83d\uddd1\ufe0f', 'F8', _('Delete'), function () { self.actF8(); }, 'cbi-button-remove fx-act-danger'),
 			sep(),
 
 			act('\ud83d\udcc4', '', _('New file'), function () { self.actNewFile(); }),
+			/* boxed arrows rather than the outbox/inbox trays: the trays
+			   are the better metaphor but differ only by the direction of a
+			   small arrow, and side by side at this size they read as the
+			   same icon twice */
 			act('\u2b06\ufe0f', '', _('Upload'), function () { self.actUpload(); }),
 			act('\u2b07\ufe0f', '', _('Download'), function () { self.actDownload(); }),
 			act('\ud83d\udd0d', '', _('Search'), function () { self.actSearch(); }),
