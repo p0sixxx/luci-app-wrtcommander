@@ -34,6 +34,7 @@ var callChmod = rpc.declare({ object: 'luci.filexplorer', method: 'chmod', param
 var callChown = rpc.declare({ object: 'luci.filexplorer', method: 'chown', params: ['path', 'uid', 'gid'] });
 var callSearch = rpc.declare({ object: 'luci.filexplorer', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
 var callDiskInfo = rpc.declare({ object: 'luci.filexplorer', method: 'disk_info', params: ['path'] });
+var callDirSize = rpc.declare({ object: 'luci.filexplorer', method: 'dirsize', params: ['path'] });
 
 var LS_PREFIX = 'filexplorer.';
 
@@ -47,7 +48,7 @@ var LS_PREFIX = 'filexplorer.';
    maximums only exist so a stray drag cannot squeeze the name column
    down to nothing. */
 var COLUMNS = {
-	size: { prop: '--fx-w-size', min: 44,  max: 260 },
+	size: { prop: '--fx-w-size', min: 56,  max: 260 },
 	time: { prop: '--fx-w-time', min: 70,  max: 340 },
 	perm: { prop: '--fx-w-perm', min: 56,  max: 260 }
 };
@@ -442,6 +443,9 @@ return view.extend({
 			parent: null,
 			entries: [],
 			selected: {},
+			/* directory sizes, keyed by path, filled in only by an
+			   explicit "calculate size" - see actCalcSize() */
+			dirSizes: {},
 			cursor: 0,
 			visible: [],
 			sortKey: lsGet(id + 'SortKey', 'name'),
@@ -616,6 +620,7 @@ return view.extend({
 			p.parent = reply.parent;
 			p.entries = reply.entries;
 			p.selected = {};
+			p.dirSizes = {};
 			if (!keepCursor)
 				p.cursor = 0;
 			if (self.rememberPaths)
@@ -904,6 +909,37 @@ return view.extend({
 		var isSel = !!p.selected[entry.path];
 		var isCur = (p.cursor === idx);
 
+		/* A directory has no size of its own - the number people want is
+		   the sum of its whole subtree, which costs a full walk. So the
+		   column shows the type until someone asks for the total, and
+		   the answer replaces it once it arrives. */
+		var sizeInfo = (entry.type === 'directory') ? p.dirSizes[entry.path] : null;
+		var sizeText, sizeTitle = '';
+
+		if (entry.type !== 'directory') {
+			sizeText = fmtSize(entry.size);
+		}
+		else if (!sizeInfo) {
+			sizeText = _('DIR');
+			sizeTitle = _('Ctrl+Space calculates the size of this folder');
+		}
+		else if (sizeInfo.pending) {
+			sizeText = '…';
+			sizeTitle = _('Calculating…');
+		}
+		else if (sizeInfo.failed) {
+			sizeText = _('DIR');
+			sizeTitle = sizeInfo.failed;
+		}
+		else {
+			/* a capped walk gives a lower bound, and says so rather than
+			   presenting a partial total as the answer */
+			sizeText = (sizeInfo.truncated ? '>' : '') + fmtSize(sizeInfo.size);
+			sizeTitle = sizeInfo.truncated
+				? _('At least %s: the folder is too large to measure in full.').format(fmtSize(sizeInfo.size))
+				: N_(sizeInfo.files, '%d file', '%d files').format(sizeInfo.files);
+		}
+
 		var mark = E('span', {
 			class: 'fx-mark' + (isSel ? ' fx-mark-on' : ''),
 			title: _('Select', 'filexplorer'),
@@ -956,8 +992,10 @@ return view.extend({
 				E('span', { class: 'fx-ico' }, iconFor(entry, cls)),
 				E('span', { class: 'fx-nm' }, nameText)
 			]),
-			E('div', { class: 'fx-cell fx-c-size' },
-				entry.type === 'directory' ? _('DIR') : fmtSize(entry.size)),
+			E('div', {
+				class: 'fx-cell fx-c-size' + (sizeInfo && sizeInfo.pending ? ' fx-size-busy' : ''),
+				title: sizeTitle
+			}, sizeText),
 			E('div', { class: 'fx-cell fx-c-time' }, fmtTime(entry.mtime)),
 			E('div', { class: 'fx-cell fx-c-perm' }, entry.mode_string)
 		]);
@@ -1050,7 +1088,12 @@ return view.extend({
 				break;
 			case 'Insert':
 			case ' ':
-				if (p.visible[p.cursor]) {
+				/* Ctrl+Space is "calculate this folder's size", as in
+				   Midnight Commander; plain Space marks the row */
+				if (ev.key === ' ' && (ev.ctrlKey || ev.metaKey)) {
+					this.actCalcSize();
+				}
+				else if (p.visible[p.cursor]) {
 					this.toggleSelect(id, p.visible[p.cursor]);
 					p.cursor = Math.min(p.cursor + 1, p.visible.length - 1);
 					this.renderBody(id); this.renderFoot(id); this.renderHeader();
@@ -1172,6 +1215,14 @@ return view.extend({
 			items.push(SEP);
 		}
 
+		if (targets.some(function (t) { return t.type === 'directory'; })) {
+			items.push([_('Calculate size'), 'Ctrl+Space', function () {
+				self.setActive(id);
+				self.actCalcSize();
+			}]);
+			items.push(SEP);
+		}
+
 		if (entry) {
 			items.push([p.selected[entry.path] ? _('Unselect') : _('Select', 'filexplorer'), 'Space',
 				function () {
@@ -1282,6 +1333,57 @@ return view.extend({
 	actF8: function () {
 		var id = this.active;
 		this.deleteEntries(id, this.targetEntries(this.panes[id]));
+	},
+
+	/* Midnight Commander puts this on Ctrl+Space and so does this: it is
+	   the one action a two-pane manager needs that no toolbar button can
+	   sensibly own, because it is per-folder and takes real time. Runs
+	   over the marked folders, or the one under the cursor. */
+	actCalcSize: function () {
+		var self = this;
+		var id = this.active, p = this.panes[id];
+		var dirs = this.targetEntries(p).filter(function (e) {
+			return e.type === 'directory';
+		});
+
+		if (!dirs.length) {
+			ui.addNotification(null, E('p', {},
+				_('Select a folder to calculate its size.')), 'warning');
+			return;
+		}
+
+		dirs.forEach(function (d) { p.dirSizes[d.path] = { pending: true }; });
+		this.renderBody(id);
+
+		/* one at a time: each of these walks a subtree, and firing them
+		   all at once would have a router's rpcd running several full
+		   filesystem walks in parallel */
+		var next = function (i) {
+			if (i >= dirs.length)
+				return;
+			var d = dirs[i];
+			return callDirSize(d.path).then(function (r) {
+				if (!r || r.ok === false) {
+					p.dirSizes[d.path] = {
+						failed: errorMessage(r, _('Cannot read properties'))
+					};
+				} else {
+					p.dirSizes[d.path] = {
+						size: r.size,
+						files: r.files,
+						dirs: r.dirs,
+						truncated: !!r.truncated
+					};
+				}
+				self.renderBody(id);
+				return next(i + 1);
+			}).catch(function (err) {
+				p.dirSizes[d.path] = { failed: err.message || String(err) };
+				self.renderBody(id);
+				return next(i + 1);
+			});
+		};
+		next(0);
 	},
 
 	actNewFile: function () { this.newFile(); },
@@ -2087,6 +2189,7 @@ return view.extend({
 		group(_('Selection'));
 		row(['Insert', 'Space'], _('Select or unselect'));
 		row(['Ctrl', 'A'], _('Select all'));
+		row(['Ctrl', 'Space'], _('Calculate folder size'));
 
 		group(_('File actions'));
 		row(['F2'], _('Rename'));

@@ -1,9 +1,9 @@
 {
 	"luci-app-filexplorer-read": {
-		"description": "FileXplorer: browse, stat, preview, search, disk usage",
+		"description": "FileXplorer: browse, stat, preview, search, disk and directory usage",
 		"read": {
 			"ubus": {
-				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info" ]
+				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info", "dirsize" ]
 			},
 			"uci": [ "filexplorer" ]
 		}
@@ -49,7 +49,7 @@
 		"description": "FileXplorer: full access (menu visibility + all operations)",
 		"read": {
 			"ubus": {
-				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info" ]
+				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info", "dirsize" ]
 			},
 			"uci": [ "filexplorer" ]
 		},

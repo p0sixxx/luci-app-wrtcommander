@@ -331,7 +331,11 @@ h2.fx-title {
 	font-size: .92em;
 }
 
-.fx-c-size { flex: 0 0 var(--fx-w-size, 5.5em); }
+/* 7em, not the 5.5em this column needed when it only ever held a file
+   size or the word for "folder": a calculated directory total can reach
+   ">1023.9 KiB", measured at ~75px against the 61.6px 5.5em was giving,
+   which ellipsised the number itself. */
+.fx-c-size { flex: 0 0 var(--fx-w-size, 7em); }
 .fx-c-time { flex: 0 0 var(--fx-w-time, 10.5em); color: var(--fx-muted); }
 .fx-c-perm { flex: 0 0 var(--fx-w-perm, 6.5em); color: var(--fx-muted); }
 
@@ -375,6 +379,12 @@ h2.fx-title {
 .fx-resizing * {
 	cursor: col-resize !important;
 	user-select: none;
+}
+
+/* a size cell waiting on its walk */
+.fx-size-busy {
+	color: var(--fx-accent);
+	opacity: .8;
 }
 
 .fx-ico { flex: 0 0 auto; }
@@ -861,8 +871,9 @@ textarea.fx-editor {
 
 @media (max-width: 520px) {
 	.fx-c-time { display: none; }
-	/* wide enough for a translated "12.4 КиБ" */
-	.fx-c-size { flex-basis: 5.4em; }
+	/* wide enough for a translated ">1023.9 КиБ", the longest a
+	   calculated folder total can get */
+	.fx-c-size { flex-basis: 6.8em; }
 	.fx-search-path { display: none; }
 	/* the shortcut grid is content-width, so on a narrow screen it only
 	   needs a smaller gutter, not a different layout */

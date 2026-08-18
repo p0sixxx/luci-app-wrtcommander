@@ -35,6 +35,9 @@ msgstr ""
 msgid "Archive"
 msgstr ""
 
+msgid "At least %s: the folder is too large to measure in full."
+msgstr ""
+
 msgid "Binary"
 msgstr ""
 
@@ -42,6 +45,15 @@ msgid "Broken symlink: %s"
 msgstr ""
 
 msgid "Browse…"
+msgstr ""
+
+msgid "Calculate folder size"
+msgstr ""
+
+msgid "Calculate size"
+msgstr ""
+
+msgid "Calculating…"
 msgstr ""
 
 msgid "Cancel"
@@ -96,6 +108,9 @@ msgid "Copy \"%s\" to:"
 msgstr ""
 
 msgid "Create"
+msgstr ""
+
+msgid "Ctrl+Space calculates the size of this folder"
 msgstr ""
 
 msgid "DIR"
@@ -338,6 +353,9 @@ msgstr ""
 msgid "Searching…"
 msgstr ""
 
+msgid "Select a folder to calculate its size."
+msgstr ""
+
 msgid "Select all"
 msgstr ""
 
@@ -494,6 +512,11 @@ msgstr ""
 msgctxt "filexplorer"
 msgid "up"
 msgstr ""
+
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "%d item"
 msgid_plural "%d items"

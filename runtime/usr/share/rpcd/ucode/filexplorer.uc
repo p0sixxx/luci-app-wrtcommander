@@ -36,6 +36,8 @@ function get_config() {
 	let results = ctx.get('filexplorer', 'main', 'search_max_results');
 	let depth = ctx.get('filexplorer', 'main', 'search_max_depth');
 	let scanned = ctx.get('filexplorer', 'main', 'search_max_scanned');
+	let dsentries = ctx.get('filexplorer', 'main', 'dirsize_max_entries');
+	let dsdepth = ctx.get('filexplorer', 'main', 'dirsize_max_depth');
 	let debug = ctx.get('filexplorer', 'main', 'debug');
 
 	let root_norm = (root && root != '') ? root : '/';
@@ -51,6 +53,8 @@ function get_config() {
 		search_max_results: results ? int(results) : 500,
 		search_max_depth: depth ? int(depth) : 12,
 		search_max_scanned: scanned ? int(scanned) : 20000,
+		dirsize_max_entries: dsentries ? int(dsentries) : 50000,
+		dirsize_max_depth: dsdepth ? int(dsdepth) : 24,
 		debug: (debug == '1'),
 	};
 }
@@ -489,6 +493,85 @@ function search_walk(dir, needle, recursive, max_depth, depth, max_results, max_
 			if (lst && lst.type == 'directory')
 				search_walk(full, needle, recursive, max_depth, depth + 1, max_results, max_scanned, results, scanned, truncated);
 		}
+	}
+	dh.close();
+}
+
+/* Sum the apparent size of everything under `dir`.
+ *
+ * Three deliberate limits, because this runs on a router:
+ *
+ *   - lstat, never stat, so a symlink is counted as a link and never
+ *     followed. That rules out symlink loops and any escape from the
+ *     allowed root partway down the tree.
+ *   - directories on a different device are not descended into, the way
+ *     `du -x` behaves. Starting at / this keeps the walk out of /proc
+ *     and /sys, whose sizes are fictional and some of whose files block
+ *     when read, and stops "size of /" from silently including a mounted
+ *     USB disk. Asking for the size of the mount point itself still
+ *     works, because then that device is the one we start on.
+ *   - a hard cap on entries visited and on depth. Reaching either stops
+ *     the walk and sets truncated, so the caller can say the number is a
+ *     lower bound instead of quietly reporting a wrong total.
+ *
+ * An unreadable subdirectory is skipped rather than failing the whole
+ * walk - a non-root session will hit those, and a partial total with
+ * truncated set is more useful than an error.
+ *
+ * Apparent size, not blocks used: it has to be consistent with the size
+ * column for files, which is st.size. Hard links are therefore counted
+ * once per link rather than once per inode. */
+/* fs.lstat() reports the device as an object, { major, minor }, not as a
+   number - so comparing two of them with != compares object identity and
+   is always true. Getting this wrong is silent: every subdirectory looks
+   like a different filesystem, the walk never descends, and the reported
+   size is just the files in the top level. */
+function same_dev(a, b) {
+	if (a == null || b == null)
+		return true;
+	return (a.major == b.major && a.minor == b.minor);
+}
+
+function dirsize_walk(dir, depth, cap, total) {
+	if (cap.entries >= cap.max_entries || depth > cap.max_depth) {
+		cap.truncated = true;
+		return;
+	}
+	let dh = fs.opendir(dir);
+	if (!dh) {
+		cap.unreadable++;
+		return;
+	}
+	for (;;) {
+		if (cap.entries >= cap.max_entries) {
+			cap.truncated = true;
+			break;
+		}
+		let name = dh.read();
+		if (name == null || name == false)
+			break;
+		if (name == '.' || name == '..')
+			continue;
+		cap.entries++;
+		let st = fs.lstat(join_path(dir, name));
+		if (!st)
+			continue;
+		if (st.type == 'directory') {
+			/* cap.dev is null when the platform did not report a device
+			   number; then the caps are the only limit */
+			if (!same_dev(cap.dev, st.dev)) {
+				cap.crossed++;
+				continue;
+			}
+			total.dirs++;
+			dirsize_walk(join_path(dir, name), depth + 1, cap, total);
+		}
+		else if (st.type == 'file') {
+			total.files++;
+			total.bytes += st.size;
+		}
+		/* links, sockets, fifos and device nodes occupy no data blocks
+		   of their own, so they add nothing to the total */
 	}
 	dh.close();
 }
@@ -972,6 +1055,54 @@ return {
 
 				dbg(cfg, 'search', c.path, t0, true, sprintf('scanned=%d results=%d', scanned.n, length(results)));
 				return { ok: true, results: results, truncated: truncated.v, scanned: scanned.n };
+			}
+		},
+
+		/* On-demand only. Never called while building a listing: a
+		   directory's size is the sum of its whole subtree, so filling
+		   the column for every row would walk the entire filesystem
+		   once per visible folder. */
+		dirsize: {
+			args: { path: '/' },
+			call: function(req) {
+				let t0 = time();
+				let cfg = get_config();
+				if (!cfg.enabled)
+					return fail('EACCES', 'FileXplorer is disabled');
+				let c = canon(req.args.path, { must_exist: true, must_be_dir: true });
+				if (c.err)
+					return c.err;
+
+				let start = fs.lstat(c.path);
+				let cap = {
+					entries: 0,
+					max_entries: cfg.dirsize_max_entries,
+					max_depth: cfg.dirsize_max_depth,
+					dev: (start && start.dev != null) ? start.dev : null,
+					truncated: false,
+					crossed: 0,
+					unreadable: 0
+				};
+				let total = { bytes: 0, files: 0, dirs: 0 };
+
+				dirsize_walk(c.path, 0, cap, total);
+
+				dbg(cfg, 'dirsize', c.path, t0, true,
+					sprintf('bytes=%d files=%d dirs=%d scanned=%d truncated=%d',
+						total.bytes, total.files, total.dirs, cap.entries, cap.truncated ? 1 : 0));
+
+				return {
+					ok: true,
+					path: c.path,
+					size: total.bytes,
+					files: total.files,
+					dirs: total.dirs,
+					scanned: cap.entries,
+					/* the total is a lower bound when any of these is set */
+					truncated: cap.truncated,
+					crossed_mounts: cap.crossed,
+					unreadable: cap.unreadable
+				};
 			}
 		},
 

@@ -482,6 +482,53 @@ measured geometry) and both shipped a layout that hung off the edge of
 the screen on a real router, which is why this one changes one property
 of the theme's container and verifies the result rather than trusting it.
 
+### Directory sizes
+
+A directory has no size of its own — the number people want in that
+column is the sum of its whole subtree, and that costs a full walk of it.
+Filling the column automatically would mean walking the entire filesystem
+once per visible folder, every time a directory is listed, on a device
+with 32–128 MB of RAM and slow flash. Listing `/` would descend into
+`/proc` and `/sys`, whose sizes are fictional and some of whose files
+block when read, and into every mounted USB disk.
+
+So it works the way Midnight Commander's does: the column shows the type
+until you ask, and **Ctrl+Space** (or *Calculate size* in the context
+menu) computes it for the marked folders, or the one under the cursor.
+The answer replaces the placeholder in the column and is kept until that
+panel is reloaded. Several folders are walked one after another rather
+than at once, so a router's rpcd is never running several filesystem
+walks in parallel.
+
+The `dirsize` backend method has three limits, all deliberate:
+
+- **`lstat`, never `stat`** — a symlink is counted as a link and never
+  followed, which rules out symlink loops and any escape from the allowed
+  root partway down the tree.
+- **No crossing device boundaries**, the way `du -x` behaves — this is
+  what keeps a walk from `/` out of `/proc`, `/sys` and a mounted USB
+  disk. Asking for the size of the mount point itself still works,
+  because then that device is the one the walk starts on.
+- **Caps on entries visited and depth** (`dirsize_max_entries`,
+  `dirsize_max_depth`). Hitting either stops the walk and sets
+  `truncated`, and the column then shows `>` before the number and says
+  in its tooltip that the folder is too large to measure in full — a
+  lower bound presented as a lower bound, rather than a partial total
+  presented as the answer.
+
+An unreadable subdirectory is skipped rather than failing the whole walk,
+since a non-root session will hit those; the count comes back in
+`unreadable`. The total is apparent size, matching what the column shows
+for files, which means hard links are counted once per link.
+
+One thing worth recording, because it is invisible and was caught only by
+running the walk against a tree with known sizes: `fs.lstat()` reports
+the device as an **object**, `{ major, minor }`, not as a number.
+Comparing two of those with `!=` compares object identity and is always
+true, so the first version treated every subdirectory as a different
+filesystem, never descended, and reported the top-level files as the
+total. `tests/dirsize-tests.sh` covers it.
+
 ### Columns
 
 Size, Modified and Mode are centred in their own column, header and

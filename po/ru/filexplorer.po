@@ -495,6 +495,24 @@ msgstr "Папки всегда выше файлов, независимо от
 msgid "Wrap long lines"
 msgstr "Переносить длинные строки"
 
+msgid "At least %s: the folder is too large to measure in full."
+msgstr "Не менее %s: папка слишком велика, чтобы измерить её целиком."
+
+msgid "Calculate folder size"
+msgstr "Посчитать размер папки"
+
+msgid "Calculate size"
+msgstr "Посчитать размер"
+
+msgid "Calculating…"
+msgstr "Идёт подсчёт…"
+
+msgid "Ctrl+Space calculates the size of this folder"
+msgstr "Ctrl+Space — посчитать размер этой папки"
+
+msgid "Select a folder to calculate its size."
+msgstr "Выберите папку, чтобы посчитать её размер."
+
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] "%d объект"
@@ -542,6 +560,12 @@ msgid_plural "Uploaded %d files"
 msgstr[0] "Загружен %d файл"
 msgstr[1] "Загружено %d файла"
 msgstr[2] "Загружено %d файлов"
+
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d файл"
+msgstr[1] "%d файла"
+msgstr[2] "%d файлов"
 
 msgid "Go up one level"
 msgstr "На уровень выше"
