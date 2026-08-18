@@ -403,6 +403,31 @@ separators are hidden and the buttons share the width.
 The selection count shows only while something is actually marked - it
 counts marked entries, not the row the cursor happens to sit on.
 
+### Dialogs
+
+**Keyboard shortcuts** is a two-column grid only as wide as its content
+and centred in the dialog, with the keys right-aligned against the middle
+gutter and the descriptions starting just after it, grouped into
+Navigation / Selection / File actions. It replaced a full-width table
+with a 40% key column, which left a stripe of empty space between every
+key and the thing it does.
+
+**Settings** is deliberately short — a settings dialog is where options
+accumulate. It carries what changes how the list reads or where the
+panels start, one switch each: show hidden files, folders first, remember
+panel paths, reset column widths, and wrap long lines in the editor.
+Anything that belongs to a single file (permissions, say) lives on that
+file instead.
+
+A note on where these render: LuCI modals are appended to `<body>`, and
+so is the context menu. Both are therefore *outside* `.fx-app`, where the
+`--fx-*` tokens used to be declared — so none of them resolved. Measured
+before the fix: keycaps with no border or background, section rules 0px
+wide, muted hints rendering at full contrast, and a context menu with no
+border and square corners. The token block is now declared on `:root` as
+well, with `.fx-app` and `.fx-ctx` repeating it so a theme that scopes
+its own `--proton-*` below `:root` is still picked up locally.
+
 ### Theming
 
 The stylesheet is written against the

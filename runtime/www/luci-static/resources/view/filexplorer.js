@@ -257,11 +257,17 @@ return view.extend({
 
 		this.showHidden = lsGet('showHidden', true);
 		this.dirsFirst = lsGet('dirsFirst', true);
+		this.rememberPaths = lsGet('rememberPaths', true);
+		this.wrapEditor = lsGet('wrapEditor', true);
 		this.mobilePane = 'left';
 
+		/* with "remember panel paths" off, both panels open where they
+		   always open rather than where they were left */
 		this.panes = {
-			left: this.makePaneState('left', lsGet('leftPath', '/')),
-			right: this.makePaneState('right', lsGet('rightPath', '/etc'))
+			left: this.makePaneState('left',
+				this.rememberPaths ? lsGet('leftPath', '/') : '/'),
+			right: this.makePaneState('right',
+				this.rememberPaths ? lsGet('rightPath', '/etc') : '/etc')
 		};
 		this.active = lsGet('activePane', 'left');
 		if (this.active !== 'left' && this.active !== 'right')
@@ -612,7 +618,8 @@ return view.extend({
 			p.selected = {};
 			if (!keepCursor)
 				p.cursor = 0;
-			lsSet(id + 'Path', p.path);
+			if (self.rememberPaths)
+				lsSet(id + 'Path', p.path);
 			self.renderPane(id);
 			self.loadDisk(id);
 		}).catch(function (err) {
@@ -1729,7 +1736,13 @@ return view.extend({
 				return notifyError(r, _('Cannot open file'));
 			}
 
-			var textarea = E('textarea', { class: 'fx-editor', spellcheck: 'false' }, b64DecodeUtf8(r.data));
+			var textarea = E('textarea', {
+				class: 'fx-editor' + (self.wrapEditor ? '' : ' fx-editor-nowrap'),
+				spellcheck: 'false',
+				/* the attribute is what actually stops the browser from
+				   wrapping; the class only styles the overflow */
+				wrap: self.wrapEditor ? 'soft' : 'off'
+			}, b64DecodeUtf8(r.data));
 			var dirty = false;
 			var mtime = r.mtime, size = r.size;
 
@@ -1968,57 +1981,126 @@ return view.extend({
 
 	/* ------------------------------------------------------ settings */
 
+	/* Deliberately short. A file manager's settings dialog is where
+	   options accumulate; these are the ones that change how the list
+	   itself reads or where the panels start, and each is a single
+	   switch. Anything that belongs to one file (permissions, say) lives
+	   on that file, not here. */
 	actSettings: function () {
 		var self = this;
-		function check(label, prop, key) {
+
+		/* `redraw` is off for options that only take effect the next time
+		   something is opened, so the dialog does not repaint the panels
+		   for no reason. */
+		function check(label, hint, prop, key, redraw) {
 			var cb = E('input', { type: 'checkbox' });
 			cb.checked = self[prop];
 			cb.addEventListener('change', function () {
 				self[prop] = cb.checked;
 				lsSet(key, cb.checked);
-				self.renderBody('left');
-				self.renderBody('right');
-				self.renderFoot('left');
-				self.renderFoot('right');
+				if (redraw) {
+					self.renderBody('left');
+					self.renderBody('right');
+					self.renderFoot('left');
+					self.renderFoot('right');
+				}
 			});
-			return E('label', { class: 'fx-check-row' }, [cb, ' ', label]);
+			return E('label', { class: 'fx-set-row' }, [
+				cb,
+				E('span', { class: 'fx-set-text' }, [
+					E('span', { class: 'fx-set-label' }, label),
+					hint ? E('span', { class: 'fx-set-hint' }, hint) : ''
+				])
+			]);
+		}
+
+		function group(title, kids) {
+			return E('div', { class: 'fx-set-group' },
+				[E('div', { class: 'fx-set-group-title' }, title)].concat(kids));
 		}
 
 		ui.showModal(_('Settings'), [
-			check(_('Show hidden files'), 'showHidden', 'showHidden'),
-			check(_('Folders first'), 'dirsFirst', 'dirsFirst'),
+			E('div', { class: 'fx-settings' }, [
+				group(_('Appearance'), [
+					check(_('Show hidden files'),
+						_('Files and folders whose name starts with a dot.'),
+						'showHidden', 'showHidden', true),
+					check(_('Folders first'),
+						_('Sort folders above files, whatever the sort column.'),
+						'dirsFirst', 'dirsFirst', true)
+				]),
+				group(_('Panels'), [
+					check(_('Remember panel paths'),
+						_('Open both panels where you left them last time.'),
+						'rememberPaths', 'rememberPaths', false),
+					E('div', { class: 'fx-set-row fx-set-row-action' }, [
+						E('span', { class: 'fx-set-text' }, [
+							E('span', { class: 'fx-set-label' }, _('Column widths')),
+							E('span', { class: 'fx-set-hint' },
+								_('Drag the edge of a column header to change it.'))
+						]),
+						E('button', {
+							class: 'btn cbi-button',
+							click: function () {
+								for (var k in COLUMNS)
+									self.resetColumnWidth(k);
+							}
+						}, _('Reset', 'filexplorer'))
+					])
+				]),
+				group(_('Editor'), [
+					check(_('Wrap long lines'),
+						_('Applies the next time a file is opened for editing.'),
+						'wrapEditor', 'wrapEditor', false)
+				])
+			]),
 			E('div', { class: 'right fx-modal-actions' },
 				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))
 		]);
 	},
 
+	/* A two-column grid rather than a full-width table: the keys are
+	   right-aligned against the middle gutter and the descriptions start
+	   just after it, and the whole block is only as wide as its content
+	   and centred in the dialog. The old table stretched to the full
+	   modal width with a 40% key column, which left a stripe of empty
+	   space between every key and the thing it does. */
 	actShortcuts: function () {
-		function row(keys, what) {
-			return E('tr', { class: 'tr' }, [
-				E('td', { class: 'td fx-key-cell' },
-					keys.map(function (k) { return E('kbd', {}, k); })),
-				E('td', { class: 'td' }, what)
-			]);
+		var rows = [];
+
+		function group(title) {
+			rows.push(E('div', { class: 'fx-keys-group' }, title));
 		}
 
+		function row(keys, what) {
+			rows.push(E('div', { class: 'fx-keys-k' },
+				keys.map(function (k) { return E('kbd', {}, k); })));
+			rows.push(E('div', { class: 'fx-keys-v' }, what));
+		}
+
+		group(_('Navigation'));
+		row(['Tab'], _('Switch panel'));
+		row(['Enter'], _('Open'));
+		row(['Backspace'], _('Go up one level'));
+		row(['Ctrl', 'R'], _('Refresh the active panel'));
+
+		group(_('Selection'));
+		row(['Insert', 'Space'], _('Select or unselect'));
+		row(['Ctrl', 'A'], _('Select all'));
+
+		group(_('File actions'));
+		row(['F2'], _('Rename'));
+		row(['F3'], _('View'));
+		row(['F4'], _('Edit', 'filexplorer'));
+		row(['F5'], _('Copy'));
+		row(['F6'], _('Move'));
+		row(['F7'], _('New folder'));
+		row(['F8', 'Delete'], _('Delete'));
+		row(['Ctrl', 'S'], _('Save in the editor'));
+
 		ui.showModal(_('Keyboard shortcuts'), [
-			E('table', { class: 'table fx-keys' }, [
-				row(['Tab'], _('Switch panel')),
-				row(['Enter'], _('Open')),
-				row(['Backspace'], _('Go up one level')),
-				row(['Insert', 'Space'], _('Select or unselect')),
-				row(['Ctrl', 'A'], _('Select all')),
-				row(['Ctrl', 'R'], _('Refresh the active panel')),
-				row(['F2'], _('Rename')),
-				row(['F3'], _('View')),
-				row(['F4'], _('Edit', 'filexplorer')),
-				row(['F5'], _('Copy')),
-				row(['F6'], _('Move')),
-				row(['F7'], _('New folder')),
-				row(['F8', 'Delete'], _('Delete')),
-				row(['Ctrl', 'S'], _('Save in the editor'))
-			]),
-			E('p', { class: 'fx-help' },
+			E('div', { class: 'fx-keys' }, rows),
+			E('p', { class: 'fx-help fx-help-centred' },
 				_('Shortcuts work while the file list has focus, not while typing in a field.')),
 			E('div', { class: 'right fx-modal-actions' },
 				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))

@@ -8,11 +8,18 @@
  * palette, so the app never fights the theme it runs in.
  */
 
-/* The token block is shared by the app and by the context menu, which is
-   appended to <body> so it can escape the panels' overflow clipping and
-   therefore sits outside .fx-app. Without this the menu resolved none of
-   these variables and rendered with no border, square corners and
-   invisible separators. */
+/* The tokens are declared on :root, not only on .fx-app, because a good
+   deal of this app renders *outside* its own subtree: LuCI modals
+   (properties, permissions, editor, search, settings, shortcuts) are
+   appended to <body>, and so is the context menu, which has to escape
+   the panels' overflow clipping. Scoped to .fx-app they resolved to
+   nothing out there - measured: keycaps with no border or background,
+   section rules 0px wide, muted hints rendering at full contrast.
+
+   .fx-app and .fx-ctx repeat the block so that a theme which scopes its
+   own --proton-* variables below :root is still picked up locally. Where
+   both apply the more specific one wins, which is the wanted order. */
+:root,
 .fx-app,
 .fx-ctx {
 	--fx-surface: var(--proton-bg-tertiary, rgba(128, 128, 128, .04));
@@ -557,16 +564,110 @@ h2.fx-title {
 	cursor: pointer;
 }
 
+.fx-editor-nowrap {
+	/* the textarea's wrap="off" stops the wrapping; this makes the
+	   overflow scrollable instead of clipped */
+	white-space: pre;
+	overflow-x: auto;
+}
+
 .fx-help {
 	margin-top: 1em;
 	font-size: .88em;
 	color: var(--fx-muted);
 }
 
-/* keyboard shortcut table */
+/* ------------------------------------------------ settings dialog */
 
-.fx-keys { width: 100%; }
-.fx-key-cell { width: 40%; white-space: nowrap; }
+.fx-settings {
+	display: flex;
+	flex-direction: column;
+	gap: 1.4em;
+}
+
+.fx-set-group-title {
+	margin-bottom: .5em;
+	padding-bottom: .35em;
+	border-bottom: 1px solid var(--fx-border-soft);
+	font-size: .82em;
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--fx-muted);
+}
+
+/* each option is one row: control on the left, name above its one-line
+   explanation on the right, so the dialog can be read down the labels
+   without the hints getting in the way */
+.fx-set-row {
+	display: flex;
+	align-items: flex-start;
+	gap: .7em;
+	padding: .5em 0;
+	cursor: pointer;
+}
+
+.fx-set-row input[type="checkbox"] {
+	flex: 0 0 auto;
+	margin-top: .15em;
+}
+
+.fx-set-text {
+	display: flex;
+	flex-direction: column;
+	gap: .15em;
+	min-width: 0;
+}
+
+.fx-set-hint {
+	font-size: .84em;
+	color: var(--fx-muted);
+}
+
+/* the one row whose control is a button rather than a checkbox */
+.fx-set-row-action {
+	align-items: center;
+	cursor: default;
+}
+
+.fx-set-row-action .fx-set-text { flex: 1 1 auto; }
+
+/* --------------------------------------------- keyboard shortcuts */
+
+/* Two columns only as wide as their content, centred in the dialog, with
+   the keys ending and the descriptions starting at the same gutter. */
+.fx-keys {
+	display: grid;
+	grid-template-columns: auto auto;
+	align-items: baseline;
+	gap: .45em 1.4em;
+	width: max-content;
+	max-width: 100%;
+	margin: .3em auto 0;
+}
+
+.fx-keys-k {
+	justify-self: end;
+	white-space: nowrap;
+}
+
+.fx-keys-v { justify-self: start; }
+
+.fx-keys-group {
+	grid-column: 1 / -1;
+	margin-top: .9em;
+	padding-bottom: .3em;
+	border-bottom: 1px solid var(--fx-border-soft);
+	font-size: .82em;
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--fx-muted);
+}
+
+.fx-keys-group:first-child { margin-top: 0; }
+
+.fx-help-centred { text-align: center; }
 
 .fx-keys kbd {
 	display: inline-block;
@@ -763,5 +864,7 @@ textarea.fx-editor {
 	/* wide enough for a translated "12.4 КиБ" */
 	.fx-c-size { flex-basis: 5.4em; }
 	.fx-search-path { display: none; }
-	.fx-key-cell { width: 50%; }
+	/* the shortcut grid is content-width, so on a narrow screen it only
+	   needs a smaller gutter, not a different layout */
+	.fx-keys { gap: .4em .8em; }
 }

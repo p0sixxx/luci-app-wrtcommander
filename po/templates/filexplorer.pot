@@ -23,6 +23,12 @@ msgstr ""
 msgid "Accessed"
 msgstr ""
 
+msgid "Appearance"
+msgstr ""
+
+msgid "Applies the next time a file is opened for editing."
+msgstr ""
+
 msgid "Apply"
 msgstr ""
 
@@ -74,6 +80,9 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
+msgid "Column widths"
+msgstr ""
+
 msgid "Confirm delete"
 msgstr ""
 
@@ -122,7 +131,13 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
+msgid "Drag the edge of a column header to change it."
+msgstr ""
+
 msgid "Drag to resize, double-click to reset"
+msgstr ""
+
+msgid "Editor"
 msgstr ""
 
 msgid "Execute"
@@ -134,6 +149,9 @@ msgstr ""
 msgid "File %d of %d"
 msgstr ""
 
+msgid "File actions"
+msgstr ""
+
 msgid "File changed on disk"
 msgstr ""
 
@@ -141,6 +159,9 @@ msgid "File created"
 msgstr ""
 
 msgid "FileXplorer"
+msgstr ""
+
+msgid "Files and folders whose name starts with a dot."
 msgstr ""
 
 msgid "Filesystem"
@@ -209,6 +230,9 @@ msgstr ""
 msgid "Name is too long"
 msgstr ""
 
+msgid "Navigation"
+msgstr ""
+
 msgid "New file"
 msgstr ""
 
@@ -224,6 +248,9 @@ msgstr ""
 msgid "Open"
 msgstr ""
 
+msgid "Open both panels where you left them last time."
+msgstr ""
+
 msgid "Operation failed"
 msgstr ""
 
@@ -234,6 +261,9 @@ msgid "Overwrite"
 msgstr ""
 
 msgid "Owner"
+msgstr ""
+
+msgid "Panels"
 msgstr ""
 
 msgid "Part of a file name"
@@ -264,6 +294,9 @@ msgid "Refresh"
 msgstr ""
 
 msgid "Refresh the active panel"
+msgstr ""
+
+msgid "Remember panel paths"
 msgstr ""
 
 msgid "Rename"
@@ -323,6 +356,9 @@ msgstr ""
 msgid "Select this folder"
 msgstr ""
 
+msgid "Selection"
+msgstr ""
+
 msgid "Settings"
 msgstr ""
 
@@ -336,6 +372,9 @@ msgid "Size"
 msgstr ""
 
 msgid "Socket"
+msgstr ""
+
+msgid "Sort folders above files, whatever the sort column."
 msgstr ""
 
 msgid "Switch panel"
@@ -410,6 +449,9 @@ msgstr ""
 msgid "WARNING: this includes a core system path. Deleting it can break the router."
 msgstr ""
 
+msgid "Wrap long lines"
+msgstr ""
+
 msgid "Write"
 msgstr ""
 
@@ -439,6 +481,10 @@ msgstr ""
 
 msgctxt "filexplorer"
 msgid "Mode"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "Reset"
 msgstr ""
 
 msgctxt "filexplorer"

@@ -447,6 +447,54 @@ msgstr "вверх"
 msgid "…and %d more"
 msgstr "…и ещё %d"
 
+msgid "Appearance"
+msgstr "Внешний вид"
+
+msgid "Applies the next time a file is opened for editing."
+msgstr "Применится при следующем открытии файла на правку."
+
+msgid "Column widths"
+msgstr "Ширина столбцов"
+
+msgid "Drag the edge of a column header to change it."
+msgstr "Потяните за край заголовка столбца, чтобы изменить её."
+
+msgid "Editor"
+msgstr "Редактор"
+
+msgid "File actions"
+msgstr "Действия с файлами"
+
+msgid "Files and folders whose name starts with a dot."
+msgstr "Файлы и папки, имя которых начинается с точки."
+
+msgid "Navigation"
+msgstr "Навигация"
+
+msgid "Open both panels where you left them last time."
+msgstr "Открывать обе панели там, где вы их оставили."
+
+msgid "Panels"
+msgstr "Панели"
+
+msgid "Remember panel paths"
+msgstr "Запоминать пути панелей"
+
+#. Own context: luci-base also ships "Reset", worded differently, and all
+#. .lmo catalogues for a language share one flat key space in the browser.
+msgctxt "filexplorer"
+msgid "Reset"
+msgstr "Сбросить"
+
+msgid "Selection"
+msgstr "Выделение"
+
+msgid "Sort folders above files, whatever the sort column."
+msgstr "Папки всегда выше файлов, независимо от столбца сортировки."
+
+msgid "Wrap long lines"
+msgstr "Переносить длинные строки"
+
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] "%d объект"
