@@ -18,7 +18,7 @@ other one".
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│ FileXplorer │ 👁F3 📝F4 📋F5 ➡F6 📂F7 🏷F2 🗑F8 │ 📄 ⬆ ⬇ 🔍  ⌨ ⚙ │
+│ FileXplorer │ 👁F3 📝F4 📋F5 ➡F6 📂F7 🏷F2 🗑F8 │ 📄 ⬍⬍ 🔍  ⌨ ⚙ │
 ├─ /etc/config ───────────────┬─ /tmp ──────────────────────┤
 │ ↑ ..                        │ ↑ ..                        │
 │ 📁 wireless        DIR      │ 📄 dhcp.leases      1.2 KiB │
@@ -364,8 +364,9 @@ Each line records method, path, duration and success/failure -
 ## UI notes
 
 The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
-`dom`, `rpc`, `E()`), plain Unicode glyphs for icons (no icon library),
-and a companion stylesheet (`filexplorer.css`).
+`dom`, `rpc`, `E()`), Unicode glyphs for icons plus one drawn pair of
+inline SVG paths (no icon library), and a companion stylesheet
+(`filexplorer.css`).
 
 Layout, top to bottom: a single header row, then the two panels.
 
@@ -381,11 +382,21 @@ labelled for both hover and screen readers.
 The glyphs were picked by rendering the candidates for each action at
 button size and comparing them, not from the code point names. Two
 results worth recording: the eye needs its `U+FE0F` variation selector
-to keep its colour while the keyboard (`U+2328`) must *not* have one or
-it renders washed out, and Upload/Download use the boxed arrows rather
-than the outbox/inbox trays - the trays are the better metaphor, but
-they differ only by the direction of a small arrow and side by side they
-read as the same icon twice. Separators group the three
+to keep its colour, while the keyboard (`U+2328`) must *not* have one or
+it renders washed out.
+
+Upload and Download are the exception, and the one pair that has to read
+as a matched set - the same tray with the arrow mirrored. No emoji pair
+does that: the outbox/inbox trays (`U+1F4E4`/`U+1F4E5`) differ only by
+the direction of a small arrow and side by side read as the same icon
+twice, and the boxed arrows (`U+2B06`/`U+2B07`) are a matched pair but
+the only flat tiles in a row of pictograms. So those two are drawn
+instead, by `trayIcon()` in the view - inline SVG, no icon library, one
+shared tray path and a mirrored arrow. The strokes use `currentColor`
+with the arrow in `--fx-accent`, so both themes are handled without a
+second palette. The SVG is sized `1em` *inside* `.fx-act-ico`, which is
+already `1.35em`: sizing it in `em` again there compounds the two and
+leaves those two buttons taller than the rest of the row. Separators group the three
 runs. Below 768 px the row wraps: the title takes a line of its own, the
 separators are hidden and the buttons share the width.
 

@@ -449,6 +449,44 @@ return view.extend({
 	},
 
 	/* page heading + the actions that are not per-file */
+	/* Upload and download are the one pair in the header that has to read
+	   as a matched set: same tray, arrow mirrored. No emoji pair does
+	   that - the outbox/inbox trays differ only by a small arrow and read
+	   as the same icon twice - so these two are drawn instead. Inline
+	   markup, no icon library, and the strokes take the button's own
+	   colour so both themes are handled without a second palette. */
+	trayIcon: function (dir) {
+		var NS = 'http://www.w3.org/2000/svg';
+		var svg = document.createElementNS(NS, 'svg');
+
+		svg.setAttribute('viewBox', '0 0 24 24');
+		svg.setAttribute('class', 'fx-act-svg');
+		svg.setAttribute('aria-hidden', 'true');
+		svg.setAttribute('focusable', 'false');
+
+		var up = (dir === 'up');
+		var paths = [
+			/* the tray, identical for both */
+			'M4.75 15.25v2.25a2.5 2.5 0 0 0 2.5 2.5h9.5a2.5 2.5 0 0 0 2.5-2.5v-2.25',
+			/* shaft */
+			up ? 'M12 15.5V4.25' : 'M12 4.25V15.5',
+			/* head */
+			up ? 'M7.75 8.5 12 4.25l4.25 4.25' : 'M7.75 11.25 12 15.5l4.25-4.25'
+		];
+
+		for (var i = 0; i < paths.length; i++) {
+			var el = document.createElementNS(NS, 'path');
+			el.setAttribute('d', paths[i]);
+			/* the arrow is the part that carries the meaning, so it is the
+			   part that gets the accent colour */
+			if (i > 0)
+				el.setAttribute('class', 'fx-act-svg-arrow');
+			svg.appendChild(el);
+		}
+
+		return svg;
+	},
+
 	renderHeader: function () {
 		var self = this;
 		var p = this.activePane();
@@ -494,12 +532,8 @@ return view.extend({
 			sep(),
 
 			act('\ud83d\udcc4', '', _('New file'), function () { self.actNewFile(); }),
-			/* boxed arrows rather than the outbox/inbox trays: the trays
-			   are the better metaphor but differ only by the direction of a
-			   small arrow, and side by side at this size they read as the
-			   same icon twice */
-			act('\u2b06\ufe0f', '', _('Upload'), function () { self.actUpload(); }),
-			act('\u2b07\ufe0f', '', _('Download'), function () { self.actDownload(); }),
+			act(self.trayIcon('up'), '', _('Upload'), function () { self.actUpload(); }),
+			act(self.trayIcon('down'), '', _('Download'), function () { self.actDownload(); }),
 			act('\ud83d\udd0d', '', _('Search'), function () { self.actSearch(); }),
 
 			E('span', { class: 'fx-fn-spacer' }),

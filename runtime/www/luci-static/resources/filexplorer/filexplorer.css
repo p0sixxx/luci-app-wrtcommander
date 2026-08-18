@@ -107,6 +107,31 @@ h2.fx-title {
 	line-height: 1;
 }
 
+/* the drawn upload/download pair: sized to sit level with the emoji
+   glyphs next to it, stroked in the button's own colour so it follows
+   light and dark without a second palette */
+.fx-act-svg {
+	display: block;
+	/* 1em of .fx-act-ico, which is already 1.35em - sizing it in em again
+	   here would compound the two and leave these two buttons taller than
+	   the rest of the row */
+	width: 1em;
+	height: 1em;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: .85;
+}
+
+.fx-act-svg-arrow {
+	stroke: var(--fx-accent);
+	stroke-width: 2.4;
+}
+
+.fx-act:hover .fx-act-svg { opacity: 1; }
+
 .fx-act-key {
 	font-family: monospace;
 	font-size: .72em;
