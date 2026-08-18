@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Manager - restart.sh
+# Proton File Explorer - restart.sh
 #
 # Reloads exactly what is needed to pick up updated files after a
 # re-copy during development: rpcd (ACL + ucode backend) and LuCI's
@@ -16,7 +16,7 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-UCODE_SRC="/usr/share/rpcd/ucode/filemanager.uc"
+UCODE_SRC="/usr/share/rpcd/ucode/filexplorer.uc"
 if command -v ucode >/dev/null 2>&1 && [ -f "$UCODE_SRC" ]; then
 	echo "Checking backend syntax..."
 	if ! ucode "$UCODE_SRC" >/tmp/proton-fm-ucode-check.log 2>&1; then
@@ -41,10 +41,10 @@ else
 fi
 
 sleep 1
-if ubus list 2>/dev/null | grep -qx 'luci.filemanager'; then
-	echo "luci.filemanager is registered on ubus."
+if ubus list 2>/dev/null | grep -qx 'luci.filexplorer'; then
+	echo "luci.filexplorer is registered on ubus."
 else
-	echo "WARNING: luci.filemanager is not registered. Check: logread | grep rpcd" >&2
+	echo "WARNING: luci.filexplorer is not registered. Check: logread | grep rpcd" >&2
 fi
 
-echo "Done. Reload the File Manager page in your browser (hard-refresh if JS/CSS look stale)."
+echo "Done. Reload the File Explorer page in your browser (hard-refresh if JS/CSS look stale)."

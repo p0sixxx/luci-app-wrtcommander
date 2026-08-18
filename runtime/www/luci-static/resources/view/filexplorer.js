@@ -5,32 +5,32 @@
 'require dom';
 
 /* ==================================================================
- * Proton File Manager - LuCI JS view
+ * Proton File Explorer - LuCI JS view
  *
- * Talks to the "luci.filemanager" ubus object for every filesystem
- * operation (see /usr/share/rpcd/ucode/filemanager.uc) and to two
+ * Talks to the "luci.filexplorer" ubus object for every filesystem
+ * operation (see /usr/share/rpcd/ucode/filexplorer.uc) and to two
  * plain HTTP endpoints on the Lua controller for streaming upload
- * and download (see /usr/lib/lua/luci/controller/filemanager.lua).
+ * and download (see /usr/lib/lua/luci/controller/filexplorer.lua).
  *
  * The backend is the sole security boundary: every call below is a
  * convenience for the user, never the reason an operation is allowed.
  * Hiding a button here is UX, not access control.
  * ================================================================ */
 
-var callList = rpc.declare({ object: 'luci.filemanager', method: 'list', params: ['path', 'show_hidden'] });
-var callStat = rpc.declare({ object: 'luci.filemanager', method: 'stat', params: ['path'] });
-var callRead = rpc.declare({ object: 'luci.filemanager', method: 'read', params: ['path', 'mode'] });
-var callWrite = rpc.declare({ object: 'luci.filemanager', method: 'write', params: ['path', 'data', 'encoding', 'expected_mtime', 'expected_size', 'force'] });
-var callMkdir = rpc.declare({ object: 'luci.filemanager', method: 'mkdir', params: ['path'] });
-var callCreate = rpc.declare({ object: 'luci.filemanager', method: 'create', params: ['path'] });
-var callRename = rpc.declare({ object: 'luci.filemanager', method: 'rename', params: ['path', 'name'] });
-var callRemove = rpc.declare({ object: 'luci.filemanager', method: 'remove', params: ['paths'] });
-var callCopy = rpc.declare({ object: 'luci.filemanager', method: 'copy', params: ['items', 'destination', 'overwrite'] });
-var callMove = rpc.declare({ object: 'luci.filemanager', method: 'move', params: ['items', 'destination', 'overwrite'] });
-var callChmod = rpc.declare({ object: 'luci.filemanager', method: 'chmod', params: ['path', 'mode'] });
-var callChown = rpc.declare({ object: 'luci.filemanager', method: 'chown', params: ['path', 'uid', 'gid'] });
-var callSearch = rpc.declare({ object: 'luci.filemanager', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
-var callDiskInfo = rpc.declare({ object: 'luci.filemanager', method: 'disk_info', params: ['path'] });
+var callList = rpc.declare({ object: 'luci.filexplorer', method: 'list', params: ['path', 'show_hidden'] });
+var callStat = rpc.declare({ object: 'luci.filexplorer', method: 'stat', params: ['path'] });
+var callRead = rpc.declare({ object: 'luci.filexplorer', method: 'read', params: ['path', 'mode'] });
+var callWrite = rpc.declare({ object: 'luci.filexplorer', method: 'write', params: ['path', 'data', 'encoding', 'expected_mtime', 'expected_size', 'force'] });
+var callMkdir = rpc.declare({ object: 'luci.filexplorer', method: 'mkdir', params: ['path'] });
+var callCreate = rpc.declare({ object: 'luci.filexplorer', method: 'create', params: ['path'] });
+var callRename = rpc.declare({ object: 'luci.filexplorer', method: 'rename', params: ['path', 'name'] });
+var callRemove = rpc.declare({ object: 'luci.filexplorer', method: 'remove', params: ['paths'] });
+var callCopy = rpc.declare({ object: 'luci.filexplorer', method: 'copy', params: ['items', 'destination', 'overwrite'] });
+var callMove = rpc.declare({ object: 'luci.filexplorer', method: 'move', params: ['items', 'destination', 'overwrite'] });
+var callChmod = rpc.declare({ object: 'luci.filexplorer', method: 'chmod', params: ['path', 'mode'] });
+var callChown = rpc.declare({ object: 'luci.filexplorer', method: 'chown', params: ['path', 'uid', 'gid'] });
+var callSearch = rpc.declare({ object: 'luci.filexplorer', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
+var callDiskInfo = rpc.declare({ object: 'luci.filexplorer', method: 'disk_info', params: ['path'] });
 
 var LS_PREFIX = 'protonfm.';
 
@@ -257,7 +257,7 @@ return view.extend({
 		var link = E('link', {
 			id: 'proton-fm-css',
 			rel: 'stylesheet',
-			href: L.resource('filemanager/filemanager.css')
+			href: L.resource('filexplorer/filexplorer.css')
 		});
 		document.head.appendChild(link);
 	},
@@ -1098,7 +1098,7 @@ return view.extend({
 	/* -------------------------------------------------------------- download */
 
 	downloadUrl: function (path) {
-		return L.url('admin', 'system', 'filemanager', 'download') + '?path=' + encodeURIComponent(path);
+		return L.url('admin', 'system', 'filexplorer', 'download') + '?path=' + encodeURIComponent(path);
 	},
 
 	actionDownload: function (entry) {
@@ -1162,7 +1162,7 @@ return view.extend({
 			fd.append('file', file, file.name);
 
 			xhr = new XMLHttpRequest();
-			xhr.open('POST', L.url('admin', 'system', 'filemanager', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=0');
+			xhr.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=0');
 			xhr.upload.addEventListener('progress', function (ev) {
 				if (ev.lengthComputable)
 					fill.style.width = Math.round((ev.loaded / ev.total) * 100) + '%';
@@ -1179,7 +1179,7 @@ return view.extend({
 						var fd2 = new FormData();
 						fd2.append('file', file, file.name);
 						var x2 = new XMLHttpRequest();
-						x2.open('POST', L.url('admin', 'system', 'filemanager', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=1');
+						x2.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=1');
 						x2.onload = function () { idx++; uploadNext(); };
 						x2.onerror = function () { idx++; uploadNext(); };
 						x2.send(fd2);

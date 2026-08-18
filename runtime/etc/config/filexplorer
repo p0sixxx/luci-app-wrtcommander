@@ -1,5 +1,5 @@
 
-config filemanager 'main'
+config filexplorer 'main'
 	option enabled '1'
 	option allowed_root '/'
 	option show_hidden '1'

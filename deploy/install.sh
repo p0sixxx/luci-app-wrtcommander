@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Manager - install.sh
+# Proton File Explorer - install.sh
 #
 # Copies the files listed in deploy/MANIFEST onto a running OpenWrt
 # router and reloads exactly the services needed to pick them up
@@ -9,7 +9,7 @@
 # Usage (run ON the router, as root):
 #   sh install.sh [--force-config]
 #
-# --force-config   also overwrite an existing /etc/config/filemanager
+# --force-config   also overwrite an existing /etc/config/filexplorer
 #                   (by default an existing config is left untouched)
 
 set -e
@@ -26,7 +26,7 @@ for arg in "$@"; do
 	esac
 done
 
-echo "== Proton File Manager installer =="
+echo "== Proton File Explorer installer =="
 
 if [ "$(id -u)" != "0" ]; then
 	echo "ERROR: this must be run as root on the router." >&2
@@ -62,9 +62,9 @@ if [ ! -f "$MANIFEST" ]; then
 fi
 
 echo "Validating ucode backend syntax..."
-UCODE_SRC="${RUNTIME_DIR}/usr/share/rpcd/ucode/filemanager.uc"
+UCODE_SRC="${RUNTIME_DIR}/usr/share/rpcd/ucode/filexplorer.uc"
 if ! ucode "$UCODE_SRC" >/tmp/proton-fm-ucode-check.log 2>&1; then
-	echo "ERROR: filemanager.uc failed to parse - aborting before touching the live install:" >&2
+	echo "ERROR: filexplorer.uc failed to parse - aborting before touching the live install:" >&2
 	cat /tmp/proton-fm-ucode-check.log >&2
 	rm -f /tmp/proton-fm-ucode-check.log
 	exit 1
@@ -81,7 +81,7 @@ while IFS= read -r line; do
 	dst=$(echo "$line" | awk '{print $2}')
 	[ -n "$src" ] && [ -n "$dst" ] || continue
 
-	if [ "$dst" = "/etc/config/filemanager" ] && [ -f "$dst" ] && [ "$FORCE_CONFIG" != "1" ]; then
+	if [ "$dst" = "/etc/config/filexplorer" ] && [ -f "$dst" ] && [ "$FORCE_CONFIG" != "1" ]; then
 		echo "  skip    $dst (already exists - keeping your configuration, use --force-config to overwrite)"
 		continue
 	fi
@@ -103,15 +103,15 @@ fi
 
 sleep 1
 echo "Verifying the backend is registered on ubus..."
-if ubus list 2>/dev/null | grep -qx 'luci.filemanager'; then
-	echo "  luci.filemanager is registered."
+if ubus list 2>/dev/null | grep -qx 'luci.filexplorer'; then
+	echo "  luci.filexplorer is registered."
 else
-	echo "WARNING: luci.filemanager was not found on ubus after reload." >&2
-	echo "         Try: /etc/init.d/rpcd restart ; ubus list | grep filemanager" >&2
+	echo "WARNING: luci.filexplorer was not found on ubus after reload." >&2
+	echo "         Try: /etc/init.d/rpcd restart ; ubus list | grep filexplorer" >&2
 	echo "         Check: logread | grep rpcd" >&2
 fi
 
 echo
-echo "Proton File Manager installed successfully."
-echo "Open LuCI -> System -> File Manager in your browser."
+echo "Proton File Explorer installed successfully."
+echo "Open LuCI -> System -> File Explorer in your browser."
 echo "(If the menu entry is missing, log out and back in, or hard-refresh the page.)"

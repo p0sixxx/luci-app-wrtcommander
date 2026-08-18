@@ -1,0 +1,13 @@
+{
+	"admin/system/filexplorer": {
+		"title": "File Explorer",
+		"order": 45,
+		"action": {
+			"type": "view",
+			"path": "filexplorer"
+		},
+		"depends": {
+			"acl": [ "luci-app-filexplorer" ]
+		}
+	}
+}

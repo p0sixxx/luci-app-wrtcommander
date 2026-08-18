@@ -1,6 +1,6 @@
-# Proton File Manager
+# Proton File Explorer
 
-A native, admin-grade file manager for LuCI on OpenWrt. **This is the
+A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
 runtime/development edition** described in the project brief: a
 complete, working application you copy onto a running OpenWrt 25.12.x
 router and use immediately, with no package manager, no `.ipk`, and no
@@ -40,15 +40,15 @@ except `ucode`/`rpcd-mod-ucode` if your image is unusually minimal.
 ## Architecture
 
 ```
-LuCI JS view (www/luci-static/resources/view/filemanager.js)
+LuCI JS view (www/luci-static/resources/view/filexplorer.js)
         |
-        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/filemanager.uc
-        |     (list, stat, read, write,        "luci.filemanager" ubus object
+        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/filexplorer.uc
+        |     (list, stat, read, write,        "luci.filexplorer" ubus object
         |      mkdir, create, rename,           - every method funnels through
         |      remove, copy, move, chmod,         canon() before touching the
         |      chown, search, disk_info)          filesystem (see below)
         |
-        `-- plain HTTP  ------------------->  usr/lib/lua/luci/controller/filemanager.lua
+        `-- plain HTTP  ------------------->  usr/lib/lua/luci/controller/filexplorer.lua
               (GET .../download?path=...        streamed upload/download only -
                POST .../upload?dest=...)         arbitrarily large files never
                                                   go through JSON/ubus
@@ -103,11 +103,11 @@ README.md   this file
 
 ```sh
 # from your workstation
-scp -r runtime deploy root@ROUTER:/tmp/proton-filemanager/
+scp -r runtime deploy root@ROUTER:/tmp/proton-filexplorer/
 ssh root@ROUTER
 
 # on the router
-cd /tmp/proton-filemanager/deploy
+cd /tmp/proton-filexplorer/deploy
 sh install.sh
 ```
 
@@ -117,27 +117,27 @@ sh install.sh
 2. checks this is actually an OpenWrt system with `ubus`, `rpcd`,
    `ucode` and LuCI present, and warns (but doesn't abort) if
    `luci-lua-runtime` is missing
-3. parses the ucode backend with `ucode filemanager.uc` and aborts
+3. parses the ucode backend with `ucode filexplorer.uc` and aborts
    *before touching the live install* if it fails to parse
 4. copies every file listed in `deploy/MANIFEST` to its absolute
-   destination, leaving an existing `/etc/config/filemanager` alone
+   destination, leaving an existing `/etc/config/filexplorer` alone
    unless you pass `--force-config`
 5. reloads `rpcd` (picks up the new ACL file and ucode plugin) and
    clears LuCI's dispatch index cache
-6. verifies `luci.filemanager` is actually registered on `ubus list`
+6. verifies `luci.filexplorer` is actually registered on `ubus list`
    and reports clearly if it isn't
 
 It deliberately never restarts `uhttpd` - static files and the Lua
 controller are picked up on the next request with no restart needed.
 
-Open **LuCI -> System -> File Manager**.
+Open **LuCI -> System -> File Explorer**.
 
 ### Re-deploying after a change
 
 Edit files under `runtime/`, `scp` the changed one(s) over, then:
 
 ```sh
-sh /tmp/proton-filemanager/deploy/restart.sh
+sh /tmp/proton-filexplorer/deploy/restart.sh
 ```
 
 This re-validates the ucode syntax, reloads `rpcd`, and clears the
@@ -146,8 +146,8 @@ index cache - the fast inner loop for iterating on the app.
 ### Uninstalling
 
 ```sh
-sh /tmp/proton-filemanager/deploy/uninstall.sh          # keeps your config
-sh /tmp/proton-filemanager/deploy/uninstall.sh --purge   # also removes it
+sh /tmp/proton-filexplorer/deploy/uninstall.sh          # keeps your config
+sh /tmp/proton-filexplorer/deploy/uninstall.sh --purge   # also removes it
 ```
 
 `uninstall.sh` only ever touches the exact absolute paths listed in
@@ -158,11 +158,11 @@ OpenWrt files by construction.
 ## Testing
 
 ```sh
-cd /tmp/proton-filemanager/tests
+cd /tmp/proton-filexplorer/tests
 sh run-all.sh
 ```
 
-This builds a disposable test tree at `/tmp/proton-filemanager-test/`
+This builds a disposable test tree at `/tmp/proton-filexplorer-test/`
 (Unicode names, spaces, hidden files, a large file, symlinks including
 a deliberately broken one) and runs, in order:
 
@@ -198,7 +198,7 @@ definition - the read-only-filesystem case against `/rom` is the
 realistic "write denied" scenario for a privileged whole-filesystem
 tool like this one).
 
-## Backend API (`luci.filemanager` ubus object)
+## Backend API (`luci.filexplorer` ubus object)
 
 | Method | Purpose |
 |---|---|
@@ -222,15 +222,15 @@ partially succeed.
 
 ## ACL
 
-`usr/share/rpcd/acl.d/luci-app-filemanager.json` defines separate
-scopes - `luci-app-filemanager-read`, `-write`, `-delete`, `-chmod`,
-`-chown` - plus `luci-app-filemanager`, which is what the menu entry
+`usr/share/rpcd/acl.d/luci-app-filexplorer.json` defines separate
+scopes - `luci-app-filexplorer-read`, `-write`, `-delete`, `-chmod`,
+`-chown` - plus `luci-app-filexplorer`, which is what the menu entry
 and a full-access admin session need. Root/admin LuCI sessions get
 every scope automatically (stock OpenWrt's default `root` login grants
 `read '*'` / `write '*'`); a restricted, non-root LuCI user only gets
 what you explicitly assign in `/etc/config/rpcd`. Upload and download
 are gated in the Lua controller itself, by asking rpcd whether the
-current session has `ubus`/`luci.filemanager`/`list` (read) or `write`
+current session has `ubus`/`luci.filexplorer`/`list` (read) or `write`
 access before touching the filesystem - never by hiding the button.
 
 ## Security model
@@ -256,8 +256,8 @@ canon()                 the ONE path validation layer:
 POSIX filesystem call    (ucode fs module / Lua io+nixio - never a shell)
 ```
 
-No filesystem-affecting method in `filemanager.uc`, and no HTTP action
-in `filemanager.lua`, touches a path it did not get back from this
+No filesystem-affecting method in `filexplorer.uc`, and no HTTP action
+in `filexplorer.lua`, touches a path it did not get back from this
 function. Concretely, this is what's covered by `security-tests.sh`:
 
 - `../`, `../../`, deep `../../../` traversal
@@ -285,10 +285,10 @@ producing a corrupt or misleading copy; `disk_info` uses `df`, never a
 recursive `du`; directory listings never compute recursive directory
 size.
 
-## Configuration (`/etc/config/filemanager`)
+## Configuration (`/etc/config/filexplorer`)
 
 ```
-config filemanager 'main'
+config filexplorer 'main'
 	option enabled '1'
 	option allowed_root '/'
 	option show_hidden '1'
@@ -308,10 +308,10 @@ only reflects whatever `list`/`stat` tell it.
 ### Debug mode
 
 ```sh
-uci set filemanager.main.debug='1'
-uci commit filemanager
+uci set filexplorer.main.debug='1'
+uci commit filexplorer
 sh deploy/restart.sh
-tail -f /tmp/filemanager-debug.log
+tail -f /tmp/filexplorer-debug.log
 ```
 
 Each line records method, path, duration and success/failure -
@@ -319,9 +319,9 @@ Each line records method, path, duration and success/failure -
 
 ## UI notes
 
-The JS view (`filemanager.js`) uses only LuCI's own framework (`ui`,
+The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
 `dom`, `rpc`, `E()`), plain Unicode glyphs for icons (no icon library),
-and a small companion stylesheet (`filemanager.css`) that reflows into
+and a small companion stylesheet (`filexplorer.css`) that reflows into
 a compact card layout under 720px and inherits the active LuCI theme's
 colors instead of hardcoding a light or dark palette. Sort order,
 hidden-file visibility and "directories first" are remembered in
@@ -371,7 +371,7 @@ rules regardless of what the UI shows or hides.
    with exactly this reuse in mind).
 2. Declare real `DEPENDS` (`rpcd`, `rpcd-mod-ucode`, `ucode`, `uhttpd`,
    `luci-base`, `luci-lua-runtime`).
-3. Move `/etc/config/filemanager` under `define Package/conffiles` so
+3. Move `/etc/config/filexplorer` under `define Package/conffiles` so
    opkg treats it as user configuration across upgrades.
 4. Add `postinst`/`prerm` scripts that do what `install.sh`/
    `uninstall.sh` already do (reload `rpcd`, clear the index cache),

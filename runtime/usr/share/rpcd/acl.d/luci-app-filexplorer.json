@@ -1,0 +1,63 @@
+{
+	"luci-app-filexplorer-read": {
+		"description": "Proton File Explorer: browse, stat, preview, search, disk usage",
+		"read": {
+			"ubus": {
+				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info" ]
+			},
+			"uci": [ "filexplorer" ]
+		}
+	},
+
+	"luci-app-filexplorer-write": {
+		"description": "Proton File Explorer: create, edit, rename, copy, move",
+		"write": {
+			"ubus": {
+				"luci.filexplorer": [ "mkdir", "create", "rename", "write", "copy", "move" ]
+			}
+		}
+	},
+
+	"luci-app-filexplorer-delete": {
+		"description": "Proton File Explorer: delete files and directories",
+		"write": {
+			"ubus": {
+				"luci.filexplorer": [ "remove" ]
+			}
+		}
+	},
+
+	"luci-app-filexplorer-chmod": {
+		"description": "Proton File Explorer: change permissions",
+		"write": {
+			"ubus": {
+				"luci.filexplorer": [ "chmod" ]
+			}
+		}
+	},
+
+	"luci-app-filexplorer-chown": {
+		"description": "Proton File Explorer: change owner/group",
+		"write": {
+			"ubus": {
+				"luci.filexplorer": [ "chown" ]
+			}
+		}
+	},
+
+	"luci-app-filexplorer": {
+		"description": "Proton File Explorer: full access (menu visibility + all operations)",
+		"read": {
+			"ubus": {
+				"luci.filexplorer": [ "list", "stat", "read", "search", "disk_info" ]
+			},
+			"uci": [ "filexplorer" ]
+		},
+		"write": {
+			"ubus": {
+				"luci.filexplorer": [ "mkdir", "create", "rename", "write", "copy", "move", "remove", "chmod", "chown" ]
+			},
+			"uci": [ "filexplorer" ]
+		}
+	}
+}

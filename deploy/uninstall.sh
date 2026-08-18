@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Manager - uninstall.sh
+# Proton File Explorer - uninstall.sh
 #
 # Removes exactly the files listed in deploy/MANIFEST - nothing else.
 # Never touches anything outside that fixed list, so it can never
@@ -8,7 +8,7 @@
 # Usage (run ON the router, as root):
 #   sh uninstall.sh [--purge]
 #
-# --purge   also remove /etc/config/filemanager (kept by default in
+# --purge   also remove /etc/config/filexplorer (kept by default in
 #            case you want to reinstall later with the same settings)
 
 set -e
@@ -24,7 +24,7 @@ for arg in "$@"; do
 	esac
 done
 
-echo "== Proton File Manager uninstaller =="
+echo "== Proton File Explorer uninstaller =="
 
 if [ "$(id -u)" != "0" ]; then
 	echo "ERROR: this must be run as root on the router." >&2
@@ -43,7 +43,7 @@ while IFS= read -r line; do
 	dst=$(echo "$line" | awk '{print $2}')
 	[ -n "$dst" ] || continue
 
-	if [ "$dst" = "/etc/config/filemanager" ] && [ "$PURGE" != "1" ]; then
+	if [ "$dst" = "/etc/config/filexplorer" ] && [ "$PURGE" != "1" ]; then
 		echo "  keep    $dst (use --purge to remove configuration too)"
 		continue
 	fi
@@ -56,7 +56,7 @@ while IFS= read -r line; do
 	fi
 done < "$MANIFEST"
 
-rm -f /tmp/filemanager-debug.log 2>/dev/null || true
+rm -f /tmp/filexplorer-debug.log 2>/dev/null || true
 
 echo "Reloading rpcd and clearing the LuCI index cache..."
 rm -f /tmp/luci-indexcache* 2>/dev/null || true
@@ -66,7 +66,7 @@ if [ -x /etc/init.d/rpcd ]; then
 fi
 
 echo
-echo "Proton File Manager has been uninstalled."
+echo "Proton File Explorer has been uninstalled."
 if [ "$PURGE" != "1" ]; then
-	echo "Configuration kept at /etc/config/filemanager - remove manually or re-run with --purge."
+	echo "Configuration kept at /etc/config/filexplorer - remove manually or re-run with --purge."
 fi

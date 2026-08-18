@@ -1,5 +1,5 @@
 #!/bin/sh
-# Functional filesystem tests against the "luci.filemanager" ubus
+# Functional filesystem tests against the "luci.filexplorer" ubus
 # object: create, mkdir, list, stat, read, write, rename, copy, move,
 # delete, chmod - plus unicode, spaces, hidden files, long names and
 # symlinks. Run make-testfs.sh first.
@@ -33,7 +33,7 @@ STAT_BROKEN="$(ubus_call stat "{\"path\":\"$TESTFS/broken-symlink\"}")"
 echo "$STAT_BROKEN" | grep -q '"broken": *true' && { echo "PASS: broken symlink flagged as broken"; PASS=$((PASS+1)); } \
 	|| { echo "FAIL: broken symlink not flagged"; FAIL=$((FAIL+1)); }
 
-expect_ok   "stat long file name"             "$(ubus_call stat "{\"path\":\"$TESTFS/this-is-a-deliberately-very-long-file-name-used-to-exercise-long-name-handling-in-the-listing-and-rename-dialogs-of-proton-file-manager.txt\"}")"
+expect_ok   "stat long file name"             "$(ubus_call stat "{\"path\":\"$TESTFS/this-is-a-deliberately-very-long-file-name-used-to-exercise-long-name-handling-in-the-listing-and-rename-dialogs-of-proton-file-explorer.txt\"}")"
 
 # create / mkdir
 expect_ok   "create new empty file"           "$(ubus_call create "{\"path\":\"$TESTFS/created.txt\"}")"

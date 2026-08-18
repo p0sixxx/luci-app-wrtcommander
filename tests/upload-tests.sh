@@ -25,7 +25,7 @@ curl -s -c "$COOKIEJAR" \
 grep -q sysauth "$COOKIEJAR" 2>/dev/null \
 	|| echo "WARNING: could not confirm a session cookie was obtained - tests below may fail with 403." >&2
 
-UPLOAD_URL="${ROUTER_URL}/cgi-bin/luci/admin/system/filemanager/upload"
+UPLOAD_URL="${ROUTER_URL}/cgi-bin/luci/admin/system/filexplorer/upload"
 DEST_ENC=$(printf '%s' "$TESTFS/uploads" | sed 's/ /%20/g')
 mkdir -p "$TESTFS/uploads"
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the full Proton File Manager on-router test suite in order.
+# Runs the full Proton File Explorer on-router test suite in order.
 # Run this ON the router, as root, after deploy/install.sh.
 #
 #   sh run-all.sh
@@ -25,11 +25,11 @@ run_stage() {
 	fi
 }
 
-echo "Proton File Manager - full on-router test suite"
+echo "Proton File Explorer - full on-router test suite"
 echo "Checking prerequisites..."
 command -v ubus >/dev/null 2>&1 || { echo "ERROR: ubus not found - run this on the router after install.sh" >&2; exit 1; }
-ubus list 2>/dev/null | grep -qx 'luci.filemanager' || {
-	echo "ERROR: luci.filemanager is not registered on ubus. Run deploy/install.sh (or restart.sh) first." >&2
+ubus list 2>/dev/null | grep -qx 'luci.filexplorer' || {
+	echo "ERROR: luci.filexplorer is not registered on ubus. Run deploy/install.sh (or restart.sh) first." >&2
 	exit 1
 }
 

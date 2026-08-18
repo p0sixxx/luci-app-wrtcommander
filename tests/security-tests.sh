@@ -15,18 +15,18 @@
 echo "== Security tests (path traversal / symlink escape) =="
 echo "Temporarily restricting allowed_root to $TESTFS for this run..."
 
-ORIG_ROOT=$(uci -q get filemanager.main.allowed_root)
+ORIG_ROOT=$(uci -q get filexplorer.main.allowed_root)
 [ -z "$ORIG_ROOT" ] && ORIG_ROOT="/"
 
 restore() {
-	uci set filemanager.main.allowed_root="$ORIG_ROOT"
-	uci commit filemanager
+	uci set filexplorer.main.allowed_root="$ORIG_ROOT"
+	uci commit filexplorer
 	/etc/init.d/rpcd reload >/dev/null 2>&1 || /etc/init.d/rpcd restart >/dev/null 2>&1
 }
 trap restore EXIT INT TERM
 
-uci set filemanager.main.allowed_root="$TESTFS"
-uci commit filemanager
+uci set filexplorer.main.allowed_root="$TESTFS"
+uci commit filexplorer
 /etc/init.d/rpcd reload >/dev/null 2>&1 || /etc/init.d/rpcd restart >/dev/null 2>&1
 sleep 1
 
@@ -80,6 +80,6 @@ expect_fail "reject chmod outside the root" \
 # (which "ubus call" builds its JSON from) are themselves NUL-terminated
 # C strings, so there is no way to smuggle a literal NUL byte through
 # the ubus CLI to begin with. The backend still guards against one
-# arriving via a raw ubus/JSON-RPC client (see canon() in filemanager.uc).
+# arriving via a raw ubus/JSON-RPC client (see canon() in filexplorer.uc).
 
 summary
