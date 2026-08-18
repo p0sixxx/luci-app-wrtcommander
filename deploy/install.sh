@@ -111,6 +111,18 @@ else
 	echo "         Check: logread | grep rpcd" >&2
 fi
 
+if [ -f /usr/lib/lua/luci/i18n/filexplorer.ru.lmo ]; then
+	echo "Russian translation installed."
+	echo "  LuCI shows it when its language is Russian or set to auto with a"
+	echo "  Russian browser: System -> System -> Language, or"
+	echo "  uci set luci.main.lang=ru; uci commit luci"
+	if [ ! -f /usr/lib/lua/luci/i18n/base.ru.lmo ]; then
+		echo "WARNING: LuCI's own Russian catalog (base.ru.lmo) is not installed," >&2
+		echo "         so most of the surrounding interface stays English." >&2
+		echo "         Install 'luci-i18n-base-ru' for a fully Russian LuCI." >&2
+	fi
+fi
+
 echo
 echo "FileXplorer installed successfully."
 echo "Open LuCI -> System -> FileXplorer in your browser."

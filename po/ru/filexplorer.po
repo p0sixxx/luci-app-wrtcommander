@@ -1,0 +1,472 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: luci-app-filexplorer\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "%d B"
+msgstr "%d Б"
+
+msgid "%s GiB"
+msgstr "%s ГиБ"
+
+msgid "%s KiB"
+msgstr "%s КиБ"
+
+msgid "%s MiB"
+msgstr "%s МиБ"
+
+msgid "%s free of %s"
+msgstr "свободно %s из %s"
+
+msgid "Accessed"
+msgstr "Последний доступ"
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "Archive"
+msgstr "Архив"
+
+msgid "Binary"
+msgstr "Двоичный"
+
+msgid "Broken symlink: %s"
+msgstr "Битая ссылка: %s"
+
+msgid "Browse…"
+msgstr "Обзор…"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Cannot change permissions"
+msgstr "Не удалось изменить права"
+
+msgid "Cannot create file"
+msgstr "Не удалось создать файл"
+
+msgid "Cannot create folder"
+msgstr "Не удалось создать папку"
+
+msgid "Cannot open directory"
+msgstr "Не удалось открыть каталог"
+
+msgid "Cannot open file"
+msgstr "Не удалось открыть файл"
+
+msgid "Cannot read permissions"
+msgstr "Не удалось прочитать права"
+
+msgid "Cannot read properties"
+msgstr "Не удалось прочитать свойства"
+
+msgid "Cannot rename"
+msgstr "Не удалось переименовать"
+
+msgid "Cannot save file"
+msgstr "Не удалось сохранить файл"
+
+msgid "Changed"
+msgstr "Изменение метаданных"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Confirm delete"
+msgstr "Подтверждение удаления"
+
+msgid "Copied"
+msgstr "Скопировано"
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Copy \"%s\" to:"
+msgstr "Копировать «%s» в:"
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Ctrl+R — refresh the active panel"
+msgstr "Ctrl+R — обновить активную панель"
+
+msgid "DIR"
+msgstr "ПАПКА"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Delete \"%s\"?"
+msgstr "Удалить «%s»?"
+
+msgid "Delete failed"
+msgstr "Не удалось удалить"
+
+msgid "Delete folder \"%s\" and all of its contents?"
+msgstr "Удалить папку «%s» вместе со всем содержимым?"
+
+msgid "Deleted"
+msgstr "Удалено"
+
+msgid "Destination: %s"
+msgstr "Куда: %s"
+
+msgid "Device"
+msgstr "Устройство"
+
+msgid "Directory"
+msgstr "Каталог"
+
+msgid "Discard"
+msgstr "Не сохранять"
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "Edit"
+msgstr "Правка"
+
+msgid "Enter — open, Backspace — go up"
+msgstr "Enter — открыть, Backspace — на уровень выше"
+
+msgid "Execute"
+msgstr "Выполнение"
+
+msgid "F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete"
+msgstr "F2 переименовать, F3 просмотр, F4 правка, F5 копировать, F6 переместить, F7 новая папка, F8 удалить"
+
+msgid "FIFO"
+msgstr "Канал FIFO"
+
+msgid "File %d of %d"
+msgstr "Файл %d из %d"
+
+msgid "File changed on disk"
+msgstr "Файл изменился на диске"
+
+msgid "File created"
+msgstr "Файл создан"
+
+msgid "Filesystem"
+msgstr "Файловая система"
+
+msgid "First part"
+msgstr "Начало файла"
+
+msgid "Folder created"
+msgstr "Папка создана"
+
+msgid "Folders first"
+msgstr "Папки в начале"
+
+msgid "Group"
+msgstr "Группа"
+
+msgid "Group ID"
+msgstr "ID группы"
+
+msgid "Image"
+msgstr "Изображение"
+
+msgid "Insert or Space — select, Ctrl+A — select all"
+msgstr "Insert или Пробел — отметить, Ctrl+A — отметить всё"
+
+msgid "Invalid name"
+msgstr "Недопустимое имя"
+
+msgid "Items already exist"
+msgstr "Объекты уже существуют"
+
+msgid "Keep editing"
+msgstr "Вернуться к правке"
+
+msgid "Keyboard shortcuts"
+msgstr "Горячие клавиши"
+
+msgid "Last part"
+msgstr "Конец файла"
+
+msgid "Left panel"
+msgstr "Левая панель"
+
+msgid "Loading…"
+msgstr "Загрузка…"
+
+msgid "Modified"
+msgstr "Изменён"
+
+msgid "Move"
+msgstr "Переместить"
+
+msgid "Move \"%s\" to:"
+msgstr "Переместить «%s» в:"
+
+msgid "Moved"
+msgstr "Перемещено"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Name cannot be empty"
+msgstr "Имя не может быть пустым"
+
+msgid "Name cannot contain a slash"
+msgstr "Имя не может содержать косую черту"
+
+msgid "Name is too long"
+msgstr "Имя слишком длинное"
+
+msgid "New file"
+msgstr "Новый файл"
+
+msgid "New folder"
+msgstr "Новая папка"
+
+msgid "No subdirectories"
+msgstr "Вложенных папок нет"
+
+msgid "Nothing found"
+msgstr "Ничего не найдено"
+
+msgid "Open"
+msgstr "Открыть"
+
+msgid "Operation failed"
+msgstr "Операция не выполнена"
+
+msgid "Others"
+msgstr "Остальные"
+
+msgid "Overwrite"
+msgstr "Перезаписать"
+
+msgid "Owner"
+msgstr "Владелец"
+
+msgid "Part of a file name"
+msgstr "Часть имени файла"
+
+msgid "Path"
+msgstr "Путь"
+
+msgid "Permissions"
+msgstr "Права доступа"
+
+msgid "Permissions updated"
+msgstr "Права обновлены"
+
+msgid "Press Ctrl+S to save."
+msgstr "Ctrl+S — сохранить."
+
+msgid "Preview truncated, the file is %s."
+msgstr "Показана только часть файла, его размер %s."
+
+msgid "Properties"
+msgstr "Свойства"
+
+msgid "Read"
+msgstr "Чтение"
+
+msgid "Refresh"
+msgstr "Обновить"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+msgid "Renamed"
+msgstr "Переименовано"
+
+msgid "Request failed: %s"
+msgstr "Сбой запроса: %s"
+
+msgid "Right panel"
+msgstr "Правая панель"
+
+msgid "Root directory"
+msgstr "Корневой каталог"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Saved"
+msgstr "Сохранено"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "Search failed"
+msgstr "Поиск не выполнен"
+
+msgid "Search inside subfolders"
+msgstr "Искать во вложенных папках"
+
+msgid "Searching in: %s"
+msgstr "Поиск в: %s"
+
+msgid "Searching…"
+msgstr "Идёт поиск…"
+
+msgid "Select"
+msgstr "Отметить"
+
+msgid "Select destination"
+msgstr "Выбор папки назначения"
+
+msgid "Select exactly one file to download."
+msgstr "Для скачивания выберите ровно один файл."
+
+msgid "Select exactly one item to rename."
+msgstr "Для переименования выберите ровно один объект."
+
+msgid "Select this folder"
+msgstr "Выбрать эту папку"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Show hidden files"
+msgstr "Показывать скрытые файлы"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Socket"
+msgstr "Сокет"
+
+msgid "Symlink"
+msgstr "Символьная ссылка"
+
+msgid "Symlink target"
+msgstr "Цель ссылки"
+
+msgid "Tab — switch panel"
+msgstr "Tab — переключить панель"
+
+msgid "Text"
+msgstr "Текст"
+
+msgid "The file is too large to edit. Download it instead."
+msgstr "Файл слишком большой для редактирования. Скачайте его."
+
+msgid "The file is too large to show in full."
+msgstr "Файл слишком большой, чтобы показать его целиком."
+
+msgid "This action cannot be undone."
+msgstr "Это действие нельзя отменить."
+
+msgid "This directory is empty"
+msgstr "Каталог пуст"
+
+msgid "This does not look like a text file."
+msgstr "Это не похоже на текстовый файл."
+
+msgid "This file was modified by something else after you opened it. Overwrite those changes?"
+msgstr "После открытия файл изменил кто-то ещё. Перезаписать эти изменения?"
+
+msgid "This is a binary file and cannot be shown as text."
+msgstr "Это двоичный файл, показать его как текст нельзя."
+
+msgid "Too many matches, only the first %d are shown."
+msgstr "Слишком много совпадений, показаны только первые %d."
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Type a path and press Enter"
+msgstr "Введите путь и нажмите Enter"
+
+msgid "Unknown error"
+msgstr "Неизвестная ошибка"
+
+msgid "Unsaved changes"
+msgstr "Несохранённые изменения"
+
+msgid "Up one level"
+msgstr "На уровень выше"
+
+msgid "Upload"
+msgstr "Загрузить"
+
+msgid "Upload failed"
+msgstr "Не удалось загрузить"
+
+msgid "Uploading"
+msgstr "Загрузка на роутер"
+
+msgid "User ID"
+msgstr "ID пользователя"
+
+msgid "View"
+msgstr "Просмотр"
+
+msgid "WARNING: this includes a core system path. Deleting it can break the router."
+msgstr "ВНИМАНИЕ: среди выбранного есть системный путь. Его удаление может нарушить работу роутера."
+
+msgid "Write"
+msgstr "Запись"
+
+msgid "You have unsaved changes. Discard them?"
+msgstr "Есть несохранённые изменения. Отбросить их?"
+
+msgid "broken"
+msgstr "битая"
+
+msgid "failed"
+msgstr "ошибка"
+
+msgid "up"
+msgstr "вверх"
+
+msgid "…and %d more"
+msgstr "…и ещё %d"
+
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] "%d объект"
+msgstr[1] "%d объекта"
+msgstr[2] "%d объектов"
+
+msgid "%d item already exists at the destination. Overwrite it?"
+msgid_plural "%d items already exist at the destination. Overwrite them?"
+msgstr[0] "%d объект уже существует в папке назначения. Перезаписать его?"
+msgstr[1] "%d объекта уже существуют в папке назначения. Перезаписать их?"
+msgstr[2] "%d объектов уже существуют в папке назначения. Перезаписать их?"
+
+msgid "%d item selected"
+msgid_plural "%d items selected"
+msgstr[0] "отмечен %d объект"
+msgstr[1] "отмечено %d объекта"
+msgstr[2] "отмечено %d объектов"
+
+msgid "%d selected"
+msgid_plural "%d selected"
+msgstr[0] "%d отмечен"
+msgstr[1] "%d отмечено"
+msgstr[2] "%d отмечено"
+
+msgid "Copy %d item to:"
+msgid_plural "Copy %d items to:"
+msgstr[0] "Копировать %d объект в:"
+msgstr[1] "Копировать %d объекта в:"
+msgstr[2] "Копировать %d объектов в:"
+
+msgid "Delete %d selected item?"
+msgid_plural "Delete %d selected items?"
+msgstr[0] "Удалить %d отмеченный объект?"
+msgstr[1] "Удалить %d отмеченных объекта?"
+msgstr[2] "Удалить %d отмеченных объектов?"
+
+msgid "Move %d item to:"
+msgid_plural "Move %d items to:"
+msgstr[0] "Переместить %d объект в:"
+msgstr[1] "Переместить %d объекта в:"
+msgstr[2] "Переместить %d объектов в:"
+
+msgid "Uploaded %d file"
+msgid_plural "Uploaded %d files"
+msgstr[0] "Загружен %d файл"
+msgstr[1] "Загружено %d файла"
+msgstr[2] "Загружено %d файлов"

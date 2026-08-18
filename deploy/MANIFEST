@@ -16,3 +16,4 @@ usr/share/luci/menu.d/luci-app-filexplorer.json              /usr/share/luci/men
 usr/lib/lua/luci/controller/filexplorer.lua                 /usr/lib/lua/luci/controller/filexplorer.lua
 www/luci-static/resources/view/filexplorer.js                /www/luci-static/resources/view/filexplorer.js
 www/luci-static/resources/filexplorer/filexplorer.css        /www/luci-static/resources/filexplorer/filexplorer.css
+usr/lib/lua/luci/i18n/filexplorer.ru.lmo                     /usr/lib/lua/luci/i18n/filexplorer.ru.lmo

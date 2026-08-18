@@ -11,16 +11,48 @@ next stage, once this has been exercised on real hardware.
 
 ## What it is
 
-- Full filesystem browser: navigate, list, sort, hidden files, breadcrumbs
-- Create / rename / delete / copy / move, single or multi-select
+A **two-pane commander**, the layout Norton/Midnight/Total Commander made
+standard: two independent directory panels side by side, one of them
+active, and every operation defaulting to "from the active panel to the
+other one".
+
+```
+┌─ /etc/config ───────────────┬─ /tmp ──────────────────────┐
+│ ↑ ..                        │ ↑ ..                        │
+│ 📁 wireless        DIR      │ 📄 dhcp.leases      1.2 KiB │
+│ 📄 network      2.1 KiB     │ 📄 log              4.0 KiB │
+│ ■ 📄 firewall   1.8 KiB     │ 📁 run              DIR     │
+├─────────────────────────────┼─────────────────────────────┤
+│ 1 item selected · 1.8 KiB   │ 12 items                    │
+│              4.2 MiB free   │             28.1 MiB free   │
+├─────────────────────────────┴─────────────────────────────┤
+│ F3 View  F4 Edit  F5 Copy  F6 Move  F7 New folder  F8 Del │
+└───────────────────────────────────────────────────────────┘
+```
+
+- Two panels with independent path, sorting and selection; **Tab**
+  switches, the active one is outlined
+- **F5 Copy / F6 Move default to the other panel's directory** — the
+  reason two panels are worth having
+- Full keyboard control: arrows, PageUp/Down, Home/End, Enter to open,
+  Backspace to go up, Insert/Space to mark, Ctrl+A, Ctrl+R
+- Function-key bar that is also clickable, so nothing depends on having
+  a keyboard
+- Per-panel status line: item count, selected size, free space on that
+  filesystem
+- Create / rename / delete / copy / move, one item or many
 - Streamed HTTP upload and download (never base64-through-JSON)
-- Text preview and editor with atomic save and conflict detection
+- Text viewer and editor with atomic save and conflict detection
 - Permissions (chmod) and owner/group (chown) editing
-- Filename search, current-directory or recursive, with result caps
-- Disk usage / mount info for the current directory
+- Filename search, current directory or recursive, with result caps
+- **English and Russian**, through LuCI's normal gettext/`.lmo` pipeline
 - A single, mandatory path-validation layer shared by every operation,
   written to resist `../` traversal, encoded traversal, and symlink
   escape (see **Security model** below)
+
+On a phone the two panels do not fit, so below 900px the app shows one
+panel at a time with a switcher. The panel *model* is unchanged, so
+"copy to the other panel" still means exactly what it means on desktop.
 
 ## Requirements
 
@@ -96,6 +128,7 @@ copy-to-target app this is that adaptation.
 ```
 runtime/    exactly what gets copied onto the router (see deploy/MANIFEST)
 deploy/     install.sh / uninstall.sh / restart.sh / MANIFEST
+po/         translations: .pot template, .po sources, build/verify tooling
 tests/      on-router test suite (functional, security, upload,
             download, editor) + test filesystem generator
 README.md   this file
@@ -323,15 +356,47 @@ Each line records method, path, duration and success/failure -
 
 The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
 `dom`, `rpc`, `E()`), plain Unicode glyphs for icons (no icon library),
-and a small companion stylesheet (`filexplorer.css`) that reflows into
-a compact card layout under 720px and inherits the active LuCI theme's
-colors instead of hardcoding a light or dark palette. Sort order,
-hidden-file visibility and "directories first" are remembered in
-`localStorage`. Every destructive multi-select action shows a
-confirmation with an extra, more visible warning when a core system
-path (`/etc`, `/overlay`, `/rom`, `/usr`, `/lib`, `/bin`, `/sbin`,
-`/boot`) is involved - a UX nudge only; the backend enforces the real
-rules regardless of what the UI shows or hides.
+and a companion stylesheet (`filexplorer.css`) that inherits the active
+LuCI theme's colors instead of hardcoding a light or dark palette.
+
+Commander conventions worth knowing:
+
+- **Cursor and selection are different things.** The cursor is the
+  outlined row you move with the arrow keys; selection is what you mark
+  with Insert/Space or the `□` box. An action with nothing marked
+  applies to the row under the cursor, which is what makes single-file
+  work fast.
+- Panel paths, sort order, active panel, hidden-file visibility and
+  "folders first" all persist in `localStorage`.
+- Destructive actions list exactly which paths they will touch, and add
+  a louder warning when a core system path (`/etc`, `/overlay`, `/rom`,
+  `/usr`, `/lib`, `/bin`, `/sbin`, `/boot`, `/www`) is among them - a UX
+  nudge only; the backend enforces the real rules regardless of what the
+  UI shows or hides.
+
+## Languages
+
+The interface is fully translated into **English and Russian** using
+LuCI's standard gettext pipeline, so it follows whatever language LuCI
+itself is set to:
+
+```sh
+uci set luci.main.lang=ru
+uci commit luci
+```
+
+or **System → System → Language**. With `lang=auto` LuCI follows the
+browser's `Accept-Language`.
+
+The compiled catalog installs to
+`/usr/lib/lua/luci/i18n/filexplorer.ru.lmo`. Note that this translates
+*FileXplorer*; for the surrounding LuCI chrome to be Russian too you
+need LuCI's own catalog (`luci-i18n-base-ru`) — `install.sh` warns if
+it is missing.
+
+Sources, tooling and instructions for adding a language live in
+[`po/README.md`](po/README.md). Russian uses proper three-form plurals
+(`1 объект / 2 объекта / 5 объектов`) via `N_()`.
 
 ## Known limitations (first stage)
 
@@ -355,14 +420,22 @@ rules regardless of what the UI shows or hides.
   which is the primary defense against accidental double-submission,
   but a handful of buttons don't yet disable themselves while their
   request is in flight.
-- **Free-space preflight check only for single-file copies** -
-  computing it for a directory would require a recursive size scan,
-  which is explicitly avoided elsewhere in this app for the same
-  performance reason (§9/§39 of the brief); `ENOSPC` still surfaces
-  correctly if it happens mid-copy, and any partially-written target
-  file is cleaned up.
+- **No free-space preflight before a copy.** Knowing in advance whether
+  a copy fits would need a recursive size scan of the source, which is
+  exactly the kind of scan this app avoids everywhere else for
+  performance on slow flash. Instead `ENOSPC` is surfaced as a clear
+  "No space left on device" when it happens, and the partially written
+  target file is deleted rather than left behind.
 - **Binary detection is a NUL-byte heuristic** (the same class of
   check `git` uses), not a full content-type sniff.
+- **Some function keys are also browser shortcuts.** The view calls
+  `preventDefault()` on the keys it handles, so F3/F5/F7 do not trigger
+  find/reload/caret-browsing while the file list has focus - but every
+  F-key action is also a clickable button, so nothing depends on the
+  browser cooperating.
+- **Translations are shipped pre-compiled.** `.lmo` is a binary format
+  built by LuCI's `po2lmo`; editing a `.po` here has no effect until the
+  catalog is rebuilt (see `po/README.md`).
 - Not yet exercised on real OpenWrt 25.12.x hardware in this session -
   see **Testing** and **Next step** below.
 
@@ -378,6 +451,12 @@ rules regardless of what the UI shows or hides.
 4. Add `postinst`/`prerm` scripts that do what `install.sh`/
    `uninstall.sh` already do (reload `rpcd`, clear the index cache),
    minus the manual-copy-specific bits.
-5. Build and test the `.ipk` with the OpenWrt SDK, then run this same
+5. Drop the committed `.lmo` and let the build produce it instead:
+   including `$(TOPDIR)/feeds/luci/luci.mk` makes `luci.mk` compile
+   `po/<lang>/*.po` and emit `luci-i18n-filexplorer-<lang>` subpackages
+   automatically, which is the normal way translations ship. The
+   `po/` layout here already matches what `luci.mk` expects, so this
+   step should be a deletion rather than a rewrite.
+6. Build and test the `.ipk` with the OpenWrt SDK, then run this same
    `tests/` suite against a router that installed it via `opkg`
    instead of `scp`.

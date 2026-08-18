@@ -5,7 +5,7 @@
 'require dom';
 
 /* ==================================================================
- * FileXplorer - LuCI JS view
+ * FileXplorer - LuCI JS view (two-pane commander)
  *
  * Talks to the "luci.filexplorer" ubus object for every filesystem
  * operation (see /usr/share/rpcd/ucode/filexplorer.uc) and to two
@@ -15,6 +15,9 @@
  * The backend is the sole security boundary: every call below is a
  * convenience for the user, never the reason an operation is allowed.
  * Hiding a button here is UX, not access control.
+ *
+ * All user-visible strings go through _() / N_() so they can be
+ * translated from po/*.po (see po/README.md).
  * ================================================================ */
 
 var callList = rpc.declare({ object: 'luci.filexplorer', method: 'list', params: ['path', 'show_hidden'] });
@@ -57,21 +60,24 @@ function fmtSize(n) {
 	if (n === null || n === undefined)
 		return '—';
 	if (n < 1024)
-		return n + ' B';
-	var units = ['KiB', 'MiB', 'GiB', 'TiB'];
-	var v = n;
-	for (var i = 0; i < units.length; i++) {
-		v = v / 1024;
-		if (v < 1024 || i === units.length - 1)
-			return v.toFixed(v < 10 ? 2 : (v < 100 ? 1 : 0)) + ' ' + units[i];
-	}
+		return _('%d B').format(n);
+	var v = n / 1024;
+	if (v < 1024)
+		return _('%s KiB').format(v.toFixed(v < 10 ? 1 : 0));
+	v = v / 1024;
+	if (v < 1024)
+		return _('%s MiB').format(v.toFixed(v < 10 ? 2 : 1));
+	v = v / 1024;
+	return _('%s GiB').format(v.toFixed(2));
 }
 
 function fmtTime(sec) {
 	if (!sec)
 		return '—';
 	var d = new Date(sec * 1000);
-	return d.toLocaleString();
+	var p = function (x) { return (x < 10 ? '0' : '') + x; };
+	return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+		' ' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
 
 function b64EncodeUtf8(str) {
@@ -95,11 +101,6 @@ function dirName(p) {
 	return (idx <= 0) ? '/' : p.substring(0, idx);
 }
 
-function baseName(p) {
-	var idx = p.lastIndexOf('/');
-	return idx < 0 ? p : p.substring(idx + 1);
-}
-
 var TEXT_EXT = ['txt', 'conf', 'cfg', 'ini', 'json', 'xml', 'html', 'htm', 'css', 'js', 'lua', 'uc', 'sh', 'log', 'uci', 'md', 'yml', 'yaml', 'csv', 'crontab', 'hosts'];
 var IMAGE_EXT = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'];
 var ARCHIVE_EXT = ['tar', 'gz', 'tgz', 'bz2', 'xz', 'zip', 'ipk', 'apk', '7z', 'rar'];
@@ -109,18 +110,33 @@ function extOf(name) {
 	return (idx <= 0) ? '' : name.substring(idx + 1).toLowerCase();
 }
 
+/* Returns a stable, untranslated type key; label it with typeLabel(). */
 function classify(entry) {
-	if (entry.type === 'directory') return 'Directory';
-	if (entry.type === 'link') return 'Symlink';
-	if (entry.type === 'char' || entry.type === 'block') return 'Device';
-	if (entry.type === 'fifo') return 'FIFO';
-	if (entry.type === 'socket') return 'Socket';
+	if (entry.type === 'directory') return 'directory';
+	if (entry.type === 'link') return 'symlink';
+	if (entry.type === 'char' || entry.type === 'block') return 'device';
+	if (entry.type === 'fifo') return 'fifo';
+	if (entry.type === 'socket') return 'socket';
 	var ext = extOf(entry.name);
-	if (IMAGE_EXT.indexOf(ext) >= 0) return 'Image';
-	if (ARCHIVE_EXT.indexOf(ext) >= 0) return 'Archive';
-	if (TEXT_EXT.indexOf(ext) >= 0) return 'Text';
-	if (entry.size === 0) return 'Text';
-	return 'Binary';
+	if (IMAGE_EXT.indexOf(ext) >= 0) return 'image';
+	if (ARCHIVE_EXT.indexOf(ext) >= 0) return 'archive';
+	if (TEXT_EXT.indexOf(ext) >= 0) return 'text';
+	if (entry.size === 0) return 'text';
+	return 'binary';
+}
+
+function typeLabel(cls) {
+	switch (cls) {
+		case 'directory': return _('Directory');
+		case 'symlink': return _('Symlink');
+		case 'device': return _('Device');
+		case 'fifo': return _('FIFO');
+		case 'socket': return _('Socket');
+		case 'image': return _('Image');
+		case 'archive': return _('Archive');
+		case 'text': return _('Text');
+		default: return _('Binary');
+	}
 }
 
 function iconFor(entry, cls) {
@@ -129,9 +145,8 @@ function iconFor(entry, cls) {
 	if (entry.type === 'char' || entry.type === 'block') return '🔌';
 	if (entry.type === 'fifo' || entry.type === 'socket') return '🕳️';
 	switch (cls) {
-		case 'Image': return '🖼️';
-		case 'Archive': return '📦';
-		case 'Text': return '📄';
+		case 'image': return '🖼️';
+		case 'archive': return '📦';
 		default: return '📄';
 	}
 }
@@ -153,7 +168,7 @@ function notifyOk(msg) {
 }
 
 /* ------------------------------------------------------------------
- * directory picker (used by Copy / Move / Upload destination)
+ * directory picker (used when a copy/move target is edited by hand)
  * ------------------------------------------------------------------ */
 
 function pickDirectory(initialPath) {
@@ -161,13 +176,12 @@ function pickDirectory(initialPath) {
 		var current = initialPath || '/';
 		var listNode = E('div', { class: 'fx-picker-list' });
 		var pathInput = E('input', {
-			type: 'text', value: current, class: 'cbi-input-text',
-			style: 'width:100%;box-sizing:border-box;margin-bottom:.5em'
+			type: 'text', value: current, class: 'cbi-input-text fx-picker-input'
 		});
 
 		function renderList(path) {
 			listNode.innerHTML = '';
-			listNode.appendChild(E('div', { class: 'spinning' }, _('Loading…')));
+			listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('Loading…')));
 			callList(path, true).then(function (reply) {
 				listNode.innerHTML = '';
 				if (!reply || reply.ok === false) {
@@ -176,11 +190,12 @@ function pickDirectory(initialPath) {
 				}
 				current = reply.path;
 				pathInput.value = current;
-				var dirs = reply.entries.filter(function (e) { return e.type === 'directory' || (e.type === 'link' && e.target_type === 'directory'); });
+				var dirs = reply.entries.filter(function (e) {
+					return e.type === 'directory' || (e.type === 'link' && e.target_type === 'directory');
+				});
 				dirs.sort(function (a, b) { return a.name.localeCompare(b.name); });
-				if (reply.parent !== null) {
-					listNode.appendChild(E('div', { class: 'fx-picker-item', click: function () { renderList(reply.parent); } }, '⬆️ ..'));
-				}
+				if (reply.parent !== null)
+					listNode.appendChild(E('div', { class: 'fx-picker-item', click: function () { renderList(reply.parent); } }, '↑ ..'));
 				if (!dirs.length)
 					listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('No subdirectories')));
 				dirs.forEach(function (d) {
@@ -193,14 +208,15 @@ function pickDirectory(initialPath) {
 		}
 
 		pathInput.addEventListener('keydown', function (ev) {
+			ev.stopPropagation();
 			if (ev.key === 'Enter')
 				renderList(pathInput.value);
 		});
 
-		var modal = ui.showModal(_('Select destination'), [
+		ui.showModal(_('Select destination'), [
 			pathInput,
 			listNode,
-			E('div', { class: 'right', style: 'margin-top:1em' }, [
+			E('div', { class: 'right fx-modal-actions' }, [
 				E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel')),
 				' ',
 				E('button', {
@@ -225,243 +241,193 @@ return view.extend({
 	},
 
 	render: function () {
+		var self = this;
 		this.injectCss();
 
-		this.path = lsGet('lastPath', '/');
-		this.sortKey = lsGet('sortKey', 'name');
-		this.sortDir = lsGet('sortDir', 'asc');
-		this.dirsFirst = lsGet('dirsFirst', true);
 		this.showHidden = lsGet('showHidden', true);
-		this.selected = {};
-		this.entries = [];
-		this.parent = null;
-		this.allowedRoot = '/';
+		this.dirsFirst = lsGet('dirsFirst', true);
+		this.mobilePane = 'left';
 
-		this.root = E('div', { class: 'fx-fm' }, [
-			this.breadcrumbNode = E('div', { class: 'fx-breadcrumb' }),
-			this.toolbarNode = E('div', { class: 'fx-toolbar' }),
-			this.diskInfoNode = E('div', { class: 'fx-diskinfo' }),
-			this.tableWrap = E('div', { class: 'fx-table-wrap' },
-				this.tableNode = E('table', { class: 'table fx-table' })),
-			this.statusNode = E('div', { class: 'fx-status' })
+		this.panes = {
+			left: this.makePaneState('left', lsGet('leftPath', '/')),
+			right: this.makePaneState('right', lsGet('rightPath', '/etc'))
+		};
+		this.active = lsGet('activePane', 'left');
+		if (this.active !== 'left' && this.active !== 'right')
+			this.active = 'left';
+
+		this.root = E('div', { class: 'fx-app' }, [
+			this.paneSwitchNode = E('div', { class: 'fx-pane-switch' }),
+			this.panesNode = E('div', { class: 'fx-panes' }, [
+				this.panes.left.node.root,
+				this.panes.right.node.root
+			]),
+			this.fnbarNode = E('div', { class: 'fx-fnbar' })
 		]);
 
-		this.loadDir(this.path);
+		this.renderPaneSwitch();
+		this.renderFnBar();
+
+		this.keyHandler = function (ev) { self.onKeyDown(ev); };
+		document.addEventListener('keydown', this.keyHandler);
+
+		this.loadPane('left');
+		this.loadPane('right');
 
 		return this.root;
 	},
 
+	/* view.extend() calls this when navigating away */
+	handleReset: null,
+
 	injectCss: function () {
 		if (document.getElementById('filexplorer-css'))
 			return;
-		var link = E('link', {
+		document.head.appendChild(E('link', {
 			id: 'filexplorer-css',
 			rel: 'stylesheet',
 			href: L.resource('filexplorer/filexplorer.css')
-		});
-		document.head.appendChild(link);
+		}));
 	},
 
-	/* ---------------------------------------------------------- data */
+	/* ---------------------------------------------------- pane state */
 
-	loadDir: function (path) {
+	makePaneState: function (id, path) {
 		var self = this;
-		dom.content(self.tableNode, E('tr', {}, E('td', { style: 'padding:1em' }, _('Loading…'))));
-		return callList(path, true).then(function (reply) {
+		var head = E('div', { class: 'fx-pane-head' });
+		var body = E('div', { class: 'fx-pane-body' });
+		var foot = E('div', { class: 'fx-pane-foot' });
+		var root = E('div', {
+			class: 'fx-pane',
+			click: function () { self.setActive(id); }
+		}, [head, body, foot]);
+
+		return {
+			id: id,
+			path: path || '/',
+			parent: null,
+			entries: [],
+			selected: {},
+			cursor: 0,
+			visible: [],
+			sortKey: lsGet(id + 'SortKey', 'name'),
+			sortDir: lsGet(id + 'SortDir', 'asc'),
+			disk: null,
+			node: { root: root, head: head, body: body, foot: foot }
+		};
+	},
+
+	other: function (id) {
+		return (id === 'left') ? 'right' : 'left';
+	},
+
+	activePane: function () {
+		return this.panes[this.active];
+	},
+
+	setActive: function (id) {
+		if (this.active === id)
+			return;
+		this.active = id;
+		lsSet('activePane', id);
+		this.renderPaneChrome('left');
+		this.renderPaneChrome('right');
+		this.renderPaneSwitch();
+		this.renderFnBar();
+	},
+
+	renderPaneChrome: function (id) {
+		var p = this.panes[id];
+		p.node.root.classList.toggle('fx-pane-active', this.active === id);
+		p.node.root.classList.toggle('fx-pane-shown', this.mobilePane === id);
+	},
+
+	renderPaneSwitch: function () {
+		var self = this;
+		function tab(id, label) {
+			return E('button', {
+				class: 'btn fx-switch-btn' + (self.mobilePane === id ? ' fx-switch-active' : ''),
+				click: function () {
+					self.mobilePane = id;
+					self.setActive(id);
+					self.renderPaneChrome('left');
+					self.renderPaneChrome('right');
+					self.renderPaneSwitch();
+				}
+			}, label);
+		}
+		dom.content(this.paneSwitchNode, [
+			tab('left', _('Left panel')),
+			tab('right', _('Right panel'))
+		]);
+	},
+
+	/* ------------------------------------------------------ loading */
+
+	loadPane: function (id, keepCursor) {
+		var self = this;
+		var p = this.panes[id];
+		dom.content(p.node.body, E('div', { class: 'fx-loading' }, _('Loading…')));
+
+		return callList(p.path, true).then(function (reply) {
 			if (!reply || reply.ok === false) {
 				notifyError(reply, _('Cannot open directory'));
-				if (path !== '/')
-					return self.loadDir('/');
+				if (p.path !== '/') {
+					p.path = '/';
+					return self.loadPane(id);
+				}
+				dom.content(p.node.body, E('div', { class: 'fx-loading' }, errorMessage(reply, _('Cannot open directory'))));
 				return;
 			}
-			self.path = reply.path;
-			self.parent = reply.parent;
-			self.allowedRoot = reply.allowed_root || '/';
-			self.entries = reply.entries;
-			self.selected = {};
-			lsSet('lastPath', self.path);
-			self.renderBreadcrumb();
-			self.renderToolbar();
-			self.renderTable();
-			self.loadDiskInfo();
+			p.path = reply.path;
+			p.parent = reply.parent;
+			p.entries = reply.entries;
+			p.selected = {};
+			if (!keepCursor)
+				p.cursor = 0;
+			lsSet(id + 'Path', p.path);
+			self.renderPane(id);
+			self.loadDisk(id);
 		}).catch(function (err) {
 			ui.addNotification(null, E('p', {}, _('Request failed: %s').format(err.message || err)), 'error');
 		});
 	},
 
-	loadDiskInfo: function () {
+	loadDisk: function (id) {
 		var self = this;
-		callDiskInfo(self.path).then(function (reply) {
-			self.diskInfoNode.innerHTML = '';
-			if (!reply || reply.ok === false)
-				return;
-			self.diskInfoNode.appendChild(E('span', {}, [
-				E('strong', {}, reply.mountpoint + ' '),
-				'(' + reply.fstype + ') ',
-				_('Total'), ': ', fmtSize(reply.total), ' ',
-				_('Used'), ': ', fmtSize(reply.used), ' ',
-				_('Free'), ': ', fmtSize(reply.free)
-			]));
+		var p = this.panes[id];
+		callDiskInfo(p.path).then(function (reply) {
+			p.disk = (reply && reply.ok !== false) ? reply : null;
+			self.renderFoot(id);
 		}).catch(function () { /* non-critical */ });
 	},
 
-	refresh: function () {
-		return this.loadDir(this.path);
+	navigate: function (id, path) {
+		var p = this.panes[id];
+		p.path = path;
+		return this.loadPane(id);
 	},
 
-	/* ------------------------------------------------------ breadcrumb */
+	refreshAll: function () {
+		this.loadPane('left', true);
+		this.loadPane('right', true);
+	},
 
-	renderBreadcrumb: function () {
+	/* ------------------------------------------------------ rendering */
+
+	sortedEntries: function (p) {
 		var self = this;
-		var parts = self.path === '/' ? [] : self.path.split('/').filter(Boolean);
-		var node = E('div', { class: 'fx-breadcrumb-inner' });
-
-		node.appendChild(E('span', {
-			class: 'fx-crumb', click: function () { self.loadDir('/'); }
-		}, '🏠'));
-
-		var acc = '';
-		var crumbs = parts.map(function (p, i) {
-			acc = joinPath(acc || '/', p);
-			return { name: p, path: acc };
-		});
-
-		var visible = crumbs;
-		var hidden = [];
-		if (crumbs.length > 5) {
-			hidden = crumbs.slice(1, crumbs.length - 2);
-			visible = [crumbs[0]].concat(crumbs.slice(crumbs.length - 2));
-		}
-
-		function addCrumb(c) {
-			node.appendChild(E('span', {}, ' / '));
-			node.appendChild(E('span', {
-				class: 'fx-crumb', click: function () { self.loadDir(c.path); }
-			}, c.name));
-		}
-
-		if (hidden.length) {
-			addCrumb(visible[0]);
-			node.appendChild(E('span', {}, ' / '));
-			node.appendChild(E('span', {
-				class: 'fx-crumb fx-crumb-ellipsis',
-				click: function () {
-					ui.showModal(_('Path'), [
-						E('ul', { class: 'fx-crumb-hidden-list' }, hidden.map(function (c) {
-							return E('li', { click: function () { ui.hideModal(); self.loadDir(c.path); } }, c.name);
-						})),
-						E('div', { class: 'right' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
-					]);
-				}
-			}, '…'));
-			visible.slice(1).forEach(addCrumb);
-		} else {
-			visible.forEach(addCrumb);
-		}
-
-		dom.content(self.breadcrumbNode, node);
-	},
-
-	/* --------------------------------------------------------- toolbar */
-
-	renderToolbar: function () {
-		var self = this;
-		var nSel = Object.keys(self.selected).length;
-		var node = E('div', { class: 'fx-toolbar-inner' });
-
-		if (nSel > 0) {
-			node.appendChild(E('span', { class: 'fx-sel-count' }, _('%d selected').format(nSel)));
-			node.appendChild(this.btn(_('Copy'), function () { self.actionCopySelected(); }));
-			node.appendChild(this.btn(_('Move'), function () { self.actionMoveSelected(); }));
-			if (nSel === 1) {
-				var only = self.selectedEntries()[0];
-				if (only.type !== 'directory')
-					node.appendChild(this.btn(_('Download'), function () { self.actionDownload(only); }));
-			}
-			node.appendChild(this.btn(_('Delete'), function () { self.actionDeleteSelected(); }, 'cbi-button-remove'));
-			node.appendChild(this.btn(_('Clear selection'), function () { self.selected = {}; self.renderToolbar(); self.renderTable(); }));
-		} else {
-			node.appendChild(this.btn('⬆️ ' + _('Up'), function () { if (self.parent) self.loadDir(self.parent); }, null, !self.parent));
-			node.appendChild(this.btn('↻ ' + _('Refresh'), function () { self.refresh(); }));
-			node.appendChild(this.newMenuButton());
-			node.appendChild(this.btn('⬆️ ' + _('Upload'), function () { self.actionUpload(); }));
-
-			var search = E('input', { type: 'text', class: 'cbi-input-text fx-search', placeholder: _('Search…') });
-			var searchTimer = null;
-			search.addEventListener('input', function () {
-				window.clearTimeout(searchTimer);
-				searchTimer = window.setTimeout(function () { self.actionSearch(search.value); }, 400);
-			});
-			search.addEventListener('keydown', function (ev) {
-				if (ev.key === 'Enter') { window.clearTimeout(searchTimer); self.actionSearch(search.value, true); }
-			});
-			node.appendChild(search);
-
-			node.appendChild(this.settingsButton());
-		}
-
-		dom.content(self.toolbarNode, node);
-	},
-
-	btn: function (label, fn, cls, disabled) {
-		return E('button', {
-			class: 'btn' + (cls ? ' ' + cls : ''),
-			disabled: disabled ? true : null,
-			click: ui.createHandlerFn(this, function (ev) { fn(); })
-		}, label);
-	},
-
-	newMenuButton: function () {
-		var self = this;
-		var wrap = E('span', { class: 'fx-dropdown-wrap' });
-		var btn = this.btn(_('New') + ' ▾', function () {
-			menu.classList.toggle('open');
-		});
-		var menu = E('div', { class: 'fx-dropdown-menu' }, [
-			E('div', { class: 'fx-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewFile(); } }, _('New File')),
-			E('div', { class: 'fx-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewDir(); } }, _('New Directory'))
-		]);
-		wrap.appendChild(btn);
-		wrap.appendChild(menu);
-		return wrap;
-	},
-
-	settingsButton: function () {
-		var self = this;
-		var wrap = E('span', { class: 'fx-dropdown-wrap fx-settings' });
-		var btn = this.btn('⚙️', function () { menu.classList.toggle('open'); });
-		function mkCheck(label, key, prop) {
-			var cb = E('input', { type: 'checkbox' });
-			cb.checked = self[prop];
-			cb.addEventListener('change', function () {
-				self[prop] = cb.checked;
-				lsSet(key, cb.checked);
-				self.renderTable();
-			});
-			return E('label', { class: 'fx-dropdown-item' }, [cb, ' ' + label]);
-		}
-		var menu = E('div', { class: 'fx-dropdown-menu' }, [
-			mkCheck(_('Show hidden files'), 'showHidden', 'showHidden'),
-			mkCheck(_('Directories first'), 'dirsFirst', 'dirsFirst')
-		]);
-		wrap.appendChild(btn);
-		wrap.appendChild(menu);
-		return wrap;
-	},
-
-	/* ----------------------------------------------------------- table */
-
-	sortedEntries: function () {
-		var self = this;
-		var list = self.entries.filter(function (e) { return self.showHidden || !e.hidden; });
-		var key = self.sortKey, dir = self.sortDir === 'asc' ? 1 : -1;
+		var list = p.entries.filter(function (e) { return self.showHidden || !e.hidden; });
+		var key = p.sortKey, dir = (p.sortDir === 'asc') ? 1 : -1;
 		list.sort(function (a, b) {
 			if (self.dirsFirst) {
-				var ad = a.type === 'directory', bd = b.type === 'directory';
+				var ad = (a.type === 'directory'), bd = (b.type === 'directory');
 				if (ad !== bd) return ad ? -1 : 1;
 			}
-			var av = a[key], bv = b[key];
+			var av, bv;
 			if (key === 'name') { av = a.name.toLowerCase(); bv = b.name.toLowerCase(); }
+			else if (key === 'type') { av = classify(a); bv = classify(b); }
+			else { av = a[key]; bv = b[key]; }
 			if (av < bv) return -1 * dir;
 			if (av > bv) return 1 * dir;
 			return 0;
@@ -469,294 +435,602 @@ return view.extend({
 		return list;
 	},
 
-	selectedEntries: function () {
-		var self = this;
-		return self.entries.filter(function (e) { return self.selected[e.path]; });
+	selectedEntries: function (p) {
+		return p.entries.filter(function (e) { return p.selected[e.path]; });
 	},
 
-	renderTable: function () {
-		var self = this;
-		var list = self.sortedEntries();
+	/* entries the next action applies to: explicit selection, else the
+	   row under the cursor - classic commander behaviour */
+	targetEntries: function (p) {
+		var sel = this.selectedEntries(p);
+		if (sel.length)
+			return sel;
+		var cur = p.visible[p.cursor];
+		return cur ? [cur] : [];
+	},
 
-		function sortHeader(label, key) {
-			var arrow = (self.sortKey === key) ? (self.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-			return E('th', {
-				class: 'fx-sortable',
-				click: function () {
-					if (self.sortKey === key) self.sortDir = (self.sortDir === 'asc') ? 'desc' : 'asc';
-					else { self.sortKey = key; self.sortDir = 'asc'; }
-					lsSet('sortKey', self.sortKey);
-					lsSet('sortDir', self.sortDir);
-					self.renderTable();
+	renderPane: function (id) {
+		this.renderHead(id);
+		this.renderBody(id);
+		this.renderFoot(id);
+		this.renderPaneChrome(id);
+		this.renderFnBar();
+	},
+
+	renderHead: function (id) {
+		var self = this;
+		var p = this.panes[id];
+
+		var input = E('input', {
+			type: 'text', class: 'cbi-input-text fx-path-input', value: p.path,
+			title: _('Type a path and press Enter')
+		});
+		input.addEventListener('keydown', function (ev) {
+			ev.stopPropagation();
+			if (ev.key === 'Enter')
+				self.navigate(id, input.value);
+			else if (ev.key === 'Escape')
+				input.value = p.path;
+		});
+		input.addEventListener('focus', function () { self.setActive(id); });
+
+		var crumbs = E('div', { class: 'fx-crumbs' });
+		crumbs.appendChild(E('span', {
+			class: 'fx-crumb', title: _('Root directory'),
+			click: function () { self.navigate(id, '/'); }
+		}, '/'));
+		var acc = '';
+		var parts = (p.path === '/') ? [] : p.path.split('/').filter(Boolean);
+		parts.forEach(function (part, i) {
+			acc = joinPath(acc || '/', part);
+			var target = acc;
+			if (i > 0)
+				crumbs.appendChild(E('span', { class: 'fx-crumb-sep' }, '›'));
+			crumbs.appendChild(E('span', {
+				class: 'fx-crumb' + (i === parts.length - 1 ? ' fx-crumb-last' : ''),
+				click: function () { self.navigate(id, target); }
+			}, part));
+		});
+
+		dom.content(p.node.head, [
+			E('div', { class: 'fx-head-row' }, [
+				E('button', {
+					class: 'btn fx-icon-btn', title: _('Up one level'),
+					disabled: p.parent ? null : true,
+					click: function (ev) {
+						ev.stopPropagation();
+						if (p.parent) self.navigate(id, p.parent);
+					}
+				}, '↑'),
+				input,
+				E('button', {
+					class: 'btn fx-icon-btn', title: _('Refresh'),
+					click: function (ev) { ev.stopPropagation(); self.loadPane(id, true); }
+				}, '↻')
+			]),
+			crumbs
+		]);
+	},
+
+	renderBody: function (id) {
+		var self = this;
+		var p = this.panes[id];
+		var list = this.sortedEntries(p);
+		p.visible = list;
+		if (p.cursor >= list.length)
+			p.cursor = Math.max(0, list.length - 1);
+
+		function sortHeader(label, key, cls) {
+			var arrow = (p.sortKey === key) ? (p.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+			return E('div', {
+				class: 'fx-cell fx-th ' + cls,
+				click: function (ev) {
+					ev.stopPropagation();
+					self.setActive(id);
+					if (p.sortKey === key)
+						p.sortDir = (p.sortDir === 'asc') ? 'desc' : 'asc';
+					else { p.sortKey = key; p.sortDir = 'asc'; }
+					lsSet(id + 'SortKey', p.sortKey);
+					lsSet(id + 'SortDir', p.sortDir);
+					self.renderBody(id);
 				}
 			}, label + arrow);
 		}
 
-		var allChecked = list.length > 0 && list.every(function (e) { return self.selected[e.path]; });
-		var selectAll = E('input', { type: 'checkbox' });
-		selectAll.checked = allChecked;
-		selectAll.addEventListener('change', function () {
-			if (selectAll.checked) list.forEach(function (e) { self.selected[e.path] = true; });
-			else self.selected = {};
-			self.renderToolbar();
-			self.renderTable();
-		});
+		var rows = [
+			E('div', { class: 'fx-row fx-header' }, [
+				E('div', { class: 'fx-cell fx-c-mark' }, ''),
+				sortHeader(_('Name'), 'name', 'fx-c-name'),
+				sortHeader(_('Size'), 'size', 'fx-c-size'),
+				sortHeader(_('Modified'), 'mtime', 'fx-c-time'),
+				sortHeader(_('Permissions'), 'mode_octal', 'fx-c-perm')
+			])
+		];
 
-		var thead = E('tr', { class: 'tr table-titles' }, [
-			E('th', { class: 'th fx-col-check' }, selectAll),
-			sortHeader(_('Name'), 'name'),
-			E('th', { class: 'th fx-col-type' }, _('Type')),
-			sortHeader(_('Size'), 'size'),
-			sortHeader(_('Modified'), 'mtime'),
-			E('th', { class: 'th fx-col-perm' }, _('Permissions')),
-			E('th', { class: 'th fx-col-actions' }, '')
-		]);
-
-		var rows = [thead];
-
-		if (!list.length) {
-			rows.push(E('tr', { class: 'tr' }, E('td', { class: 'td', colspan: 7, style: 'padding:1.5em;text-align:center;opacity:.7' }, _('This directory is empty'))));
+		if (p.parent) {
+			rows.push(E('div', {
+				class: 'fx-row fx-updir',
+				dblclick: function () { self.navigate(id, p.parent); },
+				click: function (ev) { ev.stopPropagation(); self.setActive(id); self.navigate(id, p.parent); }
+			}, [
+				E('div', { class: 'fx-cell fx-c-mark' }, ''),
+				E('div', { class: 'fx-cell fx-c-name' }, '↑ ..'),
+				E('div', { class: 'fx-cell fx-c-size' }, _('up')),
+				E('div', { class: 'fx-cell fx-c-time' }, ''),
+				E('div', { class: 'fx-cell fx-c-perm' }, '')
+			]));
 		}
 
-		list.forEach(function (entry) {
-			rows.push(self.renderRow(entry));
+		if (!list.length) {
+			rows.push(E('div', { class: 'fx-empty' }, _('This directory is empty')));
+		}
+
+		list.forEach(function (entry, idx) {
+			rows.push(self.renderRow(id, entry, idx));
 		});
 
-		dom.content(self.tableNode, rows);
+		dom.content(p.node.body, rows);
+		this.scrollCursorIntoView(id);
 	},
 
-	renderRow: function (entry) {
+	renderRow: function (id, entry, idx) {
 		var self = this;
+		var p = this.panes[id];
 		var cls = classify(entry);
-		var icon = iconFor(entry, cls);
-		var cb = E('input', { type: 'checkbox' });
-		cb.checked = !!self.selected[entry.path];
-		cb.addEventListener('change', function () {
-			if (cb.checked) self.selected[entry.path] = true;
-			else delete self.selected[entry.path];
-			self.renderToolbar();
-		});
+		var isSel = !!p.selected[entry.path];
+		var isCur = (p.cursor === idx);
 
-		var nameLabel = entry.name + (entry.is_symlink ? (' → ' + (entry.symlink_target || '?')) : '');
+		var mark = E('span', {
+			class: 'fx-mark' + (isSel ? ' fx-mark-on' : ''),
+			title: _('Select'),
+			click: function (ev) {
+				ev.stopPropagation();
+				self.setActive(id);
+				self.toggleSelect(id, entry);
+			}
+		}, isSel ? '■' : '□');
 
-		var nameCell = E('td', { class: 'td fx-col-name' }, E('span', {
-			class: 'fx-name-link',
-			click: function () { self.openEntry(entry); }
-		}, [icon + ' ', nameLabel]));
+		var nameText = entry.name;
+		if (entry.is_symlink)
+			nameText += ' → ' + (entry.symlink_target || '?');
 
-		var row = E('tr', {
-			class: 'tr' + (entry.hidden ? ' fx-hidden-row' : ''),
-			contextmenu: function (ev) { ev.preventDefault(); self.showContextMenu(ev, entry); }
+		var row = E('div', {
+			class: 'fx-row fx-item' +
+				(isSel ? ' fx-selected' : '') +
+				(isCur ? ' fx-cursor' : '') +
+				(entry.hidden ? ' fx-hidden-item' : '') +
+				(entry.broken ? ' fx-broken' : ''),
+			click: function (ev) {
+				ev.stopPropagation();
+				self.setActive(id);
+				p.cursor = idx;
+				self.renderBody(id);
+				self.renderFoot(id);
+			},
+			dblclick: function (ev) {
+				ev.stopPropagation();
+				self.setActive(id);
+				p.cursor = idx;
+				self.openEntry(id, entry);
+			},
+			contextmenu: function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				self.setActive(id);
+				p.cursor = idx;
+				self.renderBody(id);
+				self.showContextMenu(ev, id, entry);
+			}
 		}, [
-			E('td', { class: 'td fx-col-check' }, cb),
-			nameCell,
-			E('td', { class: 'td fx-col-type' }, cls),
-			E('td', { class: 'td fx-col-size' }, entry.type === 'directory' ? '—' : fmtSize(entry.size)),
-			E('td', { class: 'td fx-col-mtime' }, fmtTime(entry.mtime)),
-			E('td', { class: 'td fx-col-perm' }, entry.mode_string + ' ' + entry.owner + ':' + entry.group),
-			E('td', { class: 'td fx-col-actions' }, E('button', {
-				class: 'btn fx-more-btn',
-				click: function (ev) { self.showContextMenu(ev, entry); }
-			}, '⋮'))
+			E('div', { class: 'fx-cell fx-c-mark' }, mark),
+			E('div', { class: 'fx-cell fx-c-name', title: entry.name }, [
+				E('span', { class: 'fx-ico' }, iconFor(entry, cls)),
+				E('span', { class: 'fx-nm' }, nameText)
+			]),
+			E('div', { class: 'fx-cell fx-c-size' },
+				entry.type === 'directory' ? _('DIR') : fmtSize(entry.size)),
+			E('div', { class: 'fx-cell fx-c-time' }, fmtTime(entry.mtime)),
+			E('div', { class: 'fx-cell fx-c-perm' }, entry.mode_string)
 		]);
 
 		return row;
 	},
 
-	openEntry: function (entry) {
+	renderFoot: function (id) {
+		var p = this.panes[id];
+		var sel = this.selectedEntries(p);
+		var bytes = 0;
+		sel.forEach(function (e) { if (e.type !== 'directory') bytes += e.size; });
+
+		var left = sel.length
+			? E('span', { class: 'fx-foot-sel' },
+				N_(sel.length, '%d item selected', '%d items selected').format(sel.length) +
+				(bytes > 0 ? ' · ' + fmtSize(bytes) : ''))
+			: E('span', {}, N_(p.visible.length, '%d item', '%d items').format(p.visible.length));
+
+		var right = p.disk
+			? E('span', { class: 'fx-foot-disk', title: p.disk.filesystem + ' (' + p.disk.fstype + ')' },
+				_('%s free of %s').format(fmtSize(p.disk.free), fmtSize(p.disk.total)))
+			: E('span', {}, '');
+
+		dom.content(p.node.foot, [left, right]);
+	},
+
+	scrollCursorIntoView: function (id) {
+		var p = this.panes[id];
+		var el = p.node.body.querySelector('.fx-cursor');
+		if (el && el.scrollIntoView)
+			el.scrollIntoView({ block: 'nearest' });
+	},
+
+	/* -------------------------------------------------- function bar */
+
+	renderFnBar: function () {
+		var self = this;
+		var p = this.activePane();
+		var n = p ? this.targetEntries(p).length : 0;
+
+		function fk(key, label, fn, cls) {
+			return E('button', {
+				class: 'btn fx-fn' + (cls ? ' ' + cls : ''),
+				click: ui.createHandlerFn(self, function () { fn(); })
+			}, [
+				E('span', { class: 'fx-fn-key' }, key),
+				E('span', { class: 'fx-fn-label' }, label)
+			]);
+		}
+
+		dom.content(this.fnbarNode, [
+			fk('F3', _('View'), function () { self.actF3(); }),
+			fk('F4', _('Edit'), function () { self.actF4(); }),
+			fk('F5', _('Copy'), function () { self.actF5(); }),
+			fk('F6', _('Move'), function () { self.actF6(); }),
+			fk('F7', _('New folder'), function () { self.actF7(); }),
+			fk('F8', _('Delete'), function () { self.actF8(); }, 'cbi-button-remove'),
+			fk('F2', _('Rename'), function () { self.actF2(); }),
+			E('span', { class: 'fx-fn-spacer' }),
+			fk('', _('New file'), function () { self.actNewFile(); }),
+			fk('', _('Upload'), function () { self.actUpload(); }),
+			fk('', _('Download'), function () { self.actDownload(); }),
+			fk('', _('Search'), function () { self.actSearch(); }),
+			fk('', _('Settings'), function () { self.actSettings(); }),
+			E('span', { class: 'fx-fn-count' },
+				n ? N_(n, '%d selected', '%d selected').format(n) : '')
+		]);
+	},
+
+	/* ---------------------------------------------------- keyboard */
+
+	onKeyDown: function (ev) {
+		/* never hijack typing in a field or while a modal is open */
+		var t = ev.target;
+		if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable))
+			return;
+		if (document.querySelector('body.modal-overlay-active, .modal'))
+			return;
+		if (!this.root || !document.body.contains(this.root))
+			return;
+
+		var id = this.active;
+		var p = this.panes[id];
+		var handled = true;
+
+		switch (ev.key) {
+			case 'Tab':
+				this.mobilePane = this.other(id);
+				this.setActive(this.other(id));
+				this.renderPaneChrome('left');
+				this.renderPaneChrome('right');
+				this.renderPaneSwitch();
+				break;
+			case 'ArrowDown':
+				p.cursor = Math.min(p.cursor + 1, p.visible.length - 1);
+				this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				break;
+			case 'ArrowUp':
+				p.cursor = Math.max(p.cursor - 1, 0);
+				this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				break;
+			case 'PageDown':
+				p.cursor = Math.min(p.cursor + 10, p.visible.length - 1);
+				this.renderBody(id); this.renderFnBar();
+				break;
+			case 'PageUp':
+				p.cursor = Math.max(p.cursor - 10, 0);
+				this.renderBody(id); this.renderFnBar();
+				break;
+			case 'Home':
+				p.cursor = 0; this.renderBody(id); this.renderFnBar();
+				break;
+			case 'End':
+				p.cursor = Math.max(0, p.visible.length - 1);
+				this.renderBody(id); this.renderFnBar();
+				break;
+			case 'Enter':
+				if (p.visible[p.cursor]) this.openEntry(id, p.visible[p.cursor]);
+				break;
+			case 'Backspace':
+				if (p.parent) this.navigate(id, p.parent);
+				break;
+			case 'Insert':
+			case ' ':
+				if (p.visible[p.cursor]) {
+					this.toggleSelect(id, p.visible[p.cursor]);
+					p.cursor = Math.min(p.cursor + 1, p.visible.length - 1);
+					this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				}
+				break;
+			case 'F2': this.actF2(); break;
+			case 'F3': this.actF3(); break;
+			case 'F4': this.actF4(); break;
+			case 'F5': this.actF5(); break;
+			case 'F6': this.actF6(); break;
+			case 'F7': this.actF7(); break;
+			case 'F8':
+			case 'Delete': this.actF8(); break;
+			case 'a':
+			case 'A':
+				if (ev.ctrlKey || ev.metaKey) {
+					var all = (this.selectedEntries(p).length !== p.visible.length);
+					p.selected = {};
+					if (all) p.visible.forEach(function (e) { p.selected[e.path] = true; });
+					this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				} else handled = false;
+				break;
+			case 'r':
+			case 'R':
+				if (ev.ctrlKey || ev.metaKey) this.loadPane(id, true);
+				else handled = false;
+				break;
+			default:
+				handled = false;
+		}
+
+		if (handled) {
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+	},
+
+	toggleSelect: function (id, entry) {
+		var p = this.panes[id];
+		if (p.selected[entry.path])
+			delete p.selected[entry.path];
+		else
+			p.selected[entry.path] = true;
+	},
+
+	openEntry: function (id, entry) {
 		if (entry.type === 'directory' || (entry.type === 'link' && entry.target_type === 'directory')) {
-			this.loadDir(entry.path);
+			this.navigate(id, entry.path);
 			return;
 		}
 		if (entry.type === 'link' && entry.broken) {
-			notifyOk(_('Broken symlink → %s').format(entry.symlink_target));
+			ui.addNotification(null, E('p', {}, _('Broken symlink: %s').format(entry.symlink_target || '?')), 'warning');
 			return;
 		}
-		this.actionPreview(entry);
+		this.previewEntry(entry);
 	},
 
-	/* ------------------------------------------------------- context menu */
+	/* ------------------------------------------------ context menu */
 
-	showContextMenu: function (ev, entry) {
-		ev.preventDefault();
-		ev.stopPropagation();
+	showContextMenu: function (ev, id, entry) {
 		var self = this;
 		this.closeContextMenu();
 
-		var items = [];
-		var isDir = entry.type === 'directory';
-		var isLink = entry.type === 'link';
+		var isDir = (entry.type === 'directory');
+		var items = [[_('Open'), function () { self.openEntry(id, entry); }]];
 
-		items.push([_('Open'), function () { self.openEntry(entry); }]);
 		if (!isDir) {
-			items.push([_('Preview'), function () { self.actionPreview(entry); }]);
-			items.push([_('Edit'), function () { self.actionEdit(entry); }]);
-			items.push([_('Download'), function () { self.actionDownload(entry); }]);
+			items.push([_('View'), function () { self.previewEntry(entry); }]);
+			items.push([_('Edit'), function () { self.editEntry(entry); }]);
+			items.push([_('Download'), function () { self.downloadEntry(entry); }]);
 		}
-		items.push([_('Copy'), function () { self.selected = {}; self.selected[entry.path] = true; self.actionCopySelected(); }]);
-		items.push([_('Move'), function () { self.selected = {}; self.selected[entry.path] = true; self.actionMoveSelected(); }]);
-		items.push([_('Rename'), function () { self.actionRename(entry); }]);
-		items.push([_('Delete'), function () { self.selected = {}; self.selected[entry.path] = true; self.actionDeleteSelected(); }]);
-		if (!isLink) {
-			items.push([_('Permissions'), function () { self.actionPermissions(entry); }]);
-		}
-		items.push([_('Properties'), function () { self.actionProperties(entry); }]);
+		items.push([_('Copy'), function () { self.copyOrMove('copy', id, [entry]); }]);
+		items.push([_('Move'), function () { self.copyOrMove('move', id, [entry]); }]);
+		items.push([_('Rename'), function () { self.renameEntry(id, entry); }]);
+		items.push([_('Delete'), function () { self.deleteEntries(id, [entry]); }]);
+		if (entry.type !== 'link')
+			items.push([_('Permissions'), function () { self.permissionsEntry(id, entry); }]);
+		items.push([_('Properties'), function () { self.propertiesEntry(entry); }]);
 
-		var menu = E('div', { class: 'fx-ctx-menu' }, items.map(function (it) {
+		var menu = E('div', { class: 'fx-ctx' }, items.map(function (it) {
 			return E('div', {
 				class: 'fx-ctx-item',
 				click: function () { self.closeContextMenu(); it[1](); }
 			}, it[0]);
 		}));
 
-		var x = ev.clientX, y = ev.clientY;
-		menu.style.left = x + 'px';
-		menu.style.top = y + 'px';
+		menu.style.left = ev.clientX + 'px';
+		menu.style.top = ev.clientY + 'px';
 		document.body.appendChild(menu);
 
-		var vw = window.innerWidth, vh = window.innerHeight;
-		var rect = menu.getBoundingClientRect();
-		if (rect.right > vw) menu.style.left = Math.max(0, vw - rect.width - 8) + 'px';
-		if (rect.bottom > vh) menu.style.top = Math.max(0, vh - rect.height - 8) + 'px';
+		var r = menu.getBoundingClientRect();
+		if (r.right > window.innerWidth)
+			menu.style.left = Math.max(0, window.innerWidth - r.width - 8) + 'px';
+		if (r.bottom > window.innerHeight)
+			menu.style.top = Math.max(0, window.innerHeight - r.height - 8) + 'px';
 
-		this._ctxMenu = menu;
-		this._ctxCloser = function (e) {
-			if (!menu.contains(e.target)) self.closeContextMenu();
-		};
+		this._ctx = menu;
+		this._ctxClose = function (e) { if (!menu.contains(e.target)) self.closeContextMenu(); };
 		window.setTimeout(function () {
-			document.addEventListener('click', self._ctxCloser);
-			document.addEventListener('contextmenu', self._ctxCloser);
+			document.addEventListener('click', self._ctxClose);
+			document.addEventListener('contextmenu', self._ctxClose);
 		}, 0);
 	},
 
 	closeContextMenu: function () {
-		if (this._ctxMenu) {
-			this._ctxMenu.remove();
-			this._ctxMenu = null;
-		}
-		if (this._ctxCloser) {
-			document.removeEventListener('click', this._ctxCloser);
-			document.removeEventListener('contextmenu', this._ctxCloser);
-			this._ctxCloser = null;
+		if (this._ctx) { this._ctx.remove(); this._ctx = null; }
+		if (this._ctxClose) {
+			document.removeEventListener('click', this._ctxClose);
+			document.removeEventListener('contextmenu', this._ctxClose);
+			this._ctxClose = null;
 		}
 	},
 
-	/* -------------------------------------------------------- create/rename */
+	/* --------------------------------------------- function actions */
+
+	actF2: function () {
+		var id = this.active, p = this.panes[id];
+		var t = this.targetEntries(p);
+		if (t.length === 1) this.renameEntry(id, t[0]);
+		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one item to rename.')), 'warning');
+	},
+
+	actF3: function () {
+		var t = this.targetEntries(this.activePane());
+		if (t.length === 1 && t[0].type !== 'directory') this.previewEntry(t[0]);
+	},
+
+	actF4: function () {
+		var t = this.targetEntries(this.activePane());
+		if (t.length === 1 && t[0].type !== 'directory') this.editEntry(t[0]);
+	},
+
+	actF5: function () {
+		var id = this.active;
+		this.copyOrMove('copy', id, this.targetEntries(this.panes[id]));
+	},
+
+	actF6: function () {
+		var id = this.active;
+		this.copyOrMove('move', id, this.targetEntries(this.panes[id]));
+	},
+
+	actF7: function () { this.newDirectory(); },
+
+	actF8: function () {
+		var id = this.active;
+		this.deleteEntries(id, this.targetEntries(this.panes[id]));
+	},
+
+	actNewFile: function () { this.newFile(); },
+
+	actDownload: function () {
+		var t = this.targetEntries(this.activePane());
+		if (t.length === 1 && t[0].type !== 'directory') this.downloadEntry(t[0]);
+		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one file to download.')), 'warning');
+	},
+
+	/* ------------------------------------------------ create/rename */
 
 	validateName: function (name) {
 		if (!name || !name.length) return _('Name cannot be empty');
 		if (name === '.' || name === '..') return _('Invalid name');
-		if (name.indexOf('/') >= 0) return _('Name cannot contain "/"');
+		if (name.indexOf('/') >= 0) return _('Name cannot contain a slash');
 		if (name.length > 255) return _('Name is too long');
 		return null;
 	},
 
-	promptName: function (title, initial) {
+	promptName: function (title, initial, okLabel) {
 		var self = this;
 		return new Promise(function (resolve) {
-			var input = E('input', { type: 'text', class: 'cbi-input-text', style: 'width:100%;box-sizing:border-box', value: initial || '' });
+			var input = E('input', { type: 'text', class: 'cbi-input-text fx-full', value: initial || '' });
 			var err = E('div', { class: 'fx-form-error' });
 			function submit() {
-				var v = input.value;
-				var e = self.validateName(v);
+				var e = self.validateName(input.value);
 				if (e) { err.textContent = e; return; }
 				ui.hideModal();
-				resolve(v);
+				resolve(input.value);
 			}
-			input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') submit(); });
+			input.addEventListener('keydown', function (ev) {
+				ev.stopPropagation();
+				if (ev.key === 'Enter') submit();
+			});
 			ui.showModal(title, [
 				E('div', { class: 'cbi-value' }, [
-					E('label', { class: 'cbi-value-title' }, _('Name') + ':'),
+					E('label', { class: 'cbi-value-title' }, _('Name')),
 					input
 				]),
 				err,
-				E('div', { class: 'right', style: 'margin-top:1em' }, [
+				E('div', { class: 'right fx-modal-actions' }, [
 					E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: submit }, _('Create'))
+					E('button', { class: 'btn cbi-button-action', click: submit }, okLabel || _('Create'))
 				])
 			]);
 			input.focus();
+			input.select();
 		});
 	},
 
-	actionNewFile: function () {
-		var self = this;
-		this.promptName(_('New File')).then(function (name) {
+	newFile: function () {
+		var self = this, id = this.active, p = this.panes[id];
+		this.promptName(_('New file'), '').then(function (name) {
 			if (!name) return;
-			callCreate(joinPath(self.path, name)).then(function (reply) {
-				if (!reply || reply.ok === false) return notifyError(reply, _('Cannot create file'));
+			callCreate(joinPath(p.path, name)).then(function (r) {
+				if (!r || r.ok === false) return notifyError(r, _('Cannot create file'));
 				notifyOk(_('File created'));
-				self.refresh();
+				self.loadPane(id, true);
 			});
 		});
 	},
 
-	actionNewDir: function () {
-		var self = this;
-		this.promptName(_('New Directory')).then(function (name) {
+	newDirectory: function () {
+		var self = this, id = this.active, p = this.panes[id];
+		this.promptName(_('New folder'), '').then(function (name) {
 			if (!name) return;
-			callMkdir(joinPath(self.path, name)).then(function (reply) {
-				if (!reply || reply.ok === false) return notifyError(reply, _('Cannot create directory'));
-				notifyOk(_('Directory created'));
-				self.refresh();
+			callMkdir(joinPath(p.path, name)).then(function (r) {
+				if (!r || r.ok === false) return notifyError(r, _('Cannot create folder'));
+				notifyOk(_('Folder created'));
+				self.loadPane(id, true);
 			});
 		});
 	},
 
-	actionRename: function (entry) {
+	renameEntry: function (id, entry) {
 		var self = this;
-		this.promptName(_('Rename "%s"').format(entry.name), entry.name).then(function (name) {
+		this.promptName(_('Rename'), entry.name, _('Rename')).then(function (name) {
 			if (!name || name === entry.name) return;
-			callRename(entry.path, name).then(function (reply) {
-				if (!reply || reply.ok === false) return notifyError(reply, _('Cannot rename'));
+			callRename(entry.path, name).then(function (r) {
+				if (!r || r.ok === false) return notifyError(r, _('Cannot rename'));
 				notifyOk(_('Renamed'));
-				self.refresh();
+				self.loadPane(id, true);
 			});
 		});
 	},
 
-	/* ---------------------------------------------------------------- delete */
+	/* ------------------------------------------------------- delete */
 
-	actionDeleteSelected: function () {
+	deleteEntries: function (id, entries) {
 		var self = this;
-		var entries = self.selectedEntries();
 		if (!entries.length) return;
 
-		var hasDir = entries.some(function (e) { return e.type === 'directory'; });
-		var systemish = entries.some(function (e) {
-			return ['/etc', '/overlay', '/rom', '/usr', '/lib', '/bin', '/sbin', '/boot'].indexOf(e.path) >= 0;
-		});
+		var SYSTEM = ['/etc', '/overlay', '/rom', '/usr', '/lib', '/bin', '/sbin', '/boot', '/www'];
+		var systemish = entries.some(function (e) { return SYSTEM.indexOf(e.path) >= 0; });
 
-		var msg = (entries.length === 1)
-			? (entries[0].type === 'directory'
-				? _('Delete directory "%s" and its contents?').format(entries[0].name)
-				: _('Delete "%s"?').format(entries[0].name))
-			: _('Delete %d selected items?').format(entries.length);
+		var msg;
+		if (entries.length === 1)
+			msg = (entries[0].type === 'directory')
+				? _('Delete folder "%s" and all of its contents?').format(entries[0].name)
+				: _('Delete "%s"?').format(entries[0].name);
+		else
+			msg = N_(entries.length, 'Delete %d selected item?', 'Delete %d selected items?').format(entries.length);
 
-		var body = [E('p', {}, msg), E('p', { class: 'fx-warn' }, _('This action cannot be undone.'))];
+		var body = [
+			E('p', {}, msg),
+			E('div', { class: 'fx-del-list' }, entries.slice(0, 12).map(function (e) {
+				return E('div', {}, e.path);
+			}).concat(entries.length > 12
+				? [E('div', {}, _('…and %d more').format(entries.length - 12))] : [])),
+			E('p', { class: 'fx-warn' }, _('This action cannot be undone.'))
+		];
 		if (systemish)
-			body.push(E('p', { class: 'fx-warn fx-warn-strong' }, _('WARNING: this includes a core system path. Deleting it can break the router.')));
+			body.push(E('p', { class: 'fx-warn fx-warn-strong' },
+				_('WARNING: this includes a core system path. Deleting it can break the router.')));
 
 		ui.showModal(_('Confirm delete'), body.concat([
-			E('div', { class: 'right', style: 'margin-top:1em' }, [
+			E('div', { class: 'right fx-modal-actions' }, [
 				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
 				' ',
 				E('button', {
 					class: 'btn cbi-button-remove',
 					click: function () {
 						ui.hideModal();
-						callRemove(entries.map(function (e) { return e.path; })).then(function (reply) {
-							if (!reply || reply.ok === false) return notifyError(reply, _('Delete failed'));
-							var failed = reply.results.filter(function (r) { return !r.ok; });
-							if (failed.length) {
-								ui.addNotification(null, E('div', {}, failed.map(function (f) {
-									return E('p', {}, (f.path || '') + ': ' + errorMessage(f, _('failed')));
-								})), 'error');
-							} else {
-								notifyOk(_('Deleted'));
-							}
-							self.refresh();
+						callRemove(entries.map(function (e) { return e.path; })).then(function (r) {
+							if (!r || r.ok === false) return notifyError(r, _('Delete failed'));
+							self.reportBulk(r, _('Deleted'));
+							self.refreshAll();
 						});
 					}
 				}, _('Delete'))
@@ -764,75 +1038,109 @@ return view.extend({
 		]));
 	},
 
-	/* ------------------------------------------------------------ copy/move */
+	/* --------------------------------------------------- copy / move */
 
-	actionCopySelected: function () {
-		this.copyOrMove('copy');
-	},
-	actionMoveSelected: function () {
-		this.copyOrMove('move');
-	},
-
-	copyOrMove: function (mode) {
+	copyOrMove: function (mode, id, entries) {
 		var self = this;
-		var entries = self.selectedEntries();
 		if (!entries.length) return;
-		pickDirectory(self.path).then(function (dest) {
-			if (!dest) return;
+
+		var destPane = this.panes[this.other(id)];
+		var destInput = E('input', { type: 'text', class: 'cbi-input-text fx-full', value: destPane.path });
+		destInput.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
+
+		var title = (mode === 'copy') ? _('Copy') : _('Move');
+		var heading = (entries.length === 1)
+			? ((mode === 'copy')
+				? _('Copy "%s" to:').format(entries[0].name)
+				: _('Move "%s" to:').format(entries[0].name))
+			: ((mode === 'copy')
+				? N_(entries.length, 'Copy %d item to:', 'Copy %d items to:').format(entries.length)
+				: N_(entries.length, 'Move %d item to:', 'Move %d items to:').format(entries.length));
+
+		function run(destination, overwrite) {
 			var items = entries.map(function (e) { return e.path; });
 			var call = (mode === 'copy') ? callCopy : callMove;
-			call(items, dest, false).then(function (reply) {
-				if (!reply || reply.ok === false) return notifyError(reply, _('Operation failed'));
-				var failed = reply.results.filter(function (r) { return !r.ok; });
-				var conflicts = failed.filter(function (r) { return r.error && r.error.code === 'EEXIST'; });
-				if (conflicts.length) {
-					self.confirmOverwrite(conflicts.length, function () {
-						call(items, dest, true).then(function (r2) {
-							self.reportBulkResult(r2, mode);
-							self.refresh();
-						});
-					});
-				} else {
-					self.reportBulkResult(reply, mode);
+			return call(items, destination, !!overwrite).then(function (r) {
+				if (!r || r.ok === false) {
+					notifyError(r, _('Operation failed'));
+					return;
 				}
-				self.refresh();
+				var conflicts = (r.results || []).filter(function (x) {
+					return !x.ok && x.error && x.error.code === 'EEXIST';
+				});
+				if (conflicts.length && !overwrite) {
+					self.confirmOverwrite(conflicts.length, function () {
+						run(destination, true).then(function () { self.refreshAll(); });
+					});
+					self.refreshAll();
+					return;
+				}
+				self.reportBulk(r, (mode === 'copy') ? _('Copied') : _('Moved'));
+				self.refreshAll();
 			});
-		});
-	},
+		}
 
-	confirmOverwrite: function (n, onYes) {
-		ui.showModal(_('Items already exist'), [
-			E('p', {}, _('%d item(s) already exist at the destination. Overwrite them?').format(n)),
-			E('div', { class: 'right' }, [
+		ui.showModal(title, [
+			E('p', {}, heading),
+			E('div', { class: 'fx-del-list' }, entries.slice(0, 12).map(function (e) {
+				return E('div', {}, e.path);
+			}).concat(entries.length > 12
+				? [E('div', {}, _('…and %d more').format(entries.length - 12))] : [])),
+			E('div', { class: 'fx-dest-row' }, [
+				destInput,
+				E('button', {
+					class: 'btn', click: function () {
+						pickDirectory(destInput.value).then(function (d) { if (d) destInput.value = d; });
+					}
+				}, _('Browse…'))
+			]),
+			E('div', { class: 'right fx-modal-actions' }, [
 				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
 				' ',
-				E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); onYes(); } }, _('Overwrite'))
+				E('button', {
+					class: 'btn cbi-button-action',
+					click: function () {
+						var d = destInput.value;
+						ui.hideModal();
+						run(d, false);
+					}
+				}, title)
 			])
 		]);
 	},
 
-	reportBulkResult: function (reply, mode) {
-		if (!reply || !reply.results) return;
-		var failed = reply.results.filter(function (r) { return !r.ok; });
-		if (!failed.length) {
-			notifyOk(mode === 'copy' ? _('Copied') : _('Moved'));
-			return;
-		}
+	confirmOverwrite: function (n, onYes) {
+		ui.showModal(_('Items already exist'), [
+			E('p', {}, N_(n, '%d item already exists at the destination. Overwrite it?',
+				'%d items already exist at the destination. Overwrite them?').format(n)),
+			E('div', { class: 'right fx-modal-actions' }, [
+				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+				' ',
+				E('button', {
+					class: 'btn cbi-button-negative',
+					click: function () { ui.hideModal(); onYes(); }
+				}, _('Overwrite'))
+			])
+		]);
+	},
+
+	reportBulk: function (reply, okMsg) {
+		var failed = (reply.results || []).filter(function (r) { return !r.ok; });
+		if (!failed.length) { notifyOk(okMsg); return; }
 		ui.addNotification(null, E('div', {}, failed.map(function (f) {
 			return E('p', {}, (f.path || '') + ': ' + errorMessage(f, _('failed')));
 		})), 'error');
 	},
 
-	/* ------------------------------------------------------------ properties */
+	/* ---------------------------------------------------- properties */
 
-	actionProperties: function (entry) {
-		var self = this;
+	propertiesEntry: function (entry) {
 		callStat(entry.path).then(function (st) {
 			if (!st || st.ok === false) return notifyError(st, _('Cannot read properties'));
 			var rows = [
 				[_('Name'), st.name],
 				[_('Path'), st.path],
-				[_('Type'), classify(st)],
+				[_('Type'), typeLabel(classify(st))],
 				[_('Size'), st.type === 'directory' ? '—' : fmtSize(st.size)],
 				[_('Owner'), st.owner + ' (' + st.uid + ')'],
 				[_('Group'), st.group + ' (' + st.gid + ')'],
@@ -840,89 +1148,112 @@ return view.extend({
 				[_('Modified'), fmtTime(st.mtime)],
 				[_('Accessed'), fmtTime(st.atime)],
 				[_('Changed'), fmtTime(st.ctime)],
-				[_('Filesystem'), st.fstype + ' @ ' + st.mount]
+				[_('Filesystem'), st.fstype + ' · ' + st.mount]
 			];
 			if (st.is_symlink)
-				rows.splice(3, 0, [_('Target'), st.symlink_target + (st.broken ? ' (' + _('broken') + ')' : '')]);
+				rows.splice(3, 0, [_('Symlink target'),
+					st.symlink_target + (st.broken ? ' (' + _('broken') + ')' : '')]);
 
 			ui.showModal(_('Properties'), [
-				E('table', { class: 'table' }, rows.map(function (r) {
+				E('table', { class: 'table fx-props' }, rows.map(function (r) {
 					return E('tr', { class: 'tr' }, [
-						E('td', { class: 'td', style: 'font-weight:bold;width:35%' }, r[0]),
-						E('td', { class: 'td' }, String(r[1]))
+						E('td', { class: 'td fx-prop-k' }, r[0]),
+						E('td', { class: 'td fx-prop-v' }, String(r[1]))
 					]);
 				})),
-				E('div', { class: 'right', style: 'margin-top:1em' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+				E('div', { class: 'right fx-modal-actions' },
+					E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
 			]);
 		});
 	},
 
-	/* ----------------------------------------------------------- permissions */
+	/* --------------------------------------------------- permissions */
 
-	actionPermissions: function (entry) {
+	permissionsEntry: function (id, entry) {
 		var self = this;
 		callStat(entry.path).then(function (st) {
 			if (!st || st.ok === false) return notifyError(st, _('Cannot read permissions'));
 			var octal = parseInt(st.mode_octal, 8);
-			var bits = {
-				ur: !!(octal & 0o400), uw: !!(octal & 0o200), ux: !!(octal & 0o100),
-				gr: !!(octal & 0o040), gw: !!(octal & 0o020), gx: !!(octal & 0o010),
-				or: !!(octal & 0o004), ow: !!(octal & 0o002), ox: !!(octal & 0o001)
-			};
 			var checks = {};
-			function row(label, rKey, wKey, xKey) {
-				checks[rKey] = E('input', { type: 'checkbox' }); checks[rKey].checked = bits[rKey];
-				checks[wKey] = E('input', { type: 'checkbox' }); checks[wKey].checked = bits[wKey];
-				checks[xKey] = E('input', { type: 'checkbox' }); checks[xKey].checked = bits[xKey];
-				return E('tr', { class: 'tr' }, [
-					E('td', { class: 'td' }, label),
-					E('td', { class: 'td' }, checks[rKey]),
-					E('td', { class: 'td' }, checks[wKey]),
-					E('td', { class: 'td' }, checks[xKey])
-				]);
+
+			function bit(mask) { return (octal & mask) !== 0; }
+
+			function row(label, keys, masks) {
+				var cells = [E('td', { class: 'td' }, label)];
+				keys.forEach(function (k, i) {
+					checks[k] = E('input', { type: 'checkbox' });
+					checks[k].checked = bit(masks[i]);
+					checks[k].addEventListener('change', recompute);
+					cells.push(E('td', { class: 'td' }, checks[k]));
+				});
+				return E('tr', { class: 'tr' }, cells);
 			}
-			var table = E('table', { class: 'table' }, [
-				E('tr', { class: 'tr table-titles' }, [E('th', { class: 'th' }, ''), E('th', { class: 'th' }, _('Read')), E('th', { class: 'th' }, _('Write')), E('th', { class: 'th' }, _('Execute'))]),
-				row(_('Owner'), 'ur', 'uw', 'ux'),
-				row(_('Group'), 'gr', 'gw', 'gx'),
-				row(_('Others'), 'or', 'ow', 'ox')
-			]);
-			var octalPreview = E('div', { style: 'margin-top:.5em;font-family:monospace' }, st.mode_octal);
+
+			var preview = E('div', { class: 'fx-mode-preview' });
+
 			function recompute() {
-				var m = (checks.ur.checked ? 0o400 : 0) | (checks.uw.checked ? 0o200 : 0) | (checks.ux.checked ? 0o100 : 0) |
+				var m =
+					(checks.ur.checked ? 0o400 : 0) | (checks.uw.checked ? 0o200 : 0) | (checks.ux.checked ? 0o100 : 0) |
 					(checks.gr.checked ? 0o040 : 0) | (checks.gw.checked ? 0o020 : 0) | (checks.gx.checked ? 0o010 : 0) |
 					(checks.or.checked ? 0o004 : 0) | (checks.ow.checked ? 0o002 : 0) | (checks.ox.checked ? 0o001 : 0);
-				octalPreview.textContent = (m).toString(8).padStart(4, '0');
+				var s = '';
+				s += checks.ur.checked ? 'r' : '-';
+				s += checks.uw.checked ? 'w' : '-';
+				s += checks.ux.checked ? 'x' : '-';
+				s += checks.gr.checked ? 'r' : '-';
+				s += checks.gw.checked ? 'w' : '-';
+				s += checks.gx.checked ? 'x' : '-';
+				s += checks.or.checked ? 'r' : '-';
+				s += checks.ow.checked ? 'w' : '-';
+				s += checks.ox.checked ? 'x' : '-';
+				preview.textContent = s + '  ' + ('0000' + m.toString(8)).slice(-4);
 				return m;
 			}
-			Object.keys(checks).forEach(function (k) { checks[k].addEventListener('change', recompute); });
 
-			var uidInput = E('input', { type: 'text', class: 'cbi-input-text', value: st.uid, style: 'width:6em' });
-			var gidInput = E('input', { type: 'text', class: 'cbi-input-text', value: st.gid, style: 'width:6em' });
-
-			ui.showModal(_('Permissions') + ': ' + entry.name, [
-				table, octalPreview,
-				E('div', { class: 'cbi-value', style: 'margin-top:1em' }, [
-					E('label', { class: 'cbi-value-title' }, 'UID:'), uidInput, ' ',
-					E('label', { class: 'cbi-value-title' }, 'GID:'), gidInput
+			var table = E('table', { class: 'table' }, [
+				E('tr', { class: 'tr table-titles' }, [
+					E('th', { class: 'th' }, ''),
+					E('th', { class: 'th' }, _('Read')),
+					E('th', { class: 'th' }, _('Write')),
+					E('th', { class: 'th' }, _('Execute'))
 				]),
-				E('div', { class: 'right', style: 'margin-top:1em' }, [
+				row(_('Owner'), ['ur', 'uw', 'ux'], [0o400, 0o200, 0o100]),
+				row(_('Group'), ['gr', 'gw', 'gx'], [0o040, 0o020, 0o010]),
+				row(_('Others'), ['or', 'ow', 'ox'], [0o004, 0o002, 0o001])
+			]);
+			recompute();
+
+			var uidInput = E('input', { type: 'text', class: 'cbi-input-text fx-num', value: st.uid });
+			var gidInput = E('input', { type: 'text', class: 'cbi-input-text fx-num', value: st.gid });
+			[uidInput, gidInput].forEach(function (i) {
+				i.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
+			});
+
+			ui.showModal(_('Permissions') + ' — ' + entry.name, [
+				table,
+				preview,
+				E('div', { class: 'fx-owner-row' }, [
+					E('label', {}, _('User ID')), uidInput,
+					E('label', {}, _('Group ID')), gidInput
+				]),
+				E('div', { class: 'right fx-modal-actions' }, [
 					E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
 					' ',
 					E('button', {
-						class: 'btn cbi-button-action', click: function () {
+						class: 'btn cbi-button-action',
+						click: function () {
 							var mode = recompute();
 							var ops = [callChmod(entry.path, mode)];
-							var newUid = parseInt(uidInput.value, 10);
-							var newGid = parseInt(gidInput.value, 10);
-							if (newUid !== st.uid || newGid !== st.gid)
-								ops.push(callChown(entry.path, isNaN(newUid) ? -1 : newUid, isNaN(newGid) ? -1 : newGid));
+							var u = parseInt(uidInput.value, 10);
+							var g = parseInt(gidInput.value, 10);
+							if (u !== st.uid || g !== st.gid)
+								ops.push(callChown(entry.path, isNaN(u) ? -1 : u, isNaN(g) ? -1 : g));
 							ui.hideModal();
-							Promise.all(ops).then(function (results) {
-								var failed = results.filter(function (r) { return !r || r.ok === false; });
-								if (failed.length) notifyError(failed[0], _('Cannot change permissions'));
+							Promise.all(ops).then(function (rs) {
+								var bad = rs.filter(function (r) { return !r || r.ok === false; });
+								if (bad.length) notifyError(bad[0], _('Cannot change permissions'));
 								else notifyOk(_('Permissions updated'));
-								self.refresh();
+								self.loadPane(id, true);
 							});
 						}
 					}, _('Apply'))
@@ -931,50 +1262,53 @@ return view.extend({
 		});
 	},
 
-	/* -------------------------------------------------------------- preview */
+	/* ------------------------------------------------------- preview */
 
-	actionPreview: function (entry) {
+	previewEntry: function (entry) {
 		var self = this;
-		callRead(entry.path, 'preview').then(function (reply) {
-			if (!reply || reply.ok === false) {
-				if (reply && reply.error && reply.error.code === 'EFBIG') {
+		callRead(entry.path, 'preview').then(function (r) {
+			if (!r || r.ok === false) {
+				if (r && r.error && r.error.code === 'EFBIG')
 					return self.previewTooLarge(entry);
-				}
-				return notifyError(reply, _('Cannot preview file'));
+				return notifyError(r, _('Cannot open file'));
 			}
-			if (reply.is_binary) {
-				var cls = classify(entry);
-				if (cls === 'Image') return self.previewImage(entry);
-				return self.previewBinaryNotice(entry);
+			if (r.is_binary) {
+				if (classify(entry) === 'image') return self.previewImage(entry);
+				return self.previewBinary(entry);
 			}
-			var text = b64DecodeUtf8(reply.data);
 			ui.showModal(entry.path, [
-				E('pre', { class: 'fx-preview-pre' }, text),
-				reply.truncated ? E('p', { class: 'fx-warn' }, _('Preview truncated at %s.').format(fmtSize(reply.size))) : '',
-				E('div', { class: 'right', style: 'margin-top:1em' }, [
-					E('button', { class: 'btn', click: function () { self.actionDownload(entry); } }, _('Download')),
+				E('pre', { class: 'fx-pre' }, b64DecodeUtf8(r.data)),
+				r.truncated ? E('p', { class: 'fx-warn' },
+					_('Preview truncated, the file is %s.').format(fmtSize(r.size))) : '',
+				E('div', { class: 'right fx-modal-actions' }, [
+					E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
+					' ',
+					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit')),
 					' ',
 					E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
 				])
-			]);
+			], 'fx-modal-wide');
 		});
 	},
 
 	previewImage: function (entry) {
 		var self = this;
-		var url = self.downloadUrl(entry.path);
 		ui.showModal(entry.path, [
-			E('div', { style: 'text-align:center' }, E('img', { src: url, style: 'max-width:100%;max-height:60vh' })),
-			E('div', { class: 'right', style: 'margin-top:1em' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
-		]);
+			E('div', { class: 'fx-img-wrap' }, E('img', { src: this.downloadUrl(entry.path) })),
+			E('div', { class: 'right fx-modal-actions' }, [
+				E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
+				' ',
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
+			])
+		], 'fx-modal-wide');
 	},
 
-	previewBinaryNotice: function (entry) {
+	previewBinary: function (entry) {
 		var self = this;
 		ui.showModal(entry.path, [
-			E('p', {}, _('This is a binary file and cannot be previewed as text.')),
-			E('div', { class: 'right', style: 'margin-top:1em' }, [
-				E('button', { class: 'btn', click: function () { self.actionDownload(entry); } }, _('Download')),
+			E('p', {}, _('This is a binary file and cannot be shown as text.')),
+			E('div', { class: 'right fx-modal-actions' }, [
+				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download')),
 				' ',
 				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
 			])
@@ -983,259 +1317,316 @@ return view.extend({
 
 	previewTooLarge: function (entry) {
 		var self = this;
+		function part(mode, label) {
+			return E('button', {
+				class: 'btn', click: function () {
+					callRead(entry.path, mode).then(function (r) {
+						if (!r || r.ok === false) return notifyError(r, _('Cannot open file'));
+						ui.showModal(entry.path + ' — ' + label, [
+							E('pre', { class: 'fx-pre' }, b64DecodeUtf8(r.data)),
+							E('div', { class: 'right fx-modal-actions' },
+								E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+						], 'fx-modal-wide');
+					});
+				}
+			}, label);
+		}
 		ui.showModal(entry.path, [
-			E('p', {}, _('File is too large for preview.')),
-			E('div', { class: 'right', style: 'margin-top:1em' }, [
-				E('button', { class: 'btn', click: function () { self.actionDownload(entry); } }, _('Download instead')),
-				' ',
-				E('button', {
-					class: 'btn', click: function () {
-						callRead(entry.path, 'head').then(function (r) {
-							if (!r || r.ok === false) return notifyError(r);
-							self.showHeadTail(entry, b64DecodeUtf8(r.data), _('First part'));
-						});
-					}
-				}, _('Show first part')),
-				' ',
-				E('button', {
-					class: 'btn', click: function () {
-						callRead(entry.path, 'tail').then(function (r) {
-							if (!r || r.ok === false) return notifyError(r);
-							self.showHeadTail(entry, b64DecodeUtf8(r.data), _('Last part'));
-						});
-					}
-				}, _('Show last part')),
+			E('p', {}, _('The file is too large to show in full.')),
+			E('div', { class: 'right fx-modal-actions' }, [
+				part('head', _('First part')), ' ',
+				part('tail', _('Last part')), ' ',
+				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download')),
 				' ',
 				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
 			])
 		]);
 	},
 
-	showHeadTail: function (entry, text, label) {
-		ui.showModal(entry.path + ' — ' + label, [
-			E('pre', { class: 'fx-preview-pre' }, text),
-			E('div', { class: 'right', style: 'margin-top:1em' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
-		]);
-	},
+	/* -------------------------------------------------------- editor */
 
-	/* ---------------------------------------------------------------- edit */
-
-	actionEdit: function (entry) {
+	editEntry: function (entry) {
 		var self = this;
-		callRead(entry.path, 'edit').then(function (reply) {
-			if (!reply || reply.ok === false) {
-				if (reply && reply.error && reply.error.code === 'EFBIG')
-					return ui.addNotification(null, E('p', {}, _('File is too large to edit (limit applies). Download it instead.')), 'warning');
-				if (reply && reply.error && reply.error.code === 'EINVAL')
+		callRead(entry.path, 'edit').then(function (r) {
+			if (!r || r.ok === false) {
+				if (r && r.error && r.error.code === 'EFBIG')
+					return ui.addNotification(null, E('p', {}, _('The file is too large to edit. Download it instead.')), 'warning');
+				if (r && r.error && r.error.code === 'EINVAL')
 					return ui.addNotification(null, E('p', {}, _('This does not look like a text file.')), 'warning');
-				return notifyError(reply, _('Cannot open file for editing'));
+				return notifyError(r, _('Cannot open file'));
 			}
-			var original = b64DecodeUtf8(reply.data);
-			var textarea = E('textarea', { class: 'fx-editor-textarea', spellcheck: 'false' }, original);
+
+			var textarea = E('textarea', { class: 'fx-editor', spellcheck: 'false' }, b64DecodeUtf8(r.data));
 			var dirty = false;
+			var mtime = r.mtime, size = r.size;
+
 			textarea.addEventListener('input', function () { dirty = true; });
+			textarea.addEventListener('keydown', function (ev) {
+				ev.stopPropagation();
+				if ((ev.ctrlKey || ev.metaKey) && (ev.key === 's' || ev.key === 'S')) {
+					ev.preventDefault();
+					save(false);
+				}
+			});
 
-			var mtime = reply.mtime, size = reply.size;
-
-			function doSave(force) {
+			function save(force) {
 				var content = textarea.value;
-				callWrite(entry.path, b64EncodeUtf8(content), 'base64', mtime, size, !!force).then(function (r) {
-					if (!r || r.ok === false) {
-						if (r && r.error && r.error.code === 'ECONFLICT') {
-							ui.showModal(_('Conflict'), [
-								E('p', {}, _('File has been modified externally. Overwrite anyway?')),
-								E('div', { class: 'right' }, [
+				callWrite(entry.path, b64EncodeUtf8(content), 'base64', mtime, size, !!force).then(function (w) {
+					if (!w || w.ok === false) {
+						if (w && w.error && w.error.code === 'ECONFLICT') {
+							ui.showModal(_('File changed on disk'), [
+								E('p', {}, _('This file was modified by something else after you opened it. Overwrite those changes?')),
+								E('div', { class: 'right fx-modal-actions' }, [
 									E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
 									' ',
-									E('button', { class: 'btn cbi-button-negative', click: function () { ui.hideModal(); doSave(true); } }, _('Overwrite'))
+									E('button', {
+										class: 'btn cbi-button-negative',
+										click: function () { ui.hideModal(); save(true); }
+									}, _('Overwrite'))
 								])
 							]);
 							return;
 						}
-						return notifyError(r, _('Save failed'));
+						return notifyError(w, _('Cannot save file'));
 					}
 					dirty = false;
-					mtime = r.mtime; size = r.size;
+					mtime = w.mtime;
+					size = w.size;
 					notifyOk(_('Saved'));
 				});
 			}
 
-			function closeEditor() {
-				if (dirty) {
-					ui.showModal(_('Unsaved changes'), [
-						E('p', {}, _('You have unsaved changes. Discard them?')),
-						E('div', { class: 'right' }, [
-							E('button', { class: 'btn', click: function () { self.actionEdit(entry); } }, _('Back to editor')),
-							' ',
-							E('button', { class: 'btn cbi-button-negative', click: ui.hideModal }, _('Discard'))
-						])
-					]);
-					return;
-				}
-				ui.hideModal();
+			function close() {
+				if (!dirty) { ui.hideModal(); return; }
+				ui.showModal(_('Unsaved changes'), [
+					E('p', {}, _('You have unsaved changes. Discard them?')),
+					E('div', { class: 'right fx-modal-actions' }, [
+						E('button', { class: 'btn', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Keep editing')),
+						' ',
+						E('button', { class: 'btn cbi-button-negative', click: ui.hideModal }, _('Discard'))
+					])
+				]);
 			}
-
-			textarea.addEventListener('keydown', function (ev) {
-				if ((ev.ctrlKey || ev.metaKey) && ev.key === 's') {
-					ev.preventDefault();
-					doSave(false);
-				}
-			});
 
 			ui.showModal(entry.path, [
 				textarea,
-				E('div', { class: 'right', style: 'margin-top:1em' }, [
-					E('button', { class: 'btn', click: closeEditor }, _('Cancel')),
+				E('div', { class: 'fx-editor-hint' }, _('Press Ctrl+S to save.')),
+				E('div', { class: 'right fx-modal-actions' }, [
+					E('button', { class: 'btn', click: close }, _('Cancel')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: function () { doSave(false); } }, _('Save'))
+					E('button', { class: 'btn cbi-button-action', click: function () { save(false); } }, _('Save'))
 				])
-			], 'fx-editor-modal');
+			], 'fx-modal-wide');
 
 			textarea.focus();
 		});
 	},
 
-	/* -------------------------------------------------------------- download */
+	/* ------------------------------------------------------ download */
 
 	downloadUrl: function (path) {
 		return L.url('admin', 'system', 'filexplorer', 'download') + '?path=' + encodeURIComponent(path);
 	},
 
-	actionDownload: function (entry) {
+	downloadEntry: function (entry) {
 		var a = E('a', { href: this.downloadUrl(entry.path), download: entry.name, style: 'display:none' });
 		document.body.appendChild(a);
 		a.click();
 		window.setTimeout(function () { a.remove(); }, 1000);
 	},
 
-	/* ---------------------------------------------------------------- upload */
+	/* -------------------------------------------------------- upload */
 
-	actionUpload: function () {
+	actUpload: function () {
 		var self = this;
-		pickDirectory(self.path).then(function (dest) {
-			if (!dest) return;
-			var input = E('input', { type: 'file', multiple: true, style: 'display:none' });
-			document.body.appendChild(input);
-			input.addEventListener('change', function () {
-				var files = Array.prototype.slice.call(input.files || []);
-				input.remove();
-				if (!files.length) return;
-				self.uploadFiles(files, dest);
-			});
-			input.click();
+		var id = this.active;
+		var dest = this.panes[id].path;
+		var input = E('input', { type: 'file', multiple: true, style: 'display:none' });
+		document.body.appendChild(input);
+		input.addEventListener('change', function () {
+			var files = Array.prototype.slice.call(input.files || []);
+			input.remove();
+			if (files.length) self.uploadFiles(files, dest, id);
 		});
+		input.click();
 	},
 
-	uploadFiles: function (files, dest) {
+	uploadFiles: function (files, dest, paneId) {
 		var self = this;
 		var total = files.length;
 		var idx = 0;
-
-		var overallLabel = E('div', {}, _('%d / %d files').format(0, total));
-		var fileLabel = E('div', { class: 'fx-upload-filename' }, '');
-		var bar = E('div', { class: 'fx-progress-bar' }, E('div', { class: 'fx-progress-fill' }));
-		var fill = bar.firstChild;
 		var cancelled = false;
 		var xhr = null;
 
-		var modal = ui.showModal(_('Uploading…'), [
-			overallLabel, fileLabel, bar,
-			E('div', { class: 'right', style: 'margin-top:1em' }, E('button', {
-				class: 'btn', click: function () { cancelled = true; if (xhr) xhr.abort(); ui.hideModal(); }
-			}, _('Cancel')))
+		var overall = E('div', { class: 'fx-up-overall' });
+		var fileLabel = E('div', { class: 'fx-up-name' });
+		var fill = E('div', { class: 'fx-bar-fill' });
+		var destLine = E('div', { class: 'fx-up-dest' }, _('Destination: %s').format(dest));
+
+		ui.showModal(_('Uploading'), [
+			destLine, overall, fileLabel,
+			E('div', { class: 'fx-bar' }, fill),
+			E('div', { class: 'right fx-modal-actions' },
+				E('button', {
+					class: 'btn',
+					click: function () { cancelled = true; if (xhr) xhr.abort(); ui.hideModal(); }
+				}, _('Cancel')))
 		]);
 
-		function uploadNext() {
-			if (cancelled) return;
-			if (idx >= total) {
-				ui.hideModal();
-				notifyOk(_('Upload complete'));
-				self.refresh();
-				return;
-			}
-			var file = files[idx];
-			fileLabel.textContent = file.name;
-			overallLabel.textContent = _('%d / %d files').format(idx, total);
-			fill.style.width = '0%';
-
+		function post(file, overwrite, onDone) {
 			var fd = new FormData();
 			fd.append('file', file, file.name);
-
 			xhr = new XMLHttpRequest();
-			xhr.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=0');
+			xhr.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') +
+				'?dest=' + encodeURIComponent(dest) + '&overwrite=' + (overwrite ? '1' : '0'));
 			xhr.upload.addEventListener('progress', function (ev) {
 				if (ev.lengthComputable)
 					fill.style.width = Math.round((ev.loaded / ev.total) * 100) + '%';
 			});
 			xhr.onload = function () {
-				if (cancelled) return;
 				var resp = null;
 				try { resp = JSON.parse(xhr.responseText); } catch (e) { /* ignore */ }
-				if (xhr.status === 200 && resp && resp.ok) {
-					idx++;
-					uploadNext();
-				} else if (resp && resp.error && resp.error.code === 'EEXIST') {
-					self.confirmOverwrite(1, function () {
-						var fd2 = new FormData();
-						fd2.append('file', file, file.name);
-						var x2 = new XMLHttpRequest();
-						x2.open('POST', L.url('admin', 'system', 'filexplorer', 'upload') + '?dest=' + encodeURIComponent(dest) + '&overwrite=1');
-						x2.onload = function () { idx++; uploadNext(); };
-						x2.onerror = function () { idx++; uploadNext(); };
-						x2.send(fd2);
-					});
-				} else {
-					ui.addNotification(null, E('p', {}, file.name + ': ' + errorMessage(resp, _('Upload failed'))), 'error');
-					idx++;
-					uploadNext();
-				}
+				onDone(xhr.status, resp);
 			};
-			xhr.onerror = function () {
-				if (cancelled) return;
-				ui.addNotification(null, E('p', {}, file.name + ': ' + _('Upload failed')), 'error');
-				idx++;
-				uploadNext();
-			};
+			xhr.onerror = function () { onDone(0, null); };
 			xhr.send(fd);
 		}
 
-		uploadNext();
+		function next() {
+			if (cancelled) return;
+			if (idx >= total) {
+				ui.hideModal();
+				notifyOk(N_(total, 'Uploaded %d file', 'Uploaded %d files').format(total));
+				self.loadPane(paneId, true);
+				return;
+			}
+			var file = files[idx];
+			fileLabel.textContent = file.name;
+			overall.textContent = _('File %d of %d').format(idx + 1, total);
+			fill.style.width = '0%';
+
+			post(file, false, function (status, resp) {
+				if (cancelled) return;
+				if (status === 200 && resp && resp.ok) { idx++; next(); return; }
+				if (resp && resp.error && resp.error.code === 'EEXIST') {
+					self.confirmOverwrite(1, function () {
+						post(file, true, function () { idx++; next(); });
+					});
+					return;
+				}
+				ui.addNotification(null, E('p', {},
+					file.name + ': ' + errorMessage(resp, _('Upload failed'))), 'error');
+				idx++;
+				next();
+			});
+		}
+
+		next();
 	},
 
-	/* ---------------------------------------------------------------- search */
+	/* -------------------------------------------------------- search */
 
-	actionSearch: function (query, recursive) {
+	actSearch: function () {
 		var self = this;
-		if (!query || !query.length) {
-			self.renderTable();
-			return;
-		}
-		callSearch(self.path, query, !!recursive, 500).then(function (reply) {
-			if (!reply || reply.ok === false) return notifyError(reply, _('Search failed'));
-			var list = reply.results;
-			var thead = E('tr', { class: 'tr table-titles' }, [
-				E('th', { class: 'th' }, _('Name')),
-				E('th', { class: 'th' }, _('Path')),
-				E('th', { class: 'th' }, _('Type')),
-				E('th', { class: 'th' }, _('Size'))
-			]);
-			var rows = [thead];
-			if (!list.length)
-				rows.push(E('tr', { class: 'tr' }, E('td', { class: 'td', colspan: 4, style: 'padding:1em' }, _('No matches'))));
-			list.forEach(function (entry) {
-				rows.push(E('tr', { class: 'tr' }, [
-					E('td', { class: 'td' }, E('span', { class: 'fx-name-link', click: function () { self.openEntry(entry); } }, iconFor(entry, classify(entry)) + ' ' + entry.name)),
-					E('td', { class: 'td' }, dirName(entry.path)),
-					E('td', { class: 'td' }, classify(entry)),
-					E('td', { class: 'td' }, entry.type === 'directory' ? '—' : fmtSize(entry.size))
-				]));
-			});
-			if (reply.truncated)
-				rows.push(E('tr', { class: 'tr' }, E('td', { class: 'td', colspan: 4 }, _('Results truncated. Try a more specific query or a recursive search.'))));
-			if (!recursive)
-				rows.push(E('tr', { class: 'tr' }, E('td', { class: 'td', colspan: 4 }, E('a', { href: '#', click: function (ev) { ev.preventDefault(); self.actionSearch(query, true); } }, _('Search recursively…')))));
-			dom.content(self.tableNode, rows);
+		var id = this.active;
+		var base = this.panes[id].path;
+
+		var input = E('input', { type: 'text', class: 'cbi-input-text fx-full', placeholder: _('Part of a file name') });
+		var recursive = E('input', { type: 'checkbox' });
+		var results = E('div', { class: 'fx-search-results' });
+		var timer = null;
+
+		input.addEventListener('keydown', function (ev) {
+			ev.stopPropagation();
+			if (ev.key === 'Enter') { window.clearTimeout(timer); run(); }
 		});
+		input.addEventListener('input', function () {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(run, 400);
+		});
+		recursive.addEventListener('change', run);
+
+		function run() {
+			var q = input.value;
+			if (!q) { results.innerHTML = ''; return; }
+			dom.content(results, E('div', { class: 'fx-loading' }, _('Searching…')));
+			callSearch(base, q, recursive.checked, 500).then(function (r) {
+				if (!r || r.ok === false) {
+					dom.content(results, E('p', { class: 'alert-message warning' },
+						errorMessage(r, _('Search failed'))));
+					return;
+				}
+				if (!r.results.length) {
+					dom.content(results, E('div', { class: 'fx-empty' }, _('Nothing found')));
+					return;
+				}
+				var rows = r.results.map(function (entry) {
+					return E('div', {
+						class: 'fx-search-row',
+						click: function () {
+							ui.hideModal();
+							var dir = (entry.type === 'directory') ? entry.path : dirName(entry.path);
+							self.navigate(id, dir);
+						}
+					}, [
+						E('span', { class: 'fx-ico' }, iconFor(entry, classify(entry))),
+						E('span', { class: 'fx-search-name' }, entry.name),
+						E('span', { class: 'fx-search-path' }, dirName(entry.path))
+					]);
+				});
+				if (r.truncated)
+					rows.push(E('div', { class: 'fx-warn' },
+						_('Too many matches, only the first %d are shown.').format(r.results.length)));
+				dom.content(results, rows);
+			});
+		}
+
+		ui.showModal(_('Search'), [
+			E('p', {}, _('Searching in: %s').format(base)),
+			input,
+			E('label', { class: 'fx-check-row' }, [recursive, ' ', _('Search inside subfolders')]),
+			results,
+			E('div', { class: 'right fx-modal-actions' },
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+		], 'fx-modal-wide');
+
+		input.focus();
+	},
+
+	/* ------------------------------------------------------ settings */
+
+	actSettings: function () {
+		var self = this;
+		function check(label, prop, key) {
+			var cb = E('input', { type: 'checkbox' });
+			cb.checked = self[prop];
+			cb.addEventListener('change', function () {
+				self[prop] = cb.checked;
+				lsSet(key, cb.checked);
+				self.renderBody('left');
+				self.renderBody('right');
+				self.renderFoot('left');
+				self.renderFoot('right');
+			});
+			return E('label', { class: 'fx-check-row' }, [cb, ' ', label]);
+		}
+
+		ui.showModal(_('Settings'), [
+			check(_('Show hidden files'), 'showHidden', 'showHidden'),
+			check(_('Folders first'), 'dirsFirst', 'dirsFirst'),
+			E('div', { class: 'fx-help' }, [
+				E('p', {}, _('Keyboard shortcuts')),
+				E('ul', {}, [
+					E('li', {}, _('Tab — switch panel')),
+					E('li', {}, _('Enter — open, Backspace — go up')),
+					E('li', {}, _('Insert or Space — select, Ctrl+A — select all')),
+					E('li', {}, _('F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete')),
+					E('li', {}, _('Ctrl+R — refresh the active panel'))
+				])
+			]),
+			E('div', { class: 'right fx-modal-actions' },
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+		]);
 	}
 
 });

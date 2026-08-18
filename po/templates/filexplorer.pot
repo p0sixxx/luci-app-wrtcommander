@@ -1,0 +1,463 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: luci-app-filexplorer\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "%d B"
+msgstr ""
+
+msgid "%s GiB"
+msgstr ""
+
+msgid "%s KiB"
+msgstr ""
+
+msgid "%s MiB"
+msgstr ""
+
+msgid "%s free of %s"
+msgstr ""
+
+msgid "Accessed"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Archive"
+msgstr ""
+
+msgid "Binary"
+msgstr ""
+
+msgid "Broken symlink: %s"
+msgstr ""
+
+msgid "Browse…"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Cannot change permissions"
+msgstr ""
+
+msgid "Cannot create file"
+msgstr ""
+
+msgid "Cannot create folder"
+msgstr ""
+
+msgid "Cannot open directory"
+msgstr ""
+
+msgid "Cannot open file"
+msgstr ""
+
+msgid "Cannot read permissions"
+msgstr ""
+
+msgid "Cannot read properties"
+msgstr ""
+
+msgid "Cannot rename"
+msgstr ""
+
+msgid "Cannot save file"
+msgstr ""
+
+msgid "Changed"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Confirm delete"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copy \"%s\" to:"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Ctrl+R — refresh the active panel"
+msgstr ""
+
+msgid "DIR"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete \"%s\"?"
+msgstr ""
+
+msgid "Delete failed"
+msgstr ""
+
+msgid "Delete folder \"%s\" and all of its contents?"
+msgstr ""
+
+msgid "Deleted"
+msgstr ""
+
+msgid "Destination: %s"
+msgstr ""
+
+msgid "Device"
+msgstr ""
+
+msgid "Directory"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Enter — open, Backspace — go up"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete"
+msgstr ""
+
+msgid "FIFO"
+msgstr ""
+
+msgid "File %d of %d"
+msgstr ""
+
+msgid "File changed on disk"
+msgstr ""
+
+msgid "File created"
+msgstr ""
+
+msgid "Filesystem"
+msgstr ""
+
+msgid "First part"
+msgstr ""
+
+msgid "Folder created"
+msgstr ""
+
+msgid "Folders first"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
+msgid "Group ID"
+msgstr ""
+
+msgid "Image"
+msgstr ""
+
+msgid "Insert or Space — select, Ctrl+A — select all"
+msgstr ""
+
+msgid "Invalid name"
+msgstr ""
+
+msgid "Items already exist"
+msgstr ""
+
+msgid "Keep editing"
+msgstr ""
+
+msgid "Keyboard shortcuts"
+msgstr ""
+
+msgid "Last part"
+msgstr ""
+
+msgid "Left panel"
+msgstr ""
+
+msgid "Loading…"
+msgstr ""
+
+msgid "Modified"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Move \"%s\" to:"
+msgstr ""
+
+msgid "Moved"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Name cannot be empty"
+msgstr ""
+
+msgid "Name cannot contain a slash"
+msgstr ""
+
+msgid "Name is too long"
+msgstr ""
+
+msgid "New file"
+msgstr ""
+
+msgid "New folder"
+msgstr ""
+
+msgid "No subdirectories"
+msgstr ""
+
+msgid "Nothing found"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Operation failed"
+msgstr ""
+
+msgid "Others"
+msgstr ""
+
+msgid "Overwrite"
+msgstr ""
+
+msgid "Owner"
+msgstr ""
+
+msgid "Part of a file name"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Permissions"
+msgstr ""
+
+msgid "Permissions updated"
+msgstr ""
+
+msgid "Press Ctrl+S to save."
+msgstr ""
+
+msgid "Preview truncated, the file is %s."
+msgstr ""
+
+msgid "Properties"
+msgstr ""
+
+msgid "Read"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Renamed"
+msgstr ""
+
+msgid "Request failed: %s"
+msgstr ""
+
+msgid "Right panel"
+msgstr ""
+
+msgid "Root directory"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Saved"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Search failed"
+msgstr ""
+
+msgid "Search inside subfolders"
+msgstr ""
+
+msgid "Searching in: %s"
+msgstr ""
+
+msgid "Searching…"
+msgstr ""
+
+msgid "Select"
+msgstr ""
+
+msgid "Select destination"
+msgstr ""
+
+msgid "Select exactly one file to download."
+msgstr ""
+
+msgid "Select exactly one item to rename."
+msgstr ""
+
+msgid "Select this folder"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Show hidden files"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "Socket"
+msgstr ""
+
+msgid "Symlink"
+msgstr ""
+
+msgid "Symlink target"
+msgstr ""
+
+msgid "Tab — switch panel"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "The file is too large to edit. Download it instead."
+msgstr ""
+
+msgid "The file is too large to show in full."
+msgstr ""
+
+msgid "This action cannot be undone."
+msgstr ""
+
+msgid "This directory is empty"
+msgstr ""
+
+msgid "This does not look like a text file."
+msgstr ""
+
+msgid "This file was modified by something else after you opened it. Overwrite those changes?"
+msgstr ""
+
+msgid "This is a binary file and cannot be shown as text."
+msgstr ""
+
+msgid "Too many matches, only the first %d are shown."
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Type a path and press Enter"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Unsaved changes"
+msgstr ""
+
+msgid "Up one level"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Upload failed"
+msgstr ""
+
+msgid "Uploading"
+msgstr ""
+
+msgid "User ID"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "WARNING: this includes a core system path. Deleting it can break the router."
+msgstr ""
+
+msgid "Write"
+msgstr ""
+
+msgid "You have unsaved changes. Discard them?"
+msgstr ""
+
+msgid "broken"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "up"
+msgstr ""
+
+msgid "…and %d more"
+msgstr ""
+
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d item already exists at the destination. Overwrite it?"
+msgid_plural "%d items already exist at the destination. Overwrite them?"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d item selected"
+msgid_plural "%d items selected"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d selected"
+msgid_plural "%d selected"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Copy %d item to:"
+msgid_plural "Copy %d items to:"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete %d selected item?"
+msgid_plural "Delete %d selected items?"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Move %d item to:"
+msgid_plural "Move %d items to:"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Uploaded %d file"
+msgid_plural "Uploaded %d files"
+msgstr[0] ""
+msgstr[1] ""
