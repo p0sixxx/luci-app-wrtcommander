@@ -144,6 +144,12 @@ msgstr "Канал FIFO"
 msgid "File %d of %d"
 msgstr "Файл %d из %d"
 
+#. Menu entry title. The product name is kept in English elsewhere, but
+#. the sidebar entry reads better to a Russian admin as a plain
+#. description of what the page does.
+msgid "FileXplorer"
+msgstr "Файловый менеджер"
+
 msgid "File changed on disk"
 msgstr "Файл изменился на диске"
 
@@ -194,6 +200,11 @@ msgstr "Левая панель"
 
 msgid "Loading…"
 msgstr "Загрузка…"
+
+#. Column header for the mode string (-rw-r--r--). Deliberately short:
+#. the full "Права доступа" does not fit a half-width panel column.
+msgid "Mode"
+msgstr "Права"
 
 msgid "Modified"
 msgstr "Изменён"

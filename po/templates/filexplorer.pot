@@ -149,6 +149,9 @@ msgstr ""
 msgid "File created"
 msgstr ""
 
+msgid "FileXplorer"
+msgstr ""
+
 msgid "Filesystem"
 msgstr ""
 
@@ -192,6 +195,9 @@ msgid "Left panel"
 msgstr ""
 
 msgid "Loading…"
+msgstr ""
+
+msgid "Mode"
 msgstr ""
 
 msgid "Modified"

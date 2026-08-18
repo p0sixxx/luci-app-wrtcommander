@@ -4,11 +4,17 @@ FileXplorer ships its interface strings through LuCI's normal gettext
 pipeline, so it translates the same way any other `luci-app-*` does.
 
 ```
-po/templates/filexplorer.pot   source strings, regenerated from the JS
+po/templates/filexplorer.pot   source strings, regenerated from the sources
 po/ru/filexplorer.po           Russian translation
-po/extract.py                  extracts strings from the view into the .pot
+po/extract.py                  extracts strings into the .pot
 po/verify-lmo.py               independently verifies a compiled .lmo
 ```
+
+Strings come from two places: `_()` / `N_()` calls in the JS view, and
+the `title` of the LuCI menu entry in
+`runtime/usr/share/luci/menu.d/luci-app-filexplorer.json`. The menu
+title is translated through this same catalog at runtime, which is why
+the sidebar entry reads "Файловый менеджер" under a Russian LuCI.
 
 The compiled catalog is committed at
 `runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo` and installed to

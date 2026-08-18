@@ -8,10 +8,19 @@ deployed by copying files rather than through the OpenWrt build system,
 so this small extractor keeps po/templates/filexplorer.pot in sync
 without needing the LuCI build host tools.
 
-It recognises the two forms the view actually uses:
+It collects strings from two places, matching what LuCI's own
+build-time scan does:
 
-    _('single string')
-    N_(count, 'singular', 'plural')
+  * the JS view, in the two forms it actually uses:
+
+        _('single string')
+        N_(count, 'singular', 'plural')
+
+  * the "title" of each entry in the LuCI menu definition. Menu titles
+    are translated through the same catalog at runtime (upstream apps
+    list e.g. "menu.d/luci-app-ddns.json:3" as a source for their menu
+    title msgid), which is what lets the sidebar entry appear in the
+    user's language.
 
 Important: the browser-side _() in LuCI's cbi.js normalises the lookup
 key with trimws() (strip, then collapse internal whitespace runs to a
@@ -22,6 +31,7 @@ such strings and reports them instead.
 Usage:  python3 po/extract.py
 """
 
+import json
 import os
 import re
 import sys
@@ -29,6 +39,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SOURCE = os.path.join(ROOT, 'runtime/www/luci-static/resources/view/filexplorer.js')
+MENU = os.path.join(ROOT, 'runtime/usr/share/luci/menu.d/luci-app-filexplorer.json')
 OUTPUT = os.path.join(HERE, 'templates/filexplorer.pot')
 
 STR = r"'((?:[^'\\]|\\.)*)'"
@@ -44,13 +55,24 @@ def po_escape(s):
     return s.replace('\\', '\\\\').replace('"', '\\"')
 
 
+def menu_titles():
+    """Every "title" in the LuCI menu definition."""
+    try:
+        spec = json.load(open(MENU, encoding='utf-8'))
+    except FileNotFoundError:
+        return set()
+    return {entry['title'] for entry in spec.values()
+            if isinstance(entry, dict) and isinstance(entry.get('title'), str)}
+
+
 def main():
     src = open(SOURCE, encoding='utf-8').read()
 
     plurals = sorted({(unescape_js(a), unescape_js(b))
                       for a, b in RE_PLURAL.findall(src)})
     plural_singulars = {a for a, _b in plurals}
-    singles = sorted({unescape_js(s) for s in RE_SINGLE.findall(src)}
+    singles = sorted(({unescape_js(s) for s in RE_SINGLE.findall(src)}
+                      | menu_titles())
                      - plural_singulars)
 
     bad = [s for s in singles + [x for p in plurals for x in p]

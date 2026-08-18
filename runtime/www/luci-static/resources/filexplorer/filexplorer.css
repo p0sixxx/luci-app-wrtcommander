@@ -16,6 +16,21 @@
 	min-height: 24em;
 }
 
+/* LuCI centres page content in a fairly narrow fixed-width container.
+   That is fine for a form, but two file panels side by side - each with
+   name, size, date and mode columns - end up with truncated headers in
+   it, especially once translated (German and Russian labels are longer
+   than the English ones).
+   So widen just this view towards the viewport edges while keeping it
+   centred inside its container. The 3em inset leaves room for the
+   vertical scrollbar, which a bare 100vw would sit underneath. */
+@media (min-width: 1024px) {
+	.fx-app {
+		width: min(calc(100vw - 3em), 1920px);
+		margin-left: calc((100% - min(100vw - 3em, 1920px)) / 2);
+	}
+}
+
 /* ---------------------------------------------------------- panels */
 
 .fx-panes {
@@ -158,7 +173,11 @@
 .fx-c-mark { flex: 0 0 1.2em; text-align: center; }
 .fx-c-name { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: .35em; }
 .fx-c-size { flex: 0 0 5.5em; text-align: right; font-family: monospace; font-size: .92em; }
-.fx-c-time { flex: 0 0 8.5em; text-align: right; font-family: monospace; font-size: .92em; opacity: .8; }
+/* 10.5em, not 8.5em: these em values resolve against the cell's own
+   computed size, which is already scaled twice (.fx-pane-body .87em,
+   then .92em here), so a full "2026-08-18 06:12" needs more basis than
+   the raw number suggests. */
+.fx-c-time { flex: 0 0 10.5em; text-align: right; font-family: monospace; font-size: .92em; opacity: .8; }
 .fx-c-perm { flex: 0 0 6.5em; text-align: right; font-family: monospace; font-size: .92em; opacity: .8; }
 
 .fx-ico { flex: 0 0 auto; }
@@ -515,7 +534,9 @@ textarea.fx-editor {
 	.fx-pane-shown { display: flex; }
 
 	.fx-c-perm { display: none; }
-	.fx-c-time { flex-basis: 6.5em; font-size: .85em; }
+	/* only shrink the type here - narrowing the basis as well would cut
+	   the timestamp off, and a single-panel layout has room for it */
+	.fx-c-time { font-size: .85em; }
 
 	.fx-fn { flex: 1 1 auto; justify-content: center; }
 	.fx-fn-spacer { display: none; }
@@ -527,6 +548,7 @@ textarea.fx-editor {
 
 @media (max-width: 520px) {
 	.fx-c-time { display: none; }
-	.fx-c-size { flex-basis: 4.5em; }
+	/* wide enough for a translated "12.4 КиБ" */
+	.fx-c-size { flex-basis: 5.4em; }
 	.fx-search-path { display: none; }
 }

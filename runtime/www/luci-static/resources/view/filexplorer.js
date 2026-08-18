@@ -543,7 +543,10 @@ return view.extend({
 				sortHeader(_('Name'), 'name', 'fx-c-name'),
 				sortHeader(_('Size'), 'size', 'fx-c-size'),
 				sortHeader(_('Modified'), 'mtime', 'fx-c-time'),
-				sortHeader(_('Permissions'), 'mode_octal', 'fx-c-perm')
+				/* short label on purpose: this column shows the mode string
+				   (-rw-r--r--), and the full word does not fit a half-width
+				   panel once translated */
+				sortHeader(_('Mode'), 'mode_octal', 'fx-c-perm')
 			])
 		];
 

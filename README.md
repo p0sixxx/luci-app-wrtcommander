@@ -394,6 +394,13 @@ The compiled catalog installs to
 need LuCI's own catalog (`luci-i18n-base-ru`) — `install.sh` warns if
 it is missing.
 
+The **menu entry itself is translated too** — it reads "FileXplorer" in
+English and "Файловый менеджер" in Russian. Menu titles go through the
+same catalog as everything else (upstream apps list
+`menu.d/…json` as a source for their title msgid), so the string lives
+in `po/` next to the rest and `po/extract.py` picks it up from
+`menu.d/luci-app-filexplorer.json` automatically.
+
 Sources, tooling and instructions for adding a language live in
 [`po/README.md`](po/README.md). Russian uses proper three-form plurals
 (`1 объект / 2 объекта / 5 объектов`) via `N_()`.
