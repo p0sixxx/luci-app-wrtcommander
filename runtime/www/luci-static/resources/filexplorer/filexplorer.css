@@ -381,11 +381,13 @@ h2.fx-title {
 	user-select: none;
 }
 
-/* a size cell waiting on its walk */
+/* a size cell waiting on its walk, and one whose walk failed */
 .fx-size-busy {
 	color: var(--fx-accent);
 	opacity: .8;
 }
+
+.fx-size-failed { color: var(--fx-danger); }
 
 .fx-ico { flex: 0 0 auto; }
 .fx-nm { overflow: hidden; text-overflow: ellipsis; }

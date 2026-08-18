@@ -916,19 +916,28 @@ return view.extend({
 		var sizeInfo = (entry.type === 'directory') ? p.dirSizes[entry.path] : null;
 		var sizeText, sizeTitle = '';
 
+		var sizeClass = '';
+
 		if (entry.type !== 'directory') {
 			sizeText = fmtSize(entry.size);
 		}
 		else if (!sizeInfo) {
-			sizeText = _('DIR');
+			/* the same dash fmtSize() uses for a size that is not known,
+			   because that is exactly what this is - the column says
+			   nothing rather than saying something that is not a size */
+			sizeText = '—';
 			sizeTitle = _('Ctrl+Space calculates the size of this folder');
 		}
 		else if (sizeInfo.pending) {
 			sizeText = '…';
+			sizeClass = ' fx-size-busy';
 			sizeTitle = _('Calculating…');
 		}
 		else if (sizeInfo.failed) {
-			sizeText = _('DIR');
+			/* back to the dash, but coloured: otherwise a failed walk is
+			   indistinguishable from one that was never asked for */
+			sizeText = '—';
+			sizeClass = ' fx-size-failed';
 			sizeTitle = sizeInfo.failed;
 		}
 		else {
@@ -992,10 +1001,7 @@ return view.extend({
 				E('span', { class: 'fx-ico' }, iconFor(entry, cls)),
 				E('span', { class: 'fx-nm' }, nameText)
 			]),
-			E('div', {
-				class: 'fx-cell fx-c-size' + (sizeInfo && sizeInfo.pending ? ' fx-size-busy' : ''),
-				title: sizeTitle
-			}, sizeText),
+			E('div', { class: 'fx-cell fx-c-size' + sizeClass, title: sizeTitle }, sizeText),
 			E('div', { class: 'fx-cell fx-c-time' }, fmtTime(entry.mtime)),
 			E('div', { class: 'fx-cell fx-c-perm' }, entry.mode_string)
 		]);

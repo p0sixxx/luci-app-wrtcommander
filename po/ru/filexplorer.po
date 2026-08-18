@@ -98,9 +98,6 @@ msgid "Create"
 msgstr "Создать"
 
 
-msgid "DIR"
-msgstr "ПАПКА"
-
 msgid "Delete"
 msgstr "Удалить"
 

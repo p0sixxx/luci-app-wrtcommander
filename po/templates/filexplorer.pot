@@ -113,9 +113,6 @@ msgstr ""
 msgid "Ctrl+Space calculates the size of this folder"
 msgstr ""
 
-msgid "DIR"
-msgstr ""
-
 msgid "Delete"
 msgstr ""
 
