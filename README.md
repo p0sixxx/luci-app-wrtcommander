@@ -573,6 +573,26 @@ resolve any of the `--fx-*` tokens: it had no border, square corners and
 invisible separators. The token block is declared on `.fx-app, .fx-ctx`
 for that reason.
 
+### On a phone
+
+Below 900px the two panels become one at a time with a switcher, and the
+header changes shape rather than just wrapping. It becomes a seven-column
+grid, which divides the 13 action buttons into exactly two full-width
+rows of 7 and 6. Left to wrap on its own it produced three ragged rows —
+measured 5+6+2 at 412px and 4+5+4 at 360px. The title takes the row
+above and the selection count the row below, both placed by `order`
+rather than by source position: the count sits between Search and the two
+page-level buttons in the markup, and left there it would break the icon
+flow into a third row whenever something was selected.
+
+The F-key labels are hidden at that width. A phone has no F-keys, and
+dropping the label is what lets seven icons share a 360px row.
+
+The page also takes back the theme's 16px side gutters, down to 6px —
+32px of a 360px screen is nearly a tenth of it, and a file list wants the
+width more than the margin. That rule lives inside `#maincontent.fx-wide`
+too, so the same guard that can remove the class removes this with it.
+
 Commander conventions worth knowing:
 
 - **Cursor and selection are different things.** The cursor is the

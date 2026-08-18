@@ -854,16 +854,55 @@ textarea.fx-editor {
 	.fx-pane { display: none; min-height: 60vh; }
 	.fx-pane-shown { display: flex; }
 
-	/* the title takes the first line, the icons wrap under it */
-	h2.fx-title { flex: 1 1 100%; margin-bottom: .2em; }
+	/* Give the manager the gutter back. The theme keeps 16px either side
+	   for a settings form, which is 32px of a 360px screen - nearly a
+	   tenth of it - and a file list wants that width more than it wants
+	   the margin. Still inside .fx-wide, so the same guard that can take
+	   the class off takes this with it. */
+	#maincontent.fx-wide { padding-left: 6px; padding-right: 6px; }
+
+	/* Two full-width rows of icons rather than however many the buttons
+	   happened to wrap into - measured at 5+6+2 on a 412px screen and
+	   4+5+4 on a 360px one, which is what made the header look ragged.
+	   Seven equal columns divide the 13 buttons into 7 and 6 exactly. */
+	.fx-topbar {
+		display: grid;
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+	}
+
+	/* order, not source position: the count sits between Search and the
+	   two page-level buttons, and left there it would break the icon
+	   flow into a third row whenever something is selected */
+	h2.fx-title {
+		order: -1;
+		grid-column: 1 / -1;
+		margin-bottom: .1em;
+	}
+
+	.fx-fn-count {
+		order: 99;
+		grid-column: 1 / -1;
+		text-align: center;
+		padding: .2em 0 0;
+	}
+
 	.fx-sep { display: none; }
+
+	/* a phone has no F-keys, so the label is dead weight - dropping it
+	   is what lets seven icons share a 360px row */
+	.fx-act-key { display: none; }
 
 	.fx-c-perm { display: none; }
 	/* only shrink the type here - narrowing the basis as well would cut
 	   the timestamp off, and a single-panel layout has room for it */
 	.fx-c-time { font-size: .85em; }
 
-	.fx-act { flex: 1 1 auto; justify-content: center; }
+	.fx-act {
+		justify-content: center;
+		padding: .45em .2em;
+		min-width: 0;
+	}
+
 	.fx-fn-spacer { display: none; }
 
 	.fx-modal-wide { width: auto !important; }
