@@ -257,8 +257,7 @@ return view.extend({
 			this.active = 'left';
 
 		this.root = E('div', { class: 'fx-app' }, [
-			this.topbarNode = E('div', { class: 'fx-topbar' }),
-			this.fnbarNode = E('div', { class: 'fx-fnbar' }),
+			this.headerNode = E('div', { class: 'fx-topbar' }),
 			this.paneSwitchNode = E('div', { class: 'fx-pane-switch' }),
 			this.panesNode = E('div', { class: 'fx-panes' }, [
 				this.panes.left.node.root,
@@ -266,9 +265,8 @@ return view.extend({
 			])
 		]);
 
-		this.renderTopbar();
 		this.renderPaneSwitch();
-		this.renderFnBar();
+		this.renderHeader();
 
 		this.keyHandler = function (ev) { self.onKeyDown(ev); };
 		document.addEventListener('keydown', this.keyHandler);
@@ -282,26 +280,25 @@ return view.extend({
 	},
 
 	/* ------------------------------------------------------------------
-	 * Make the panels reach the bottom of the window.
+	 * Give the file manager the room the display actually has.
 	 *
-	 * Only the height is adjusted, and deliberately so. Earlier versions
-	 * also widened the view past the theme's content container, first in
-	 * CSS (width:100vw plus a negative margin) and then in JS from
-	 * measured geometry. Both looked correct in the numbers and both
-	 * shipped a layout that hung off the edge of the screen on a real
-	 * router: the second one even passed an explicit on-screen check
-	 * afterwards and still rendered shifted, which means the geometry a
-	 * theme reports and the way it finally paints can disagree in ways
-	 * this code cannot detect.
+	 * Two separate adjustments, both measured rather than assumed:
 	 *
-	 * So the width is left to the theme, exactly as on every other LuCI
-	 * page. What made the columns feel cramped was a long translated
-	 * header ("Режим работы" leaking in from luci-base), and that is
-	 * fixed at the source now.
+	 *   height - stretch the app down to the bottom of the window, so the
+	 *            panels show as many rows as fit instead of a fixed guess
+	 *            at the theme's header and footer heights.
 	 *
-	 * Height is safe in a way width was not: getting it wrong can only
-	 * make the panels shorter or taller, never push them sideways off
-	 * the screen.
+	 *   width  - relax the theme's content-width cap, but only when the
+	 *            container still fits on screen afterwards. See
+	 *            widenContainer() for why that check is not optional.
+	 *
+	 * The app itself is never moved or resized directly. Earlier versions
+	 * did exactly that - width:100vw with a negative margin, then a
+	 * position computed from measured geometry - and both shipped a
+	 * layout that hung off the edge of the screen on a real router. What
+	 * is safe is changing one property of the theme's own container and
+	 * letting the theme keep doing its own centring, padding and sidebar
+	 * offset.
 	 * ------------------------------------------------------------------ */
 
 	scheduleLayoutFit: function () {
@@ -317,6 +314,7 @@ return view.extend({
 				if (!self.root || !document.body.contains(self.root)) {
 					window.removeEventListener('resize', self.resizeHandler);
 					self.resizeHandler = null;
+					self.resetContainer();
 					return;
 				}
 				self.fitLayout();
@@ -325,10 +323,54 @@ return view.extend({
 		}
 	},
 
+	contentContainer: function () {
+		return (this.root && this.root.closest)
+			? this.root.closest('#maincontent')
+			: document.getElementById('maincontent');
+	},
+
+	/* Relax the theme's content-width cap for this page, but only if the
+	   container still fits the window afterwards.
+	 *
+	 * Themes lay that element out in ways a stylesheet cannot know about
+	 * in advance. On Proton2025 it is a flex item that grows into the
+	 * space the cap was holding back, so raising the cap simply works and
+	 * a 990px column becomes the full window width. A classic sidebar
+	 * theme instead combines width:100% with a left margin for the menu,
+	 * and there raising the cap pushes the right edge clean off the
+	 * screen.
+	 *
+	 * Rather than trying to recognise the theme, this applies the class,
+	 * measures the result, and takes the class straight back off if the
+	 * container no longer ends inside the window. A theme this rule does
+	 * not suit therefore keeps its own width instead of spilling over.
+	 * The check is cheap and idempotent, so it also reruns on resize. */
+	widenContainer: function () {
+		var host = this.contentContainer();
+		if (!host)
+			return;
+
+		host.classList.add('fx-wide');
+
+		var vw = document.documentElement.clientWidth;
+		var box = host.getBoundingClientRect();
+		if (box.right > vw + 1 || box.left < -1)
+			host.classList.remove('fx-wide');
+	},
+
+	/* The container outlives this view, so hand it back untouched. */
+	resetContainer: function () {
+		var host = this.contentContainer() || document.getElementById('maincontent');
+		if (host)
+			host.classList.remove('fx-wide');
+	},
+
 	fitLayout: function () {
 		var el = this.root;
 		if (!el || !document.body.contains(el))
 			return;
+
+		this.widenContainer();
 
 		/* start from the untouched geometry, so this is idempotent */
 		el.style.height = '';
@@ -397,7 +439,7 @@ return view.extend({
 		this.renderPaneChrome('left');
 		this.renderPaneChrome('right');
 		this.renderPaneSwitch();
-		this.renderFnBar();
+		this.renderHeader();
 	},
 
 	renderPaneChrome: function (id) {
@@ -407,26 +449,63 @@ return view.extend({
 	},
 
 	/* page heading + the actions that are not per-file */
-	renderTopbar: function () {
+	renderHeader: function () {
 		var self = this;
-		dom.content(this.topbarNode, [
-			E('div', { class: 'fx-title-wrap' }, [
-				/* same string as the menu entry, so the page is titled the
-				   way the user got here */
-				E('h2', { class: 'fx-title' }, _('FileXplorer')),
-				E('div', { class: 'fx-subtitle' },
-					_('Two-panel file manager for the router filesystem'))
-			]),
-			E('div', { class: 'fx-topbar-actions' }, [
-				E('button', {
-					class: 'btn cbi-button',
-					click: ui.createHandlerFn(this, function () { self.actShortcuts(); })
-				}, _('Keyboard shortcuts')),
-				E('button', {
-					class: 'btn cbi-button',
-					click: ui.createHandlerFn(this, function () { self.actSettings(); })
-				}, _('Settings'))
-			])
+		var p = this.activePane();
+		/* Explicit marks only, not targetEntries(): that one falls back to
+		   the row under the cursor so an action always has something to
+		   work on, which would make this counter read "1 selected" for
+		   ever. It reports what the user marked, like the panel footer. */
+		var n = p ? this.selectedEntries(p).length : 0;
+
+		/* One icon button. The label lives in the tooltip and in the
+		   shortcuts dialog: spelling every action out here would not fit
+		   one row on a router's content column, and for a commander the
+		   F-key is the label anyway. */
+		function act(icon, key, label, fn, cls) {
+			return E('button', {
+				class: 'btn cbi-button fx-act' + (cls ? ' ' + cls : ''),
+				title: key ? (label + ' (' + key + ')') : label,
+				'aria-label': label,
+				click: ui.createHandlerFn(self, function () { fn(); })
+			}, [
+				E('span', { class: 'fx-act-ico' }, icon),
+				key ? E('span', { class: 'fx-act-key' }, key) : ''
+			]);
+		}
+
+		function sep() {
+			return E('span', { class: 'fx-sep' });
+		}
+
+		dom.content(this.headerNode, [
+			/* same string as the menu entry, so the page is titled the
+			   way the user got here */
+			E('h2', { class: 'fx-title' }, _('FileXplorer')),
+			sep(),
+
+			act('\ud83d\udc41', 'F3', _('View'), function () { self.actF3(); }),
+			act('\u270f\ufe0f', 'F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
+			act('\ud83d\udccb', 'F5', _('Copy'), function () { self.actF5(); }),
+			act('\u27a1\ufe0f', 'F6', _('Move'), function () { self.actF6(); }),
+			act('\ud83d\udcc1', 'F7', _('New folder'), function () { self.actF7(); }),
+			act('\ud83c\udff7\ufe0f', 'F2', _('Rename'), function () { self.actF2(); }),
+			act('\ud83d\uddd1\ufe0f', 'F8', _('Delete'), function () { self.actF8(); }, 'cbi-button-remove fx-act-danger'),
+			sep(),
+
+			act('\ud83d\udcc4', '', _('New file'), function () { self.actNewFile(); }),
+			act('\u2b06\ufe0f', '', _('Upload'), function () { self.actUpload(); }),
+			act('\u2b07\ufe0f', '', _('Download'), function () { self.actDownload(); }),
+			act('\ud83d\udd0d', '', _('Search'), function () { self.actSearch(); }),
+
+			E('span', { class: 'fx-fn-spacer' }),
+			n ? E('span', { class: 'fx-fn-count' },
+				N_(n, '%d selected', '%d selected').format(n)) : '',
+			/* U+2328 without the emoji variation selector: with it the
+			   keyboard renders washed-out and nearly invisible on a dark
+			   theme, without it as a crisp glyph */
+			act('\u2328', '', _('Keyboard shortcuts'), function () { self.actShortcuts(); }),
+			act('\u2699\ufe0f', '', _('Settings'), function () { self.actSettings(); })
 		]);
 	},
 
@@ -542,7 +621,7 @@ return view.extend({
 		this.renderBody(id);
 		this.renderFoot(id);
 		this.renderPaneChrome(id);
-		this.renderFnBar();
+		this.renderHeader();
 	},
 
 	renderHead: function (id) {
@@ -682,7 +761,7 @@ return view.extend({
 				   total and the toolbar counter all follow this */
 				self.renderBody(id);
 				self.renderFoot(id);
-				self.renderFnBar();
+				self.renderHeader();
 			}
 		}, isSel ? '■' : '□');
 
@@ -761,42 +840,6 @@ return view.extend({
 
 	/* -------------------------------------------------- function bar */
 
-	renderFnBar: function () {
-		var self = this;
-		var p = this.activePane();
-		/* Explicit marks only, not targetEntries(): that one falls back to
-		   the row under the cursor so an action always has something to
-		   work on, which would make this counter read "1 selected" for
-		   ever. It reports what the user marked, like the panel footer. */
-		var n = p ? this.selectedEntries(p).length : 0;
-
-		function fk(key, label, fn, cls) {
-			return E('button', {
-				class: 'btn fx-fn' + (cls ? ' ' + cls : ''),
-				click: ui.createHandlerFn(self, function () { fn(); })
-			}, [
-				E('span', { class: 'fx-fn-key' }, key),
-				E('span', { class: 'fx-fn-label' }, label)
-			]);
-		}
-
-		dom.content(this.fnbarNode, [
-			fk('F3', _('View'), function () { self.actF3(); }),
-			fk('F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
-			fk('F5', _('Copy'), function () { self.actF5(); }),
-			fk('F6', _('Move'), function () { self.actF6(); }),
-			fk('F7', _('New folder'), function () { self.actF7(); }),
-			fk('F8', _('Delete'), function () { self.actF8(); }, 'cbi-button-remove'),
-			fk('F2', _('Rename'), function () { self.actF2(); }),
-			E('span', { class: 'fx-fn-spacer' }),
-			fk('', _('New file'), function () { self.actNewFile(); }),
-			fk('', _('Upload'), function () { self.actUpload(); }),
-			fk('', _('Download'), function () { self.actDownload(); }),
-			fk('', _('Search'), function () { self.actSearch(); }),
-			E('span', { class: 'fx-fn-count' },
-				n ? N_(n, '%d selected', '%d selected').format(n) : '')
-		]);
-	},
 
 	/* ---------------------------------------------------- keyboard */
 
@@ -824,26 +867,26 @@ return view.extend({
 				break;
 			case 'ArrowDown':
 				p.cursor = Math.min(p.cursor + 1, p.visible.length - 1);
-				this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				this.renderBody(id); this.renderFoot(id); this.renderHeader();
 				break;
 			case 'ArrowUp':
 				p.cursor = Math.max(p.cursor - 1, 0);
-				this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+				this.renderBody(id); this.renderFoot(id); this.renderHeader();
 				break;
 			case 'PageDown':
 				p.cursor = Math.min(p.cursor + 10, p.visible.length - 1);
-				this.renderBody(id); this.renderFnBar();
+				this.renderBody(id); this.renderHeader();
 				break;
 			case 'PageUp':
 				p.cursor = Math.max(p.cursor - 10, 0);
-				this.renderBody(id); this.renderFnBar();
+				this.renderBody(id); this.renderHeader();
 				break;
 			case 'Home':
-				p.cursor = 0; this.renderBody(id); this.renderFnBar();
+				p.cursor = 0; this.renderBody(id); this.renderHeader();
 				break;
 			case 'End':
 				p.cursor = Math.max(0, p.visible.length - 1);
-				this.renderBody(id); this.renderFnBar();
+				this.renderBody(id); this.renderHeader();
 				break;
 			case 'Enter':
 				if (p.visible[p.cursor]) this.openEntry(id, p.visible[p.cursor]);
@@ -856,7 +899,7 @@ return view.extend({
 				if (p.visible[p.cursor]) {
 					this.toggleSelect(id, p.visible[p.cursor]);
 					p.cursor = Math.min(p.cursor + 1, p.visible.length - 1);
-					this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+					this.renderBody(id); this.renderFoot(id); this.renderHeader();
 				}
 				break;
 			case 'F2': this.actF2(); break;
@@ -873,7 +916,7 @@ return view.extend({
 					var all = (this.selectedEntries(p).length !== p.visible.length);
 					p.selected = {};
 					if (all) p.visible.forEach(function (e) { p.selected[e.path] = true; });
-					this.renderBody(id); this.renderFoot(id); this.renderFnBar();
+					this.renderBody(id); this.renderFoot(id); this.renderHeader();
 				} else handled = false;
 				break;
 			case 'r':

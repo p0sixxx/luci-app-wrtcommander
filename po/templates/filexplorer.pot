@@ -371,9 +371,6 @@ msgstr ""
 msgid "Too many matches, only the first %d are shown."
 msgstr ""
 
-msgid "Two-panel file manager for the router filesystem"
-msgstr ""
-
 msgid "Type"
 msgstr ""
 

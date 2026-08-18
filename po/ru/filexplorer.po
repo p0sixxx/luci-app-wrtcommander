@@ -498,5 +498,3 @@ msgstr "Горячие клавиши работают, когда фокус н
 msgid "Switch panel"
 msgstr "Переключить панель"
 
-msgid "Two-panel file manager for the router filesystem"
-msgstr "Двухпанельный файловый менеджер файловой системы роутера"

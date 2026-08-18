@@ -35,78 +35,78 @@
 	min-height: 22em;
 }
 
-/* Width is intentionally left to the theme - the app uses its content
-   container like any other LuCI page. Two earlier attempts to widen it
-   (CSS 100vw + negative margin, then measured geometry in JS) each
-   shipped a layout that hung off the screen edge on a real router, so
-   that idea is retired. fitLayout() in the view only sets the height,
-   which cannot push anything sideways. */
+/* Give the file manager more room than a settings form needs.
+ *
+ * Only the max-width of the theme's own content container is relaxed,
+ * and only while this page is open. The container keeps its own width
+ * calculation, centring, padding and any sidebar offset, so the app is
+ * never repositioned - which is what went wrong when earlier versions
+ * moved the app itself with negative margins or measured geometry.
+ *
+ * The class is applied by widenContainer() in the view, which puts it
+ * on, checks the container still ends inside the window, and takes it
+ * straight off again if it does not. A theme that sizes this element in
+ * a way this rule does not anticipate therefore just keeps its own
+ * width instead of spilling off the screen.
+ */
+#maincontent.fx-wide {
+	max-width: 2400px;
+}
 
-/* --------------------------------------------------------- top bar */
+/* ------------------------------------------------- header (one row) */
 
 .fx-topbar {
 	flex: 0 0 auto;
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: .6em;
-}
-
-.fx-title-wrap {
-	min-width: 0;
-}
-
-h2.fx-title {
-	margin: 0;
-	line-height: 1.2;
-}
-
-.fx-subtitle {
-	margin-top: .2em;
-	font-size: .88em;
-	color: var(--fx-muted);
-}
-
-.fx-topbar-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: .4em;
-}
-
-/* ------------------------------------------------------ function bar */
-
-.fx-fnbar {
-	flex: 0 0 auto;
-	display: flex;
-	flex-wrap: wrap;
 	align-items: center;
 	gap: .3em;
-	padding: .45em;
+	padding: .45em .6em;
 	border: 1px solid var(--fx-border);
 	border-radius: var(--fx-radius);
 	background: var(--fx-surface);
 	box-shadow: var(--fx-shadow);
 }
 
-.fx-fn {
+h2.fx-title {
+	margin: 0 .2em 0 0;
+	font-size: 1.15em;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.fx-sep {
+	align-self: stretch;
+	width: 1px;
+	margin: .1em .35em;
+	background: var(--fx-border);
+}
+
+/* icon action button: glyph plus the F-key that triggers it, with the
+   spelled-out name in the tooltip */
+.fx-act {
 	display: inline-flex;
 	align-items: center;
-	gap: .35em;
-	padding: .25em .7em;
-	font-size: .85em;
+	gap: .3em;
+	padding: .3em .55em;
 	border-radius: var(--fx-radius-sm);
+	line-height: 1;
 	transition: var(--fx-transition);
 }
 
-.fx-fn-key {
-	font-family: monospace;
-	font-weight: bold;
-	font-size: .85em;
-	opacity: .7;
+.fx-act-ico {
+	font-size: 1.05em;
+	line-height: 1;
 }
 
-.fx-fn-key:empty { display: none; }
+.fx-act-key {
+	font-family: monospace;
+	font-size: .72em;
+	font-weight: bold;
+	opacity: .65;
+}
+
+.fx-act-danger:hover { border-color: var(--fx-danger); }
 
 .fx-fn-spacer { flex: 1 1 auto; }
 
@@ -115,6 +115,7 @@ h2.fx-title {
 	font-weight: bold;
 	color: var(--fx-warning);
 	padding: 0 .5em;
+	white-space: nowrap;
 }
 
 /* ---------------------------------------------------------- panels */
@@ -613,16 +614,16 @@ textarea.fx-editor {
 	.fx-pane { display: none; min-height: 60vh; }
 	.fx-pane-shown { display: flex; }
 
-	.fx-topbar { align-items: flex-start; }
-	.fx-topbar-actions { flex: 1 1 100%; }
-	.fx-topbar-actions .btn { flex: 1 1 auto; }
+	/* the title takes the first line, the icons wrap under it */
+	h2.fx-title { flex: 1 1 100%; margin-bottom: .2em; }
+	.fx-sep { display: none; }
 
 	.fx-c-perm { display: none; }
 	/* only shrink the type here - narrowing the basis as well would cut
 	   the timestamp off, and a single-panel layout has room for it */
 	.fx-c-time { font-size: .85em; }
 
-	.fx-fn { flex: 1 1 auto; justify-content: center; }
+	.fx-act { flex: 1 1 auto; justify-content: center; }
 	.fx-fn-spacer { display: none; }
 
 	.fx-modal-wide { width: auto !important; }

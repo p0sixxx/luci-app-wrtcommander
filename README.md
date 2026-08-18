@@ -17,7 +17,9 @@ active, and every operation defaulting to "from the active panel to the
 other one".
 
 ```
-┌─ /etc/config ───────────────┬─ /tmp ──────────────────────┐
+┌───────────────────────────────────────────────────────────┐
+│ FileXplorer │ 👁F3 ✏F4 📋F5 ➡F6 📁F7 🏷F2 🗑F8 │ 📄 ⬆ ⬇ 🔍  ⌨ ⚙ │
+├─ /etc/config ───────────────┬─ /tmp ──────────────────────┤
 │ ↑ ..                        │ ↑ ..                        │
 │ 📁 wireless        DIR      │ 📄 dhcp.leases      1.2 KiB │
 │ 📄 network      2.1 KiB     │ 📄 log              4.0 KiB │
@@ -25,9 +27,7 @@ other one".
 ├─────────────────────────────┼─────────────────────────────┤
 │ 1 item selected · 1.8 KiB   │ 12 items                    │
 │              4.2 MiB free   │             28.1 MiB free   │
-├─────────────────────────────┴─────────────────────────────┤
-│ F3 View  F4 Edit  F5 Copy  F6 Move  F7 New folder  F8 Del │
-└───────────────────────────────────────────────────────────┘
+└─────────────────────────────┴─────────────────────────────┘
 ```
 
 - Two panels with independent path, sorting and selection; **Tab**
@@ -36,8 +36,8 @@ other one".
   reason two panels are worth having
 - Full keyboard control: arrows, PageUp/Down, Home/End, Enter to open,
   Backspace to go up, Insert/Space to mark, Ctrl+A, Ctrl+R
-- Function-key bar that is also clickable, so nothing depends on having
-  a keyboard
+- Every action is also an icon button in the header, so nothing depends
+  on having a keyboard
 - Per-panel status line: item count, selected size, free space on that
   filesystem
 - Create / rename / delete / copy / move, one item or many
@@ -367,10 +367,21 @@ The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
 `dom`, `rpc`, `E()`), plain Unicode glyphs for icons (no icon library),
 and a companion stylesheet (`filexplorer.css`).
 
-Layout, top to bottom: a page heading with the app name and a one-line
-description, the actions that are not per-file (**Keyboard shortcuts**,
-**Settings**) on the right of it, then the function-key bar, then the
-two panels.
+Layout, top to bottom: a single header row, then the two panels.
+
+The header carries the app name, then every action as an icon button -
+the function keys (F3 View, F4 Edit, F5 Copy, F6 Move, F7 New folder,
+F2 Rename, F8 Delete) with their key printed next to the icon, then the
+actions that have no function key (New file, Upload, Download, Search),
+and finally, pushed to the right, the selection count and the two
+page-level buttons (Keyboard shortcuts, Settings). Every button carries
+a `title` and an `aria-label` with the full wording, so the icons are
+labelled for both hover and screen readers. Separators group the three
+runs. Below 768 px the row wraps: the title takes a line of its own, the
+separators are hidden and the buttons share the width.
+
+The selection count shows only while something is actually marked - it
+counts marked entries, not the row the cursor happens to sit on.
 
 ### Theming
 
@@ -383,14 +394,32 @@ surfaces, accent, radii and shadows, and follows its light mode for free,
 because light mode there only reassigns the same variables. On any other
 theme the fallbacks keep it readable. Nothing hardcodes a palette.
 
-**The app does not widen itself past the theme's content container.**
-Two attempts at that (CSS `100vw` plus a negative margin, then measured
-geometry in JS) each shipped a layout that hung off the edge of the
-screen on a real router - the second one even re-checked its own result
-on screen and still rendered shifted. The width is the theme's business
-now. Only the height is adjusted, to let the panels reach the bottom of
-the window, and getting that wrong can only make them shorter, never
-push them sideways.
+**Sizing to the display.** Two panels of files want more room than a
+settings form, so the view takes what the window actually has, in two
+separate steps.
+
+*Height* is stretched so the panels reach the bottom of the window
+instead of a fixed guess at the theme's header and footer heights.
+
+*Width* relaxes the max-width of the theme's own content container
+(`#maincontent`) through an `.fx-wide` class, and only for as long as
+this page is open. The app itself is never moved or resized - the
+container keeps its own centring, padding and any sidebar offset - and
+`widenContainer()` applies the class, measures, and takes it straight
+back off if the container no longer ends inside the window.
+
+That check is not decoration. On Proton2025 `#maincontent` is a flex
+item that grows into the space the cap was holding back, so a 990 px
+column becomes the full window width (measured: 990 -> 1920 px at a
+1920 px viewport, no horizontal scroll at 1024/1280/1366/1600/1920). A
+classic sidebar theme instead combines `width: 100%` with a left margin
+for the menu, and there the same rule pushes the right edge off screen -
+so the class is reverted and that theme simply keeps its own width.
+Earlier versions tried to widen the app itself (CSS `100vw` plus a
+negative margin, then a position computed from measured geometry) and
+both shipped a layout that hung off the edge of the screen on a real
+router, which is why this one changes one property of the theme's
+container and verifies the result rather than trusting it.
 
 Commander conventions worth knowing:
 
