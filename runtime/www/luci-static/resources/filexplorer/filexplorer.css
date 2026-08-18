@@ -1,35 +1,128 @@
 /* FileXplorer - two-pane commander layout.
  *
- * Colors are derived from the active LuCI theme wherever possible
- * (currentColor + translucent overlays), so the app follows light and
- * dark themes without hardcoding a palette. Only the accent for the
- * active panel and the selection colour are fixed, and both are
- * chosen to stay readable on either background.
+ * Styling is expressed through the Proton2025 theme's CSS custom
+ * properties, each with a fallback: on that theme the app picks up its
+ * exact surfaces, accent, radii and shadows - including its light mode,
+ * which only reassigns the same variables - and on any other theme the
+ * fallbacks keep it neutral and readable. Nothing here hardcodes a
+ * palette, so the app never fights the theme it runs in.
  */
 
 .fx-app {
+	--fx-surface: var(--proton-bg-tertiary, rgba(128, 128, 128, .04));
+	--fx-surface-2: var(--proton-bg-secondary, rgba(128, 128, 128, .09));
+	--fx-hover: var(--proton-bg-hover, rgba(128, 128, 128, .15));
+	--fx-border: var(--proton-border, var(--border-color-medium, rgba(128, 128, 128, .35)));
+	--fx-border-soft: var(--proton-border-light, rgba(128, 128, 128, .14));
+	--fx-muted: var(--proton-muted, var(--text-color-low, #8b8b8b));
+	--fx-accent: var(--proton-accent, var(--primary-color-high, #2a7ab0));
+	--fx-accent-glow: var(--proton-accent-glow, rgba(42, 122, 176, .18));
+	--fx-danger: var(--proton-danger, var(--error-color-high, #c0392b));
+	--fx-warning: var(--proton-warning, #c9911a);
+	--fx-radius: var(--proton-radius, 12px);
+	--fx-radius-sm: var(--proton-radius-sm, 8px);
+	--fx-shadow: var(--proton-shadow-sm, 0 2px 8px rgba(0, 0, 0, .15));
+	--fx-transition: var(--proton-transition, all .2s ease);
+
 	display: flex;
 	flex-direction: column;
-	gap: .4em;
-	/* fill the viewport below the LuCI header, but never overflow it */
-	height: calc(100vh - 12em);
-	min-height: 24em;
+	gap: .6em;
+	/* Starting point only: fitLayout() in the view replaces this with a
+	   measured height, so the panels reach the bottom of the window on
+	   whatever theme is active instead of guessing at the height of its
+	   header and footer. */
+	height: calc(100vh - 14em);
+	min-height: 22em;
 }
 
-/* The view is widened past LuCI's centred content container by
-   fitWidth() in filexplorer.js, not here. A pure-CSS version of this
-   (width:100vw plus a negative margin) looks right on the stock theme
-   but breaks on any theme whose content column is offset - for example
-   one with a left sidebar - because CSS cannot know that offset: the
-   element ends up shifted off the screen edge. fitWidth() measures the
-   element's real position instead, so it works on any theme. */
+/* Width is intentionally left to the theme - the app uses its content
+   container like any other LuCI page. Two earlier attempts to widen it
+   (CSS 100vw + negative margin, then measured geometry in JS) each
+   shipped a layout that hung off the screen edge on a real router, so
+   that idea is retired. fitLayout() in the view only sets the height,
+   which cannot push anything sideways. */
+
+/* --------------------------------------------------------- top bar */
+
+.fx-topbar {
+	flex: 0 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: .6em;
+}
+
+.fx-title-wrap {
+	min-width: 0;
+}
+
+h2.fx-title {
+	margin: 0;
+	line-height: 1.2;
+}
+
+.fx-subtitle {
+	margin-top: .2em;
+	font-size: .88em;
+	color: var(--fx-muted);
+}
+
+.fx-topbar-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4em;
+}
+
+/* ------------------------------------------------------ function bar */
+
+.fx-fnbar {
+	flex: 0 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .3em;
+	padding: .45em;
+	border: 1px solid var(--fx-border);
+	border-radius: var(--fx-radius);
+	background: var(--fx-surface);
+	box-shadow: var(--fx-shadow);
+}
+
+.fx-fn {
+	display: inline-flex;
+	align-items: center;
+	gap: .35em;
+	padding: .25em .7em;
+	font-size: .85em;
+	border-radius: var(--fx-radius-sm);
+	transition: var(--fx-transition);
+}
+
+.fx-fn-key {
+	font-family: monospace;
+	font-weight: bold;
+	font-size: .85em;
+	opacity: .7;
+}
+
+.fx-fn-key:empty { display: none; }
+
+.fx-fn-spacer { flex: 1 1 auto; }
+
+.fx-fn-count {
+	font-size: .82em;
+	font-weight: bold;
+	color: var(--fx-warning);
+	padding: 0 .5em;
+}
 
 /* ---------------------------------------------------------- panels */
 
 .fx-panes {
 	display: flex;
 	flex: 1 1 auto;
-	gap: .4em;
+	gap: .6em;
 	min-height: 0;
 }
 
@@ -39,36 +132,39 @@
 	flex: 1 1 50%;
 	min-width: 0;
 	min-height: 0;
-	border: 1px solid rgba(128, 128, 128, .4);
-	border-radius: 4px;
+	border: 1px solid var(--fx-border);
+	border-radius: var(--fx-radius);
 	overflow: hidden;
-	background: rgba(128, 128, 128, .04);
+	background: var(--fx-surface);
+	box-shadow: var(--fx-shadow);
+	transition: var(--fx-transition);
 }
 
 .fx-pane-active {
-	border-color: #2a7ab0;
-	box-shadow: 0 0 0 1px #2a7ab0 inset;
+	border-color: var(--fx-accent);
+	box-shadow: 0 0 0 1px var(--fx-accent) inset, var(--fx-shadow);
 }
 
 /* panel header: up / path / refresh, then breadcrumbs */
 
 .fx-pane-head {
 	flex: 0 0 auto;
-	padding: .35em .4em;
-	border-bottom: 1px solid rgba(128, 128, 128, .3);
-	background: rgba(128, 128, 128, .1);
+	padding: .5em .55em;
+	border-bottom: 1px solid var(--fx-border-soft);
+	background: var(--fx-surface-2);
 }
 
 .fx-head-row {
 	display: flex;
-	gap: .3em;
+	gap: .35em;
 	align-items: center;
 }
 
 .fx-icon-btn {
 	flex: 0 0 auto;
-	padding: .15em .55em;
+	padding: .2em .6em;
 	line-height: 1.4;
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-path-input {
@@ -76,7 +172,8 @@
 	min-width: 0;
 	font-family: monospace;
 	font-size: .85em;
-	padding: .2em .4em;
+	padding: .25em .5em;
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-crumbs {
@@ -85,7 +182,7 @@
 	overflow-x: auto;
 	align-items: center;
 	gap: .15em;
-	margin-top: .3em;
+	margin-top: .35em;
 	font-size: .8em;
 	white-space: nowrap;
 	scrollbar-width: thin;
@@ -93,24 +190,25 @@
 
 .fx-crumb {
 	cursor: pointer;
-	padding: .05em .3em;
-	border-radius: 3px;
-	opacity: .85;
+	padding: .05em .35em;
+	border-radius: var(--fx-radius-sm);
+	color: var(--fx-muted);
+	transition: var(--fx-transition);
 }
 
 .fx-crumb:hover {
-	background: rgba(128, 128, 128, .25);
-	opacity: 1;
-	text-decoration: underline;
+	background: var(--fx-hover);
+	color: inherit;
 }
 
 .fx-crumb-last {
 	font-weight: bold;
-	opacity: 1;
+	color: inherit;
 }
 
 .fx-crumb-sep {
-	opacity: .5;
+	color: var(--fx-muted);
+	opacity: .6;
 }
 
 /* panel body: the file list */
@@ -127,8 +225,8 @@
 	display: flex;
 	align-items: center;
 	gap: .3em;
-	padding: .12em .4em;
-	border-bottom: 1px solid rgba(128, 128, 128, .12);
+	padding: .18em .55em;
+	border-bottom: 1px solid var(--fx-border-soft);
 	white-space: nowrap;
 }
 
@@ -136,27 +234,22 @@
 	position: sticky;
 	top: 0;
 	z-index: 2;
-	font-weight: bold;
+	font-weight: 600;
 	font-size: .92em;
-	background: var(--background-color-medium, #eee);
-	border-bottom: 1px solid rgba(128, 128, 128, .45);
-}
-
-/* the theme variable may be unset on some themes; make sure the
-   sticky header never shows list rows through it */
-.fx-pane-body .fx-header {
-	background-color: rgba(128, 128, 128, .22);
-	backdrop-filter: blur(2px);
+	color: var(--fx-muted);
+	/* opaque-ish so list rows never show through while scrolling */
+	background: var(--proton-bg-secondary, var(--background-color-medium, #e9e9e9));
+	backdrop-filter: blur(6px);
+	border-bottom: 1px solid var(--fx-border);
 }
 
 .fx-th {
 	cursor: pointer;
 	user-select: none;
+	transition: var(--fx-transition);
 }
 
-.fx-th:hover {
-	text-decoration: underline;
-}
+.fx-th:hover { color: inherit; }
 
 .fx-cell {
 	overflow: hidden;
@@ -170,60 +263,67 @@
    computed size, which is already scaled twice (.fx-pane-body .87em,
    then .92em here), so a full "2026-08-18 06:12" needs more basis than
    the raw number suggests. */
-.fx-c-time { flex: 0 0 10.5em; text-align: right; font-family: monospace; font-size: .92em; opacity: .8; }
-.fx-c-perm { flex: 0 0 6.5em; text-align: right; font-family: monospace; font-size: .92em; opacity: .8; }
+.fx-c-time { flex: 0 0 10.5em; text-align: right; font-family: monospace; font-size: .92em; color: var(--fx-muted); }
+.fx-c-perm { flex: 0 0 6.5em; text-align: right; font-family: monospace; font-size: .92em; color: var(--fx-muted); }
 
 .fx-ico { flex: 0 0 auto; }
 .fx-nm { overflow: hidden; text-overflow: ellipsis; }
 
 .fx-item, .fx-updir {
 	cursor: pointer;
+	transition: background .12s ease;
 }
 
 .fx-item:hover, .fx-updir:hover {
-	background: rgba(128, 128, 128, .15);
+	background: var(--fx-hover);
 }
 
 .fx-updir {
 	font-weight: bold;
-	opacity: .85;
+	color: var(--fx-muted);
 }
 
 /* selection (explicit, commander-style) vs cursor (current row) */
 
 .fx-selected {
-	background: rgba(255, 193, 7, .22);
+	/* plain value first: without it, a browser that lacks color-mix()
+	   would leave marked rows with no highlight at all */
+	background: rgba(201, 145, 26, .18);
+	background: color-mix(in srgb, var(--fx-warning) 18%, transparent);
 }
 
 .fx-selected .fx-nm {
 	font-weight: bold;
+	color: var(--fx-warning);
 }
 
 .fx-cursor {
-	outline: 2px solid #2a7ab0;
+	outline: 2px solid var(--fx-accent);
 	outline-offset: -2px;
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-pane-active .fx-cursor {
-	background: rgba(42, 122, 176, .22);
+	background: var(--fx-accent-glow);
 }
 
 .fx-mark {
 	cursor: pointer;
-	opacity: .55;
+	opacity: .5;
 	font-family: monospace;
+	transition: var(--fx-transition);
 }
 
 .fx-mark:hover { opacity: 1; }
-.fx-mark-on { opacity: 1; color: #b8860b; }
+.fx-mark-on { opacity: 1; color: var(--fx-warning); }
 
 .fx-hidden-item { opacity: .6; }
 .fx-broken .fx-nm { text-decoration: line-through; opacity: .7; }
 
 .fx-empty, .fx-loading {
-	padding: 1.2em;
+	padding: 1.4em;
 	text-align: center;
-	opacity: .7;
+	color: var(--fx-muted);
 }
 
 /* panel footer: counts + free space */
@@ -233,62 +333,23 @@
 	display: flex;
 	justify-content: space-between;
 	gap: .5em;
-	padding: .25em .5em;
-	border-top: 1px solid rgba(128, 128, 128, .3);
-	background: rgba(128, 128, 128, .1);
+	padding: .35em .6em;
+	border-top: 1px solid var(--fx-border-soft);
+	background: var(--fx-surface-2);
 	font-size: .78em;
+	color: var(--fx-muted);
 	white-space: nowrap;
 	overflow: hidden;
 }
 
-.fx-foot-sel { font-weight: bold; color: #b8860b; }
-.fx-foot-disk { opacity: .8; font-family: monospace; }
-
-/* ------------------------------------------------------ function bar */
-
-.fx-fnbar {
-	flex: 0 0 auto;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: .25em;
-	padding: .3em;
-	border: 1px solid rgba(128, 128, 128, .35);
-	border-radius: 4px;
-	background: rgba(128, 128, 128, .08);
-}
-
-.fx-fn {
-	display: inline-flex;
-	align-items: center;
-	gap: .3em;
-	padding: .2em .55em;
-	font-size: .85em;
-}
-
-.fx-fn-key {
-	font-family: monospace;
-	font-weight: bold;
-	font-size: .85em;
-	opacity: .75;
-}
-
-.fx-fn-key:empty { display: none; }
-
-.fx-fn-spacer { flex: 1 1 auto; }
-
-.fx-fn-count {
-	font-size: .82em;
-	font-weight: bold;
-	color: #b8860b;
-	padding: 0 .4em;
-}
+.fx-foot-sel { font-weight: bold; color: var(--fx-warning); }
+.fx-foot-disk { font-family: monospace; }
 
 /* mobile panel switcher: hidden on desktop, both panels visible there */
 
-.fx-pane-switch { display: none; gap: .3em; }
-.fx-switch-btn { flex: 1 1 50%; }
-.fx-switch-active { font-weight: bold; border-color: #2a7ab0; }
+.fx-pane-switch { display: none; gap: .4em; }
+.fx-switch-btn { flex: 1 1 50%; border-radius: var(--fx-radius-sm); }
+.fx-switch-active { font-weight: bold; border-color: var(--fx-accent); }
 
 /* --------------------------------------------------------- dialogs */
 
@@ -298,27 +359,27 @@
 .fx-modal-actions { margin-top: 1em; }
 
 .fx-form-error {
-	color: #c0392b;
+	color: var(--fx-danger);
 	min-height: 1.2em;
 	font-size: .9em;
 }
 
-.fx-warn { color: #c0392b; }
+.fx-warn { color: var(--fx-danger); }
 
 .fx-warn-strong {
 	font-weight: bold;
-	padding: .5em;
-	border: 1px solid #c0392b;
-	border-radius: 4px;
+	padding: .6em .8em;
+	border: 1px solid var(--fx-danger);
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-del-list {
 	max-height: 12em;
 	overflow: auto;
-	margin: .5em 0;
-	padding: .4em .6em;
-	background: rgba(128, 128, 128, .12);
-	border-radius: 4px;
+	margin: .6em 0;
+	padding: .5em .7em;
+	background: var(--fx-surface-2);
+	border-radius: var(--fx-radius-sm);
 	font-family: monospace;
 	font-size: .82em;
 	word-break: break-all;
@@ -328,7 +389,7 @@
 	display: flex;
 	gap: .4em;
 	align-items: center;
-	margin-top: .5em;
+	margin-top: .6em;
 }
 
 .fx-dest-row input { flex: 1 1 auto; min-width: 0; font-family: monospace; }
@@ -343,21 +404,22 @@
 .fx-picker-list {
 	max-height: 40vh;
 	overflow-y: auto;
-	border: 1px solid rgba(128, 128, 128, .3);
-	border-radius: 4px;
+	border: 1px solid var(--fx-border);
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-picker-item {
-	padding: .45em .7em;
+	padding: .5em .75em;
 	cursor: pointer;
-	border-bottom: 1px solid rgba(128, 128, 128, .15);
+	border-bottom: 1px solid var(--fx-border-soft);
+	transition: var(--fx-transition);
 }
 
-.fx-picker-item:hover { background: rgba(128, 128, 128, .2); }
+.fx-picker-item:hover { background: var(--fx-hover); }
 
 .fx-picker-empty {
 	padding: 1em;
-	opacity: .7;
+	color: var(--fx-muted);
 	text-align: center;
 }
 
@@ -366,10 +428,10 @@
 .fx-prop-v { font-family: monospace; word-break: break-all; }
 
 .fx-mode-preview {
-	margin: .6em 0;
-	padding: .4em .6em;
-	background: rgba(128, 128, 128, .15);
-	border-radius: 4px;
+	margin: .7em 0;
+	padding: .5em .7em;
+	background: var(--fx-surface-2);
+	border-radius: var(--fx-radius-sm);
 	font-family: monospace;
 	font-size: 1.05em;
 	letter-spacing: .05em;
@@ -380,20 +442,41 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: .4em;
-	margin-top: .5em;
+	margin-top: .6em;
 }
 
 .fx-check-row {
 	display: flex;
 	align-items: center;
-	gap: .4em;
-	padding: .3em 0;
+	gap: .5em;
+	padding: .4em 0;
 	cursor: pointer;
 }
 
-.fx-help { margin-top: 1em; font-size: .88em; opacity: .85; }
-.fx-help ul { margin: .3em 0 0 1.2em; }
-.fx-help li { margin: .15em 0; }
+.fx-help {
+	margin-top: 1em;
+	font-size: .88em;
+	color: var(--fx-muted);
+}
+
+/* keyboard shortcut table */
+
+.fx-keys { width: 100%; }
+.fx-key-cell { width: 40%; white-space: nowrap; }
+
+.fx-keys kbd {
+	display: inline-block;
+	min-width: 1.6em;
+	margin-right: .25em;
+	padding: .12em .45em;
+	border: 1px solid var(--fx-border);
+	border-bottom-width: 2px;
+	border-radius: var(--fx-radius-sm);
+	background: var(--fx-surface-2);
+	font-family: monospace;
+	font-size: .85em;
+	text-align: center;
+}
 
 /* preview / editor */
 
@@ -402,21 +485,23 @@
 	overflow: auto;
 	white-space: pre-wrap;
 	word-break: break-word;
-	background: rgba(128, 128, 128, .12);
-	padding: .8em;
-	border-radius: 4px;
+	background: var(--fx-surface-2);
+	padding: .9em;
+	border-radius: var(--fx-radius-sm);
 	font-family: monospace;
 	font-size: .85em;
 	text-align: left;
 }
 
 .fx-img-wrap { text-align: center; }
-.fx-img-wrap img { max-width: 100%; max-height: 60vh; }
+.fx-img-wrap img { max-width: 100%; max-height: 60vh; border-radius: var(--fx-radius-sm); }
 
 textarea.fx-editor {
 	width: 100%;
 	height: 58vh;
 	box-sizing: border-box;
+	padding: .7em;
+	border-radius: var(--fx-radius-sm);
 	font-family: monospace;
 	font-size: .88em;
 	white-space: pre;
@@ -424,13 +509,13 @@ textarea.fx-editor {
 	overflow-x: auto;
 }
 
-.fx-editor-hint { font-size: .8em; opacity: .7; margin-top: .3em; }
+.fx-editor-hint { font-size: .8em; color: var(--fx-muted); margin-top: .35em; }
 
 /* upload progress */
 
 .fx-up-dest, .fx-up-overall {
 	font-size: .85em;
-	opacity: .85;
+	color: var(--fx-muted);
 	margin-bottom: .2em;
 }
 
@@ -438,21 +523,21 @@ textarea.fx-editor {
 	font-family: monospace;
 	font-size: .85em;
 	word-break: break-all;
-	margin: .2em 0;
+	margin: .25em 0;
 }
 
 .fx-bar {
 	width: 100%;
 	height: 1em;
-	background: rgba(128, 128, 128, .25);
-	border-radius: 4px;
+	background: var(--fx-surface-2);
+	border-radius: var(--fx-radius-sm);
 	overflow: hidden;
 }
 
 .fx-bar-fill {
 	height: 100%;
 	width: 0;
-	background: #2a8f3f;
+	background: var(--fx-accent);
 	transition: width .15s ease;
 }
 
@@ -461,27 +546,28 @@ textarea.fx-editor {
 .fx-search-results {
 	max-height: 45vh;
 	overflow-y: auto;
-	margin-top: .6em;
-	border: 1px solid rgba(128, 128, 128, .25);
-	border-radius: 4px;
+	margin-top: .7em;
+	border: 1px solid var(--fx-border);
+	border-radius: var(--fx-radius-sm);
 }
 
 .fx-search-row {
 	display: flex;
 	align-items: baseline;
-	gap: .4em;
-	padding: .35em .6em;
+	gap: .45em;
+	padding: .4em .7em;
 	cursor: pointer;
-	border-bottom: 1px solid rgba(128, 128, 128, .15);
+	border-bottom: 1px solid var(--fx-border-soft);
+	transition: var(--fx-transition);
 }
 
-.fx-search-row:hover { background: rgba(128, 128, 128, .18); }
+.fx-search-row:hover { background: var(--fx-hover); }
 .fx-search-name { font-weight: bold; }
 
 .fx-search-path {
 	font-family: monospace;
 	font-size: .8em;
-	opacity: .7;
+	color: var(--fx-muted);
 	margin-left: auto;
 	word-break: break-all;
 }
@@ -491,21 +577,22 @@ textarea.fx-editor {
 .fx-ctx {
 	position: fixed;
 	z-index: 1000;
-	min-width: 12em;
-	padding: .3em 0;
-	background: var(--background-color-medium, #fff);
-	border: 1px solid rgba(128, 128, 128, .5);
-	border-radius: 4px;
-	box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+	min-width: 13em;
+	padding: .35em 0;
+	background: var(--proton-bg-solid, var(--background-color-medium, #fff));
+	border: 1px solid var(--fx-border);
+	border-radius: var(--fx-radius);
+	box-shadow: var(--proton-shadow-lg, 0 8px 32px rgba(0, 0, 0, .3));
 }
 
 .fx-ctx-item {
 	padding: .5em 1em;
 	cursor: pointer;
 	white-space: nowrap;
+	transition: var(--fx-transition);
 }
 
-.fx-ctx-item:hover { background: rgba(128, 128, 128, .25); }
+.fx-ctx-item:hover { background: var(--fx-hover); }
 
 /* wide modal for preview / editor / search */
 
@@ -526,6 +613,10 @@ textarea.fx-editor {
 	.fx-pane { display: none; min-height: 60vh; }
 	.fx-pane-shown { display: flex; }
 
+	.fx-topbar { align-items: flex-start; }
+	.fx-topbar-actions { flex: 1 1 100%; }
+	.fx-topbar-actions .btn { flex: 1 1 auto; }
+
 	.fx-c-perm { display: none; }
 	/* only shrink the type here - narrowing the basis as well would cut
 	   the timestamp off, and a single-panel layout has room for it */
@@ -544,4 +635,5 @@ textarea.fx-editor {
 	/* wide enough for a translated "12.4 КиБ" */
 	.fx-c-size { flex-basis: 5.4em; }
 	.fx-search-path { display: none; }
+	.fx-key-cell { width: 50%; }
 }

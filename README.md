@@ -365,8 +365,32 @@ Each line records method, path, duration and success/failure -
 
 The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
 `dom`, `rpc`, `E()`), plain Unicode glyphs for icons (no icon library),
-and a companion stylesheet (`filexplorer.css`) that inherits the active
-LuCI theme's colors instead of hardcoding a light or dark palette.
+and a companion stylesheet (`filexplorer.css`).
+
+Layout, top to bottom: a page heading with the app name and a one-line
+description, the actions that are not per-file (**Keyboard shortcuts**,
+**Settings**) on the right of it, then the function-key bar, then the
+two panels.
+
+### Theming
+
+The stylesheet is written against the
+[Proton2025](https://github.com/ChesterGoodiny/luci-theme-proton2025)
+theme's CSS custom properties - `--proton-bg-tertiary`, `--proton-accent`,
+`--proton-radius`, `--proton-shadow-sm` and so on - each with a fallback
+chain ending in a neutral grey. On that theme the app inherits its exact
+surfaces, accent, radii and shadows, and follows its light mode for free,
+because light mode there only reassigns the same variables. On any other
+theme the fallbacks keep it readable. Nothing hardcodes a palette.
+
+**The app does not widen itself past the theme's content container.**
+Two attempts at that (CSS `100vw` plus a negative margin, then measured
+geometry in JS) each shipped a layout that hung off the edge of the
+screen on a real router - the second one even re-checked its own result
+on screen and still rendered shifted. The width is the theme's business
+now. Only the height is adjusted, to let the panels reach the bottom of
+the window, and getting that wrong can only make them shorter, never
+push them sideways.
 
 Commander conventions worth knowing:
 

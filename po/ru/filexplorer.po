@@ -90,8 +90,6 @@ msgstr "Копировать «%s» в:"
 msgid "Create"
 msgstr "Создать"
 
-msgid "Ctrl+R — refresh the active panel"
-msgstr "Ctrl+R — обновить активную панель"
 
 msgid "DIR"
 msgstr "ПАПКА"
@@ -130,14 +128,10 @@ msgctxt "filexplorer"
 msgid "Edit"
 msgstr "Правка"
 
-msgid "Enter — open, Backspace — go up"
-msgstr "Enter — открыть, Backspace — на уровень выше"
 
 msgid "Execute"
 msgstr "Выполнение"
 
-msgid "F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete"
-msgstr "F2 переименовать, F3 просмотр, F4 правка, F5 копировать, F6 переместить, F7 новая папка, F8 удалить"
 
 msgid "FIFO"
 msgstr "Канал FIFO"
@@ -179,8 +173,6 @@ msgctxt "filexplorer"
 msgid "Image"
 msgstr "Изображение"
 
-msgid "Insert or Space — select, Ctrl+A — select all"
-msgstr "Insert или Пробел — отметить, Ctrl+A — отметить всё"
 
 msgid "Invalid name"
 msgstr "Недопустимое имя"
@@ -357,8 +349,6 @@ msgstr "Символьная ссылка"
 msgid "Symlink target"
 msgstr "Цель ссылки"
 
-msgid "Tab — switch panel"
-msgstr "Tab — переключить панель"
 
 msgid "Text"
 msgstr "Текст"
@@ -486,3 +476,27 @@ msgid_plural "Uploaded %d files"
 msgstr[0] "Загружен %d файл"
 msgstr[1] "Загружено %d файла"
 msgstr[2] "Загружено %d файлов"
+
+msgid "Go up one level"
+msgstr "На уровень выше"
+
+msgid "Refresh the active panel"
+msgstr "Обновить активную панель"
+
+msgid "Save in the editor"
+msgstr "Сохранить в редакторе"
+
+msgid "Select all"
+msgstr "Отметить всё"
+
+msgid "Select or unselect"
+msgstr "Отметить или снять отметку"
+
+msgid "Shortcuts work while the file list has focus, not while typing in a field."
+msgstr "Горячие клавиши работают, когда фокус на списке файлов, а не в поле ввода."
+
+msgid "Switch panel"
+msgstr "Переключить панель"
+
+msgid "Two-panel file manager for the router filesystem"
+msgstr "Двухпанельный файловый менеджер файловой системы роутера"

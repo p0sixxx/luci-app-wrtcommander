@@ -257,21 +257,23 @@ return view.extend({
 			this.active = 'left';
 
 		this.root = E('div', { class: 'fx-app' }, [
+			this.topbarNode = E('div', { class: 'fx-topbar' }),
+			this.fnbarNode = E('div', { class: 'fx-fnbar' }),
 			this.paneSwitchNode = E('div', { class: 'fx-pane-switch' }),
 			this.panesNode = E('div', { class: 'fx-panes' }, [
 				this.panes.left.node.root,
 				this.panes.right.node.root
-			]),
-			this.fnbarNode = E('div', { class: 'fx-fnbar' })
+			])
 		]);
 
+		this.renderTopbar();
 		this.renderPaneSwitch();
 		this.renderFnBar();
 
 		this.keyHandler = function (ev) { self.onKeyDown(ev); };
 		document.addEventListener('keydown', this.keyHandler);
 
-		this.scheduleWidthFit();
+		this.scheduleLayoutFit();
 
 		this.loadPane('left');
 		this.loadPane('right');
@@ -280,32 +282,31 @@ return view.extend({
 	},
 
 	/* ------------------------------------------------------------------
-	 * Widen the view past LuCI's centred content container.
+	 * Make the panels reach the bottom of the window.
 	 *
-	 * Two panels with four columns each need more width than a theme's
-	 * default content column gives them, especially once translated.
-	 * This cannot be done in CSS alone: a width:100vw plus negative
-	 * margin trick assumes the container is centred in the viewport, and
-	 * silently pushes the whole app off-screen on any theme whose
-	 * content column is offset (a left sidebar, for instance).
+	 * Only the height is adjusted, and deliberately so. Earlier versions
+	 * also widened the view past the theme's content container, first in
+	 * CSS (width:100vw plus a negative margin) and then in JS from
+	 * measured geometry. Both looked correct in the numbers and both
+	 * shipped a layout that hung off the edge of the screen on a real
+	 * router: the second one even passed an explicit on-screen check
+	 * afterwards and still rendered shifted, which means the geometry a
+	 * theme reports and the way it finally paints can disagree in ways
+	 * this code cannot detect.
 	 *
-	 * So measure the real geometry instead, and only grow into space
-	 * that is demonstrably free: the amount of empty room on the
-	 * narrower side of the container. On a theme that centres its
-	 * content this is the (equal) margin on either side, so the view
-	 * expands symmetrically towards the window edges. On a theme with a
-	 * sidebar the room on one side is zero, so it does not move at all
-	 * - which is right, because there the container is already using
-	 * the full width that is actually available.
+	 * So the width is left to the theme, exactly as on every other LuCI
+	 * page. What made the columns feel cramped was a long translated
+	 * header ("Режим работы" leaking in from luci-base), and that is
+	 * fixed at the source now.
 	 *
-	 * Reading clientWidth (not innerWidth) keeps the scrollbar out of
-	 * the calculation, so this never creates a horizontal scrollbar of
-	 * its own.
+	 * Height is safe in a way width was not: getting it wrong can only
+	 * make the panels shorter or taller, never push them sideways off
+	 * the screen.
 	 * ------------------------------------------------------------------ */
 
-	scheduleWidthFit: function () {
+	scheduleLayoutFit: function () {
 		var self = this;
-		var run = function () { self.fitWidth(); };
+		var run = function () { self.fitLayout(); };
 
 		/* the node is not in the document yet when render() returns */
 		window.requestAnimationFrame(run);
@@ -318,44 +319,26 @@ return view.extend({
 					self.resizeHandler = null;
 					return;
 				}
-				self.fitWidth();
+				self.fitLayout();
 			};
 			window.addEventListener('resize', this.resizeHandler);
 		}
 	},
 
-	fitWidth: function () {
+	fitLayout: function () {
 		var el = this.root;
 		if (!el || !document.body.contains(el))
 			return;
 
-		/* always measure the untouched geometry, so this is idempotent */
-		el.style.width = '';
-		el.style.marginLeft = '';
+		/* start from the untouched geometry, so this is idempotent */
+		el.style.height = '';
 
-		var vw = document.documentElement.clientWidth;
-		if (vw < 1024)
+		if (document.documentElement.clientWidth < 1024)
 			return;   /* one panel at a time down here; leave the theme alone */
 
-		var host = el.parentNode;
-		if (!host || !host.getBoundingClientRect)
-			return;
-
-		var rect = el.getBoundingClientRect();
-		var box = host.getBoundingClientRect();
-		var gutter = 12;
-
-		/* free room on each side of whatever contains us; the smaller of
-		   the two is all we may take without covering something */
-		var grow = Math.min(box.left, vw - box.right) - gutter;
-		if (grow < 8)
-			return;   /* nothing worth taking (or a sidebar sits there) */
-
-		var width = Math.min(rect.width + 2 * grow, 1920);
-		var shift = (width - rect.width) / 2;
-
-		el.style.width = Math.round(width) + 'px';
-		el.style.marginLeft = Math.round(-shift) + 'px';
+		var top = el.getBoundingClientRect().top;
+		el.style.height = Math.max(360,
+			Math.round(document.documentElement.clientHeight - top - 16)) + 'px';
 	},
 
 	/* view.extend() calls this when navigating away */
@@ -421,6 +404,30 @@ return view.extend({
 		var p = this.panes[id];
 		p.node.root.classList.toggle('fx-pane-active', this.active === id);
 		p.node.root.classList.toggle('fx-pane-shown', this.mobilePane === id);
+	},
+
+	/* page heading + the actions that are not per-file */
+	renderTopbar: function () {
+		var self = this;
+		dom.content(this.topbarNode, [
+			E('div', { class: 'fx-title-wrap' }, [
+				/* same string as the menu entry, so the page is titled the
+				   way the user got here */
+				E('h2', { class: 'fx-title' }, _('FileXplorer')),
+				E('div', { class: 'fx-subtitle' },
+					_('Two-panel file manager for the router filesystem'))
+			]),
+			E('div', { class: 'fx-topbar-actions' }, [
+				E('button', {
+					class: 'btn cbi-button',
+					click: ui.createHandlerFn(this, function () { self.actShortcuts(); })
+				}, _('Keyboard shortcuts')),
+				E('button', {
+					class: 'btn cbi-button',
+					click: ui.createHandlerFn(this, function () { self.actSettings(); })
+				}, _('Settings'))
+			])
+		]);
 	},
 
 	renderPaneSwitch: function () {
@@ -777,7 +784,6 @@ return view.extend({
 			fk('', _('Upload'), function () { self.actUpload(); }),
 			fk('', _('Download'), function () { self.actDownload(); }),
 			fk('', _('Search'), function () { self.actSearch(); }),
-			fk('', _('Settings'), function () { self.actSettings(); }),
 			E('span', { class: 'fx-fn-count' },
 				n ? N_(n, '%d selected', '%d selected').format(n) : '')
 		]);
@@ -1698,18 +1704,41 @@ return view.extend({
 		ui.showModal(_('Settings'), [
 			check(_('Show hidden files'), 'showHidden', 'showHidden'),
 			check(_('Folders first'), 'dirsFirst', 'dirsFirst'),
-			E('div', { class: 'fx-help' }, [
-				E('p', {}, _('Keyboard shortcuts')),
-				E('ul', {}, [
-					E('li', {}, _('Tab — switch panel')),
-					E('li', {}, _('Enter — open, Backspace — go up')),
-					E('li', {}, _('Insert or Space — select, Ctrl+A — select all')),
-					E('li', {}, _('F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete')),
-					E('li', {}, _('Ctrl+R — refresh the active panel'))
-				])
-			]),
 			E('div', { class: 'right fx-modal-actions' },
-				E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))
+		]);
+	},
+
+	actShortcuts: function () {
+		function row(keys, what) {
+			return E('tr', { class: 'tr' }, [
+				E('td', { class: 'td fx-key-cell' },
+					keys.map(function (k) { return E('kbd', {}, k); })),
+				E('td', { class: 'td' }, what)
+			]);
+		}
+
+		ui.showModal(_('Keyboard shortcuts'), [
+			E('table', { class: 'table fx-keys' }, [
+				row(['Tab'], _('Switch panel')),
+				row(['Enter'], _('Open')),
+				row(['Backspace'], _('Go up one level')),
+				row(['Insert', 'Space'], _('Select or unselect')),
+				row(['Ctrl', 'A'], _('Select all')),
+				row(['Ctrl', 'R'], _('Refresh the active panel')),
+				row(['F2'], _('Rename')),
+				row(['F3'], _('View')),
+				row(['F4'], _('Edit', 'filexplorer')),
+				row(['F5'], _('Copy')),
+				row(['F6'], _('Move')),
+				row(['F7'], _('New folder')),
+				row(['F8', 'Delete'], _('Delete')),
+				row(['Ctrl', 'S'], _('Save in the editor'))
+			]),
+			E('p', { class: 'fx-help' },
+				_('Shortcuts work while the file list has focus, not while typing in a field.')),
+			E('div', { class: 'right fx-modal-actions' },
+				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))
 		]);
 	}
 

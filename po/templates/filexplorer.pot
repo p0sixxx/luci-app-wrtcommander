@@ -89,9 +89,6 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-msgid "Ctrl+R — refresh the active panel"
-msgstr ""
-
 msgid "DIR"
 msgstr ""
 
@@ -125,13 +122,7 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-msgid "Enter — open, Backspace — go up"
-msgstr ""
-
 msgid "Execute"
-msgstr ""
-
-msgid "F2 rename, F3 view, F4 edit, F5 copy, F6 move, F7 new folder, F8 delete"
 msgstr ""
 
 msgid "FIFO"
@@ -161,13 +152,13 @@ msgstr ""
 msgid "Folders first"
 msgstr ""
 
+msgid "Go up one level"
+msgstr ""
+
 msgid "Group"
 msgstr ""
 
 msgid "Group ID"
-msgstr ""
-
-msgid "Insert or Space — select, Ctrl+A — select all"
 msgstr ""
 
 msgid "Invalid name"
@@ -269,6 +260,9 @@ msgstr ""
 msgid "Refresh"
 msgstr ""
 
+msgid "Refresh the active panel"
+msgstr ""
+
 msgid "Rename"
 msgstr ""
 
@@ -285,6 +279,9 @@ msgid "Root directory"
 msgstr ""
 
 msgid "Save"
+msgstr ""
+
+msgid "Save in the editor"
 msgstr ""
 
 msgid "Saved"
@@ -305,6 +302,9 @@ msgstr ""
 msgid "Searching…"
 msgstr ""
 
+msgid "Select all"
+msgstr ""
+
 msgid "Select destination"
 msgstr ""
 
@@ -314,10 +314,16 @@ msgstr ""
 msgid "Select exactly one item to rename."
 msgstr ""
 
+msgid "Select or unselect"
+msgstr ""
+
 msgid "Select this folder"
 msgstr ""
 
 msgid "Settings"
+msgstr ""
+
+msgid "Shortcuts work while the file list has focus, not while typing in a field."
 msgstr ""
 
 msgid "Show hidden files"
@@ -329,13 +335,13 @@ msgstr ""
 msgid "Socket"
 msgstr ""
 
+msgid "Switch panel"
+msgstr ""
+
 msgid "Symlink"
 msgstr ""
 
 msgid "Symlink target"
-msgstr ""
-
-msgid "Tab — switch panel"
 msgstr ""
 
 msgid "Text"
@@ -363,6 +369,9 @@ msgid "This is a binary file and cannot be shown as text."
 msgstr ""
 
 msgid "Too many matches, only the first %d are shown."
+msgstr ""
+
+msgid "Two-panel file manager for the router filesystem"
 msgstr ""
 
 msgid "Type"
