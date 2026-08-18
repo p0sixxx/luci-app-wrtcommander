@@ -8,7 +8,13 @@
  * palette, so the app never fights the theme it runs in.
  */
 
-.fx-app {
+/* The token block is shared by the app and by the context menu, which is
+   appended to <body> so it can escape the panels' overflow clipping and
+   therefore sits outside .fx-app. Without this the menu resolved none of
+   these variables and rendered with no border, square corners and
+   invisible separators. */
+.fx-app,
+.fx-ctx {
 	--fx-surface: var(--proton-bg-tertiary, rgba(128, 128, 128, .04));
 	--fx-surface-2: var(--proton-bg-secondary, rgba(128, 128, 128, .09));
 	--fx-hover: var(--proton-bg-hover, rgba(128, 128, 128, .15));
@@ -23,7 +29,9 @@
 	--fx-radius-sm: var(--proton-radius-sm, 8px);
 	--fx-shadow: var(--proton-shadow-sm, 0 2px 8px rgba(0, 0, 0, .15));
 	--fx-transition: var(--proton-transition, all .2s ease);
+}
 
+.fx-app {
 	display: flex;
 	flex-direction: column;
 	gap: .6em;
@@ -280,7 +288,11 @@ h2.fx-title {
 .fx-th {
 	cursor: pointer;
 	user-select: none;
-	transition: var(--fx-transition);
+	/* colour only, deliberately not the shared "all" transition: these
+	   cells carry the resizable columns' flex-basis, and animating that
+	   makes the header lag a fifth of a second behind the drag while the
+	   rows below it move immediately */
+	transition: color .2s ease;
 }
 
 .fx-th:hover { color: inherit; }
@@ -292,13 +304,71 @@ h2.fx-title {
 
 .fx-c-mark { flex: 0 0 1.2em; text-align: center; }
 .fx-c-name { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: .35em; }
-.fx-c-size { flex: 0 0 5.5em; text-align: right; font-family: monospace; font-size: .92em; }
-/* 10.5em, not 8.5em: these em values resolve against the cell's own
-   computed size, which is already scaled twice (.fx-pane-body .87em,
-   then .92em here), so a full "2026-08-18 06:12" needs more basis than
-   the raw number suggests. */
-.fx-c-time { flex: 0 0 10.5em; text-align: right; font-family: monospace; font-size: .92em; color: var(--fx-muted); }
-.fx-c-perm { flex: 0 0 6.5em; text-align: right; font-family: monospace; font-size: .92em; color: var(--fx-muted); }
+
+/* The three data columns are centred in their own column, header and
+   values alike, so each reads as a labelled block rather than as text
+   crowded against the next column.
+
+   Their widths come from variables on .fx-app rather than from fixed
+   values here, so the drag handles in the header can change them - and
+   so both panes stay in step, since both read the same variables. The
+   defaults are the em values these columns were measured to need; note
+   that 10.5em for the timestamp is not a typo for 8.5em, because em here
+   resolves against the cell's own computed size, which is already scaled
+   twice (.fx-pane-body .87em, then .92em below). */
+.fx-c-size,
+.fx-c-time,
+.fx-c-perm {
+	text-align: center;
+	font-family: monospace;
+	font-size: .92em;
+}
+
+.fx-c-size { flex: 0 0 var(--fx-w-size, 5.5em); }
+.fx-c-time { flex: 0 0 var(--fx-w-time, 10.5em); color: var(--fx-muted); }
+.fx-c-perm { flex: 0 0 var(--fx-w-perm, 6.5em); color: var(--fx-muted); }
+
+/* ------------------------------------------- column resize handles */
+
+/* The handle sits on the left edge of the column it resizes and is only
+   in the header row. It is wider than the line it draws so it can be
+   grabbed without pixel-hunting, and it reaches the full height of the
+   header row. */
+.fx-th { position: relative; }
+
+.fx-resizer {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -.45em;
+	width: .9em;
+	cursor: col-resize;
+	touch-action: none;
+	/* the visible line is a centred child of the hit area */
+	display: flex;
+	justify-content: center;
+}
+
+.fx-resizer::before {
+	content: '';
+	width: 1px;
+	background: var(--fx-border);
+	transition: var(--fx-transition);
+}
+
+.fx-resizer:hover::before,
+.fx-resizing .fx-resizer::before {
+	width: 2px;
+	background: var(--fx-accent);
+}
+
+/* while dragging, keep the whole app in the resize cursor and stop text
+   selection from following the pointer */
+.fx-resizing,
+.fx-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
+}
 
 .fx-ico { flex: 0 0 auto; }
 .fx-nm { overflow: hidden; text-overflow: ellipsis; }
@@ -620,6 +690,9 @@ textarea.fx-editor {
 }
 
 .fx-ctx-item {
+	display: flex;
+	align-items: center;
+	gap: 2em;
 	padding: .5em 1em;
 	cursor: pointer;
 	white-space: nowrap;
@@ -627,6 +700,27 @@ textarea.fx-editor {
 }
 
 .fx-ctx-item:hover { background: var(--fx-hover); }
+
+.fx-ctx-label { flex: 1 1 auto; }
+
+/* the same key that triggers the action from the header, so the menu
+   doubles as a reminder of the shortcut */
+.fx-ctx-key {
+	flex: 0 0 auto;
+	font-family: monospace;
+	font-size: .8em;
+	opacity: .55;
+}
+
+.fx-ctx-danger { color: var(--fx-danger); }
+.fx-ctx-danger:hover { background: var(--fx-danger); color: #fff; }
+.fx-ctx-danger:hover .fx-ctx-key { opacity: .8; }
+
+.fx-ctx-sep {
+	height: 1px;
+	margin: .35em .6em;
+	background: var(--fx-border);
+}
 
 /* wide modal for preview / editor / search */
 

@@ -41,6 +41,17 @@ var LS_PREFIX = 'filexplorer.';
  * small utilities
  * ------------------------------------------------------------------ */
 
+/* The three fixed-width columns, with the CSS variable each one drives
+   and the range a drag is allowed to move it through. The minimums are
+   what the shortest real value still needs ("42 B", "-rw-r--r--"); the
+   maximums only exist so a stray drag cannot squeeze the name column
+   down to nothing. */
+var COLUMNS = {
+	size: { prop: '--fx-w-size', min: 44,  max: 260 },
+	time: { prop: '--fx-w-time', min: 70,  max: 340 },
+	perm: { prop: '--fx-w-perm', min: 56,  max: 260 }
+};
+
 function lsGet(key, def) {
 	try {
 		var v = window.localStorage.getItem(LS_PREFIX + key);
@@ -265,6 +276,7 @@ return view.extend({
 			])
 		]);
 
+		this.applyColumnWidths();
 		this.renderPaneSwitch();
 		this.renderHeader();
 
@@ -401,7 +413,17 @@ return view.extend({
 	makePaneState: function (id, path) {
 		var self = this;
 		var head = E('div', { class: 'fx-pane-head' });
-		var body = E('div', { class: 'fx-pane-body' });
+		var body = E('div', {
+			class: 'fx-pane-body',
+			/* the rows stop their own contextmenu event, so anything that
+			   reaches here was a right-click on empty space: same menu,
+			   without the per-file entries */
+			contextmenu: function (ev) {
+				ev.preventDefault();
+				self.setActive(id);
+				self.showContextMenu(ev, id, null);
+			}
+		});
 		var foot = E('div', { class: 'fx-pane-foot' });
 		var root = E('div', {
 			class: 'fx-pane',
@@ -717,6 +739,73 @@ return view.extend({
 		]);
 	},
 
+	/* ------------------------------------------- resizable columns */
+
+	/* Widths live as variables on the app root, so one drag moves the
+	   matching column in both panes and every row follows without being
+	   re-rendered. An unset variable means "use the CSS default". */
+	applyColumnWidths: function () {
+		if (!this.root)
+			return;
+		for (var key in COLUMNS) {
+			var px = lsGet('col_' + key, null);
+			if (typeof px === 'number' && px > 0)
+				this.root.style.setProperty(COLUMNS[key].prop, Math.round(px) + 'px');
+			else
+				this.root.style.removeProperty(COLUMNS[key].prop);
+		}
+	},
+
+	resetColumnWidth: function (key) {
+		lsSet('col_' + key, null);
+		this.root.style.removeProperty(COLUMNS[key].prop);
+	},
+
+	/* The handle sits on the *left* edge of the column it resizes, so
+	   dragging left widens that column and gives the name column back the
+	   difference. Pointer events rather than mouse events, so a touch
+	   drag works too, and the pointer is captured so the drag survives
+	   leaving the handle. */
+	startColumnResize: function (ev, key, cell) {
+		var self = this;
+		var meta = COLUMNS[key];
+		if (!meta || ev.button > 0)
+			return;
+
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		var startX = ev.clientX;
+		var startW = cell.getBoundingClientRect().width;
+		var target = ev.currentTarget;
+
+		document.body.classList.add('fx-resizing');
+		try { target.setPointerCapture(ev.pointerId); } catch (e) { /* older browsers */ }
+
+		function move(e) {
+			var w = Math.round(startW + (startX - e.clientX));
+			w = Math.max(meta.min, Math.min(meta.max, w));
+			self.root.style.setProperty(meta.prop, w + 'px');
+		}
+
+		function done(e) {
+			target.removeEventListener('pointermove', move);
+			target.removeEventListener('pointerup', done);
+			target.removeEventListener('pointercancel', done);
+			document.body.classList.remove('fx-resizing');
+			try { target.releasePointerCapture(e.pointerId); } catch (er) { /* ignore */ }
+
+			var v = self.root.style.getPropertyValue(meta.prop);
+			var px = parseInt(v, 10);
+			if (px > 0)
+				lsSet('col_' + key, px);
+		}
+
+		target.addEventListener('pointermove', move);
+		target.addEventListener('pointerup', done);
+		target.addEventListener('pointercancel', done);
+	},
+
 	renderBody: function (id) {
 		var self = this;
 		var p = this.panes[id];
@@ -725,9 +814,12 @@ return view.extend({
 		if (p.cursor >= list.length)
 			p.cursor = Math.max(0, list.length - 1);
 
-		function sortHeader(label, key, cls) {
+		/* `resize` names the column this header can be dragged to resize;
+		   omitted for the name column, which is the one that absorbs
+		   whatever the others give up. */
+		function sortHeader(label, key, cls, resize) {
 			var arrow = (p.sortKey === key) ? (p.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-			return E('div', {
+			var cell = E('div', {
 				class: 'fx-cell fx-th ' + cls,
 				click: function (ev) {
 					ev.stopPropagation();
@@ -740,18 +832,35 @@ return view.extend({
 					self.renderBody(id);
 				}
 			}, label + arrow);
+
+			if (resize) {
+				cell.appendChild(E('span', {
+					class: 'fx-resizer',
+					title: _('Drag to resize, double-click to reset'),
+					pointerdown: function (ev) { self.startColumnResize(ev, resize, cell); },
+					/* the handle lives inside the sort header, so both of
+					   these have to stop here or a resize would also sort */
+					click: function (ev) { ev.stopPropagation(); },
+					dblclick: function (ev) {
+						ev.stopPropagation();
+						self.resetColumnWidth(resize);
+					}
+				}));
+			}
+
+			return cell;
 		}
 
 		var rows = [
 			E('div', { class: 'fx-row fx-header' }, [
 				E('div', { class: 'fx-cell fx-c-mark' }, ''),
 				sortHeader(_('Name'), 'name', 'fx-c-name'),
-				sortHeader(_('Size'), 'size', 'fx-c-size'),
-				sortHeader(_('Modified'), 'mtime', 'fx-c-time'),
+				sortHeader(_('Size'), 'size', 'fx-c-size', 'size'),
+				sortHeader(_('Modified'), 'mtime', 'fx-c-time', 'time'),
 				/* short label on purpose: this column shows the mode string
 				   (-rw-r--r--), and the full word does not fit a half-width
 				   panel once translated */
-				sortHeader(_('Mode', 'filexplorer'), 'mode_octal', 'fx-c-perm')
+				sortHeader(_('Mode', 'filexplorer'), 'mode_octal', 'fx-c-perm', 'perm')
 			])
 		];
 
@@ -951,10 +1060,11 @@ return view.extend({
 			case 'a':
 			case 'A':
 				if (ev.ctrlKey || ev.metaKey) {
-					var all = (this.selectedEntries(p).length !== p.visible.length);
-					p.selected = {};
-					if (all) p.visible.forEach(function (e) { p.selected[e.path] = true; });
-					this.renderBody(id); this.renderFoot(id); this.renderHeader();
+					/* toggles: a second Ctrl+A clears again */
+					if (this.selectedEntries(p).length === p.visible.length)
+						this.clearSelection(id);
+					else
+						this.selectAll(id);
 				} else handled = false;
 				break;
 			case 'r':
@@ -970,6 +1080,18 @@ return view.extend({
 			ev.preventDefault();
 			ev.stopPropagation();
 		}
+	},
+
+	selectAll: function (id) {
+		var p = this.panes[id];
+		p.selected = {};
+		p.visible.forEach(function (e) { p.selected[e.path] = true; });
+		this.renderBody(id); this.renderFoot(id); this.renderHeader();
+	},
+
+	clearSelection: function (id) {
+		this.panes[id].selected = {};
+		this.renderBody(id); this.renderFoot(id); this.renderHeader();
 	},
 
 	toggleSelect: function (id, entry) {
@@ -994,31 +1116,102 @@ return view.extend({
 
 	/* ------------------------------------------------ context menu */
 
+	/* One menu builder for both cases: right-clicking a row, and
+	   right-clicking the empty space below the rows (entry === null).
+	   Everything that can be reached from the header or the keyboard is
+	   reachable here too, so the menu is a complete alternative to both.
+
+	   Which entries an action applies to follows the same rule as the
+	   function keys: an explicit selection wins, and the clicked row is
+	   used only when nothing is marked. Right-clicking a row outside the
+	   selection moves the cursor there and acts on that row alone, which
+	   is what makes "select three, right-click one of them, Delete" mean
+	   all three rather than one. */
 	showContextMenu: function (ev, id, entry) {
 		var self = this;
 		this.closeContextMenu();
 
-		var isDir = (entry.type === 'directory');
-		var items = [[_('Open'), function () { self.openEntry(id, entry); }]];
+		var p = this.panes[id];
+		var sel = this.selectedEntries(p);
+		var targets = (entry && sel.length && p.selected[entry.path]) ? sel
+		            : (entry ? [entry] : sel);
+		var many = targets.length > 1;
+		var one = (targets.length === 1) ? targets[0] : null;
+		var isDir = !!(one && one.type === 'directory');
+		var SEP = null;
 
-		if (!isDir) {
-			items.push([_('View'), function () { self.previewEntry(entry); }]);
-			items.push([_('Edit', 'filexplorer'), function () { self.editEntry(entry); }]);
-			items.push([_('Download'), function () { self.downloadEntry(entry); }]);
+		var items = [];
+
+		if (one) {
+			items.push([_('Open'), 'Enter', function () { self.openEntry(id, one); }]);
+			if (!isDir) {
+				items.push([_('View'), 'F3', function () { self.previewEntry(one); }]);
+				items.push([_('Edit', 'filexplorer'), 'F4', function () { self.editEntry(one); }]);
+				items.push([_('Download'), '', function () { self.downloadEntry(one); }]);
+			}
+			items.push(SEP);
 		}
-		items.push([_('Copy'), function () { self.copyOrMove('copy', id, [entry]); }]);
-		items.push([_('Move'), function () { self.copyOrMove('move', id, [entry]); }]);
-		items.push([_('Rename'), function () { self.renameEntry(id, entry); }]);
-		items.push([_('Delete'), function () { self.deleteEntries(id, [entry]); }]);
-		if (entry.type !== 'link')
-			items.push([_('Permissions'), function () { self.permissionsEntry(id, entry); }]);
-		items.push([_('Properties'), function () { self.propertiesEntry(entry); }]);
 
-		var menu = E('div', { class: 'fx-ctx' }, items.map(function (it) {
+		if (targets.length) {
+			var label = many ? N_(targets.length, '%d item', '%d items').format(targets.length) : '';
+			items.push([_('Copy') + (label ? ' \u2014 ' + label : ''), 'F5',
+				function () { self.copyOrMove('copy', id, targets); }]);
+			items.push([_('Move') + (label ? ' \u2014 ' + label : ''), 'F6',
+				function () { self.copyOrMove('move', id, targets); }]);
+			if (one)
+				items.push([_('Rename'), 'F2', function () { self.renameEntry(id, one); }]);
+			items.push([_('Delete') + (label ? ' \u2014 ' + label : ''), 'F8',
+				function () { self.deleteEntries(id, targets); }, 'fx-ctx-danger']);
+			items.push(SEP);
+		}
+
+		if (entry) {
+			items.push([p.selected[entry.path] ? _('Unselect') : _('Select', 'filexplorer'), 'Space',
+				function () {
+					self.toggleSelect(id, entry);
+					self.renderBody(id); self.renderFoot(id); self.renderHeader();
+				}]);
+		}
+		items.push([_('Select all'), 'Ctrl+A', function () { self.selectAll(id); }]);
+		if (sel.length)
+			items.push([_('Clear selection', 'filexplorer'), '', function () { self.clearSelection(id); }]);
+		items.push(SEP);
+
+		items.push([_('New file'), '', function () { self.setActive(id); self.newFile(); }]);
+		items.push([_('New folder'), 'F7', function () { self.setActive(id); self.newDirectory(); }]);
+		items.push([_('Upload'), '', function () { self.setActive(id); self.actUpload(); }]);
+		items.push(SEP);
+
+		if (one && one.type !== 'link')
+			items.push([_('Permissions'), '', function () { self.permissionsEntry(id, one); }]);
+		if (one)
+			items.push([_('Properties'), '', function () { self.propertiesEntry(one); }]);
+		items.push([_('Search'), '', function () { self.setActive(id); self.actSearch(); }]);
+		items.push([_('Refresh'), 'Ctrl+R', function () { self.loadPane(id); }]);
+
+		/* drop a separator that ended up first, last, or next to another */
+		var clean = [];
+		items.forEach(function (it) {
+			if (it === SEP) {
+				if (clean.length && clean[clean.length - 1] !== SEP)
+					clean.push(SEP);
+			} else {
+				clean.push(it);
+			}
+		});
+		while (clean.length && clean[clean.length - 1] === SEP)
+			clean.pop();
+
+		var menu = E('div', { class: 'fx-ctx' }, clean.map(function (it) {
+			if (it === SEP)
+				return E('div', { class: 'fx-ctx-sep' });
 			return E('div', {
-				class: 'fx-ctx-item',
-				click: function () { self.closeContextMenu(); it[1](); }
-			}, it[0]);
+				class: 'fx-ctx-item' + (it[3] ? ' ' + it[3] : ''),
+				click: function () { self.closeContextMenu(); it[2](); }
+			}, [
+				E('span', { class: 'fx-ctx-label' }, it[0]),
+				E('span', { class: 'fx-ctx-key' }, it[1] || '')
+			]);
 		}));
 
 		menu.style.left = ev.clientX + 'px';

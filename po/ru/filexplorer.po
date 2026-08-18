@@ -72,6 +72,13 @@ msgstr "Не удалось сохранить файл"
 msgid "Changed"
 msgstr "Изменение метаданных"
 
+#. Needs its own context: luci-base also ships "Clear selection", with a
+#. different Russian wording, and all .lmo catalogues for a language share
+#. one flat key space in the browser.
+msgctxt "filexplorer"
+msgid "Clear selection"
+msgstr "Снять отметки"
+
 msgid "Close"
 msgstr "Закрыть"
 
@@ -123,6 +130,10 @@ msgstr "Не сохранять"
 
 msgid "Download"
 msgstr "Скачать"
+
+#. Tooltip on the drag handle between two column headers.
+msgid "Drag to resize, double-click to reset"
+msgstr "Потяните, чтобы изменить ширину; двойной клик — сброс"
 
 msgctxt "filexplorer"
 msgid "Edit"
@@ -388,6 +399,11 @@ msgstr "Неизвестная ошибка"
 
 msgid "Unsaved changes"
 msgstr "Несохранённые изменения"
+
+#. Context-menu item shown in place of "Select" when the row is already
+#. marked.
+msgid "Unselect"
+msgstr "Снять отметку"
 
 msgid "Up one level"
 msgstr "На уровень выше"

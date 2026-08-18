@@ -457,6 +457,50 @@ measured geometry) and both shipped a layout that hung off the edge of
 the screen on a real router, which is why this one changes one property
 of the theme's container and verifies the result rather than trusting it.
 
+### Columns
+
+Size, Modified and Mode are centred in their own column, header and
+values alike, so each reads as a labelled block instead of as text
+crowded against its neighbour.
+
+Their widths are draggable. Each of the three carries a handle on its
+left edge in the header row; dragging widens or narrows that column and
+the Name column absorbs the difference. A double-click on a handle puts
+that column back to its default. Widths are kept as CSS variables on the
+app root rather than on the cells, which means one drag moves the column
+in *both* panels and every row follows without a re-render, and they are
+remembered in `localStorage` between visits.
+
+Two things that had to be got right here: `.fx-th` must not use the
+shared `all .2s` transition, or the header cell animates its flex-basis
+and lags a fifth of a second behind the pointer while the rows below it
+track it exactly; and each drag is clamped to a per-column minimum and
+maximum, so no drag can squeeze the Name column away.
+
+### Context menu
+
+Right-click is a complete alternative to the header and the keyboard,
+not a subset. It carries Open / View / Edit / Download, Copy / Move /
+Rename / Delete, Select / Select all / Clear selection, New file / New
+folder / Upload, Permissions / Properties, and Search / Refresh, with
+each item showing the same key that triggers it from the header.
+
+Which entries an action applies to follows the same rule as the function
+keys: an explicit selection wins, and the clicked row is used only when
+nothing is marked. Right-clicking a row that is *outside* the selection
+acts on that row alone. So "mark three, right-click one of them, Delete"
+means all three, and the menu says so - the entries that operate on many
+items are labelled with the count.
+
+The menu also opens on the empty space below the rows, where it drops the
+per-file entries and keeps the ones that act on the directory.
+
+The menu is appended to `<body>`, so it can escape the panels' overflow
+clipping - which means it renders *outside* `.fx-app` and did not
+resolve any of the `--fx-*` tokens: it had no border, square corners and
+invisible separators. The token block is declared on `.fx-app, .fx-ctx`
+for that reason.
+
 Commander conventions worth knowing:
 
 - **Cursor and selection are different things.** The cursor is the

@@ -122,6 +122,9 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
+msgid "Drag to resize, double-click to reset"
+msgstr ""
+
 msgid "Execute"
 msgstr ""
 
@@ -383,6 +386,9 @@ msgstr ""
 msgid "Unsaved changes"
 msgstr ""
 
+msgid "Unselect"
+msgstr ""
+
 msgid "Up one level"
 msgstr ""
 
@@ -417,6 +423,10 @@ msgid "failed"
 msgstr ""
 
 msgid "…and %d more"
+msgstr ""
+
+msgctxt "filexplorer"
+msgid "Clear selection"
 msgstr ""
 
 msgctxt "filexplorer"
