@@ -187,6 +187,7 @@ def main():
     msgs = parse_po(po_path)
 
     ok = 0
+    identical = 0
     problems = []
     checked_plural_header = False
 
@@ -221,6 +222,15 @@ def main():
                 continue  # untranslated, legitimately absent
             kid = key_id(key)
             if kid not in catalog:
+                # po2lmo drops an entry whose value hashes the same as its
+                # key (po2lmo.c: `if (key_id != val_id)`), which is the
+                # case for a string deliberately left as-is in this
+                # language - a product name, say. The runtime then falls
+                # back to the msgid and produces exactly that string, so
+                # the absence is correct rather than a missing entry.
+                if key_id(want) == kid:
+                    identical += 1
+                    continue
                 problems.append('missing key %08x for %r' % (kid, key))
                 continue
             got = catalog[kid].decode('utf-8')
@@ -233,6 +243,8 @@ def main():
     print('%s -> %s' % (po_path, lmo_path))
     print('  index entries in catalog : %d' % len(entries))
     print('  verified lookups         : %d' % ok)
+    if identical:
+        print('  left as source on purpose: %d' % identical)
     print('  Plural-Forms stored      : %s' % ('yes' if checked_plural_header else 'NO'))
 
     if problems:

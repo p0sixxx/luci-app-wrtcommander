@@ -13,8 +13,11 @@ po/verify-lmo.py               independently verifies a compiled .lmo
 Strings come from two places: `_()` / `N_()` calls in the JS view, and
 the `title` of the LuCI menu entry in
 `runtime/usr/share/luci/menu.d/luci-app-filexplorer.json`. The menu
-title is translated through this same catalog at runtime, which is why
-the sidebar entry reads "Файловый менеджер" under a Russian LuCI.
+title goes through this same catalog at runtime. It resolves to the
+product name unchanged - FileXplorer is a name, not a description, so it
+reads the same in every language - but it still has to be *in* the
+catalog, because a msgid with no entry would leave the menu untranslated
+rather than deliberately unchanged.
 
 The compiled catalog is committed at
 `runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo` and installed to

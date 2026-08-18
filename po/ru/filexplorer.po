@@ -150,11 +150,13 @@ msgstr "Канал FIFO"
 msgid "File %d of %d"
 msgstr "Файл %d из %d"
 
-#. Menu entry title. The product name is kept in English elsewhere, but
-#. the sidebar entry reads better to a Russian admin as a plain
-#. description of what the page does.
+#. Menu entry title, and the heading of the page itself. Deliberately
+#. left as the product name: FileXplorer is a name, not a description,
+#. so it stays the same in every language. msgstr repeats msgid on
+#. purpose rather than being left empty, to record that this is a
+#. decision and not a string somebody forgot to translate.
 msgid "FileXplorer"
-msgstr "Файловый менеджер"
+msgstr "FileXplorer"
 
 msgid "File changed on disk"
 msgstr "Файл изменился на диске"
