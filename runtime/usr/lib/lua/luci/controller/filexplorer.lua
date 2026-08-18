@@ -1,5 +1,5 @@
 --[[
-Proton File Explorer - HTTP streaming controller
+FileXplorer - HTTP streaming controller
 
 The JS view and every regular filesystem operation (list, stat, mkdir,
 rename, copy, move, delete, chmod, chown, search, disk_info, small
@@ -182,7 +182,7 @@ function action_download()
 	local fs = require "nixio.fs"
 
 	if not fm_enabled() then
-		return send_json_error(http, 403, "EACCES", "File Explorer is disabled")
+		return send_json_error(http, 403, "EACCES", "FileXplorer is disabled")
 	end
 	if not session_has_access("luci.filexplorer", "list") then
 		return send_json_error(http, 403, "EACCES", "Permission denied")
@@ -241,7 +241,7 @@ function action_upload()
 	local fs = require "nixio.fs"
 
 	if not fm_enabled() then
-		return send_json_error(http, 403, "EACCES", "File Explorer is disabled")
+		return send_json_error(http, 403, "EACCES", "FileXplorer is disabled")
 	end
 	if not session_has_access("luci.filexplorer", "write") then
 		return send_json_error(http, 403, "EACCES", "Permission denied")

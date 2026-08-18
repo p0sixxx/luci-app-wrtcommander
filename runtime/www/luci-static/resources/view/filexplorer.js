@@ -5,7 +5,7 @@
 'require dom';
 
 /* ==================================================================
- * Proton File Explorer - LuCI JS view
+ * FileXplorer - LuCI JS view
  *
  * Talks to the "luci.filexplorer" ubus object for every filesystem
  * operation (see /usr/share/rpcd/ucode/filexplorer.uc) and to two
@@ -32,7 +32,7 @@ var callChown = rpc.declare({ object: 'luci.filexplorer', method: 'chown', param
 var callSearch = rpc.declare({ object: 'luci.filexplorer', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
 var callDiskInfo = rpc.declare({ object: 'luci.filexplorer', method: 'disk_info', params: ['path'] });
 
-var LS_PREFIX = 'protonfm.';
+var LS_PREFIX = 'filexplorer.';
 
 /* ------------------------------------------------------------------
  * small utilities
@@ -159,7 +159,7 @@ function notifyOk(msg) {
 function pickDirectory(initialPath) {
 	return new Promise(function (resolve) {
 		var current = initialPath || '/';
-		var listNode = E('div', { class: 'proton-picker-list' });
+		var listNode = E('div', { class: 'fx-picker-list' });
 		var pathInput = E('input', {
 			type: 'text', value: current, class: 'cbi-input-text',
 			style: 'width:100%;box-sizing:border-box;margin-bottom:.5em'
@@ -179,13 +179,13 @@ function pickDirectory(initialPath) {
 				var dirs = reply.entries.filter(function (e) { return e.type === 'directory' || (e.type === 'link' && e.target_type === 'directory'); });
 				dirs.sort(function (a, b) { return a.name.localeCompare(b.name); });
 				if (reply.parent !== null) {
-					listNode.appendChild(E('div', { class: 'proton-picker-item', click: function () { renderList(reply.parent); } }, '⬆️ ..'));
+					listNode.appendChild(E('div', { class: 'fx-picker-item', click: function () { renderList(reply.parent); } }, '⬆️ ..'));
 				}
 				if (!dirs.length)
-					listNode.appendChild(E('div', { class: 'proton-picker-empty' }, _('No subdirectories')));
+					listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('No subdirectories')));
 				dirs.forEach(function (d) {
 					listNode.appendChild(E('div', {
-						class: 'proton-picker-item',
+						class: 'fx-picker-item',
 						click: function () { renderList(joinPath(current, d.name)); }
 					}, '📁 ' + d.name));
 				});
@@ -237,13 +237,13 @@ return view.extend({
 		this.parent = null;
 		this.allowedRoot = '/';
 
-		this.root = E('div', { class: 'proton-fm' }, [
-			this.breadcrumbNode = E('div', { class: 'proton-breadcrumb' }),
-			this.toolbarNode = E('div', { class: 'proton-toolbar' }),
-			this.diskInfoNode = E('div', { class: 'proton-diskinfo' }),
-			this.tableWrap = E('div', { class: 'proton-table-wrap' },
-				this.tableNode = E('table', { class: 'table proton-table' })),
-			this.statusNode = E('div', { class: 'proton-status' })
+		this.root = E('div', { class: 'fx-fm' }, [
+			this.breadcrumbNode = E('div', { class: 'fx-breadcrumb' }),
+			this.toolbarNode = E('div', { class: 'fx-toolbar' }),
+			this.diskInfoNode = E('div', { class: 'fx-diskinfo' }),
+			this.tableWrap = E('div', { class: 'fx-table-wrap' },
+				this.tableNode = E('table', { class: 'table fx-table' })),
+			this.statusNode = E('div', { class: 'fx-status' })
 		]);
 
 		this.loadDir(this.path);
@@ -252,10 +252,10 @@ return view.extend({
 	},
 
 	injectCss: function () {
-		if (document.getElementById('proton-fm-css'))
+		if (document.getElementById('filexplorer-css'))
 			return;
 		var link = E('link', {
-			id: 'proton-fm-css',
+			id: 'filexplorer-css',
 			rel: 'stylesheet',
 			href: L.resource('filexplorer/filexplorer.css')
 		});
@@ -314,10 +314,10 @@ return view.extend({
 	renderBreadcrumb: function () {
 		var self = this;
 		var parts = self.path === '/' ? [] : self.path.split('/').filter(Boolean);
-		var node = E('div', { class: 'proton-breadcrumb-inner' });
+		var node = E('div', { class: 'fx-breadcrumb-inner' });
 
 		node.appendChild(E('span', {
-			class: 'proton-crumb', click: function () { self.loadDir('/'); }
+			class: 'fx-crumb', click: function () { self.loadDir('/'); }
 		}, '🏠'));
 
 		var acc = '';
@@ -336,7 +336,7 @@ return view.extend({
 		function addCrumb(c) {
 			node.appendChild(E('span', {}, ' / '));
 			node.appendChild(E('span', {
-				class: 'proton-crumb', click: function () { self.loadDir(c.path); }
+				class: 'fx-crumb', click: function () { self.loadDir(c.path); }
 			}, c.name));
 		}
 
@@ -344,10 +344,10 @@ return view.extend({
 			addCrumb(visible[0]);
 			node.appendChild(E('span', {}, ' / '));
 			node.appendChild(E('span', {
-				class: 'proton-crumb proton-crumb-ellipsis',
+				class: 'fx-crumb fx-crumb-ellipsis',
 				click: function () {
 					ui.showModal(_('Path'), [
-						E('ul', { class: 'proton-crumb-hidden-list' }, hidden.map(function (c) {
+						E('ul', { class: 'fx-crumb-hidden-list' }, hidden.map(function (c) {
 							return E('li', { click: function () { ui.hideModal(); self.loadDir(c.path); } }, c.name);
 						})),
 						E('div', { class: 'right' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
@@ -367,10 +367,10 @@ return view.extend({
 	renderToolbar: function () {
 		var self = this;
 		var nSel = Object.keys(self.selected).length;
-		var node = E('div', { class: 'proton-toolbar-inner' });
+		var node = E('div', { class: 'fx-toolbar-inner' });
 
 		if (nSel > 0) {
-			node.appendChild(E('span', { class: 'proton-sel-count' }, _('%d selected').format(nSel)));
+			node.appendChild(E('span', { class: 'fx-sel-count' }, _('%d selected').format(nSel)));
 			node.appendChild(this.btn(_('Copy'), function () { self.actionCopySelected(); }));
 			node.appendChild(this.btn(_('Move'), function () { self.actionMoveSelected(); }));
 			if (nSel === 1) {
@@ -386,7 +386,7 @@ return view.extend({
 			node.appendChild(this.newMenuButton());
 			node.appendChild(this.btn('⬆️ ' + _('Upload'), function () { self.actionUpload(); }));
 
-			var search = E('input', { type: 'text', class: 'cbi-input-text proton-search', placeholder: _('Search…') });
+			var search = E('input', { type: 'text', class: 'cbi-input-text fx-search', placeholder: _('Search…') });
 			var searchTimer = null;
 			search.addEventListener('input', function () {
 				window.clearTimeout(searchTimer);
@@ -413,13 +413,13 @@ return view.extend({
 
 	newMenuButton: function () {
 		var self = this;
-		var wrap = E('span', { class: 'proton-dropdown-wrap' });
+		var wrap = E('span', { class: 'fx-dropdown-wrap' });
 		var btn = this.btn(_('New') + ' ▾', function () {
 			menu.classList.toggle('open');
 		});
-		var menu = E('div', { class: 'proton-dropdown-menu' }, [
-			E('div', { class: 'proton-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewFile(); } }, _('New File')),
-			E('div', { class: 'proton-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewDir(); } }, _('New Directory'))
+		var menu = E('div', { class: 'fx-dropdown-menu' }, [
+			E('div', { class: 'fx-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewFile(); } }, _('New File')),
+			E('div', { class: 'fx-dropdown-item', click: function () { menu.classList.remove('open'); self.actionNewDir(); } }, _('New Directory'))
 		]);
 		wrap.appendChild(btn);
 		wrap.appendChild(menu);
@@ -428,7 +428,7 @@ return view.extend({
 
 	settingsButton: function () {
 		var self = this;
-		var wrap = E('span', { class: 'proton-dropdown-wrap proton-settings' });
+		var wrap = E('span', { class: 'fx-dropdown-wrap fx-settings' });
 		var btn = this.btn('⚙️', function () { menu.classList.toggle('open'); });
 		function mkCheck(label, key, prop) {
 			var cb = E('input', { type: 'checkbox' });
@@ -438,9 +438,9 @@ return view.extend({
 				lsSet(key, cb.checked);
 				self.renderTable();
 			});
-			return E('label', { class: 'proton-dropdown-item' }, [cb, ' ' + label]);
+			return E('label', { class: 'fx-dropdown-item' }, [cb, ' ' + label]);
 		}
-		var menu = E('div', { class: 'proton-dropdown-menu' }, [
+		var menu = E('div', { class: 'fx-dropdown-menu' }, [
 			mkCheck(_('Show hidden files'), 'showHidden', 'showHidden'),
 			mkCheck(_('Directories first'), 'dirsFirst', 'dirsFirst')
 		]);
@@ -481,7 +481,7 @@ return view.extend({
 		function sortHeader(label, key) {
 			var arrow = (self.sortKey === key) ? (self.sortDir === 'asc' ? ' ▲' : ' ▼') : '';
 			return E('th', {
-				class: 'proton-sortable',
+				class: 'fx-sortable',
 				click: function () {
 					if (self.sortKey === key) self.sortDir = (self.sortDir === 'asc') ? 'desc' : 'asc';
 					else { self.sortKey = key; self.sortDir = 'asc'; }
@@ -503,13 +503,13 @@ return view.extend({
 		});
 
 		var thead = E('tr', { class: 'tr table-titles' }, [
-			E('th', { class: 'th proton-col-check' }, selectAll),
+			E('th', { class: 'th fx-col-check' }, selectAll),
 			sortHeader(_('Name'), 'name'),
-			E('th', { class: 'th proton-col-type' }, _('Type')),
+			E('th', { class: 'th fx-col-type' }, _('Type')),
 			sortHeader(_('Size'), 'size'),
 			sortHeader(_('Modified'), 'mtime'),
-			E('th', { class: 'th proton-col-perm' }, _('Permissions')),
-			E('th', { class: 'th proton-col-actions' }, '')
+			E('th', { class: 'th fx-col-perm' }, _('Permissions')),
+			E('th', { class: 'th fx-col-actions' }, '')
 		]);
 
 		var rows = [thead];
@@ -539,23 +539,23 @@ return view.extend({
 
 		var nameLabel = entry.name + (entry.is_symlink ? (' → ' + (entry.symlink_target || '?')) : '');
 
-		var nameCell = E('td', { class: 'td proton-col-name' }, E('span', {
-			class: 'proton-name-link',
+		var nameCell = E('td', { class: 'td fx-col-name' }, E('span', {
+			class: 'fx-name-link',
 			click: function () { self.openEntry(entry); }
 		}, [icon + ' ', nameLabel]));
 
 		var row = E('tr', {
-			class: 'tr' + (entry.hidden ? ' proton-hidden-row' : ''),
+			class: 'tr' + (entry.hidden ? ' fx-hidden-row' : ''),
 			contextmenu: function (ev) { ev.preventDefault(); self.showContextMenu(ev, entry); }
 		}, [
-			E('td', { class: 'td proton-col-check' }, cb),
+			E('td', { class: 'td fx-col-check' }, cb),
 			nameCell,
-			E('td', { class: 'td proton-col-type' }, cls),
-			E('td', { class: 'td proton-col-size' }, entry.type === 'directory' ? '—' : fmtSize(entry.size)),
-			E('td', { class: 'td proton-col-mtime' }, fmtTime(entry.mtime)),
-			E('td', { class: 'td proton-col-perm' }, entry.mode_string + ' ' + entry.owner + ':' + entry.group),
-			E('td', { class: 'td proton-col-actions' }, E('button', {
-				class: 'btn proton-more-btn',
+			E('td', { class: 'td fx-col-type' }, cls),
+			E('td', { class: 'td fx-col-size' }, entry.type === 'directory' ? '—' : fmtSize(entry.size)),
+			E('td', { class: 'td fx-col-mtime' }, fmtTime(entry.mtime)),
+			E('td', { class: 'td fx-col-perm' }, entry.mode_string + ' ' + entry.owner + ':' + entry.group),
+			E('td', { class: 'td fx-col-actions' }, E('button', {
+				class: 'btn fx-more-btn',
 				click: function (ev) { self.showContextMenu(ev, entry); }
 			}, '⋮'))
 		]);
@@ -602,9 +602,9 @@ return view.extend({
 		}
 		items.push([_('Properties'), function () { self.actionProperties(entry); }]);
 
-		var menu = E('div', { class: 'proton-ctx-menu' }, items.map(function (it) {
+		var menu = E('div', { class: 'fx-ctx-menu' }, items.map(function (it) {
 			return E('div', {
-				class: 'proton-ctx-item',
+				class: 'fx-ctx-item',
 				click: function () { self.closeContextMenu(); it[1](); }
 			}, it[0]);
 		}));
@@ -655,7 +655,7 @@ return view.extend({
 		var self = this;
 		return new Promise(function (resolve) {
 			var input = E('input', { type: 'text', class: 'cbi-input-text', style: 'width:100%;box-sizing:border-box', value: initial || '' });
-			var err = E('div', { class: 'proton-form-error' });
+			var err = E('div', { class: 'fx-form-error' });
 			function submit() {
 				var v = input.value;
 				var e = self.validateName(v);
@@ -734,9 +734,9 @@ return view.extend({
 				: _('Delete "%s"?').format(entries[0].name))
 			: _('Delete %d selected items?').format(entries.length);
 
-		var body = [E('p', {}, msg), E('p', { class: 'proton-warn' }, _('This action cannot be undone.'))];
+		var body = [E('p', {}, msg), E('p', { class: 'fx-warn' }, _('This action cannot be undone.'))];
 		if (systemish)
-			body.push(E('p', { class: 'proton-warn proton-warn-strong' }, _('WARNING: this includes a core system path. Deleting it can break the router.')));
+			body.push(E('p', { class: 'fx-warn fx-warn-strong' }, _('WARNING: this includes a core system path. Deleting it can break the router.')));
 
 		ui.showModal(_('Confirm delete'), body.concat([
 			E('div', { class: 'right', style: 'margin-top:1em' }, [
@@ -949,8 +949,8 @@ return view.extend({
 			}
 			var text = b64DecodeUtf8(reply.data);
 			ui.showModal(entry.path, [
-				E('pre', { class: 'proton-preview-pre' }, text),
-				reply.truncated ? E('p', { class: 'proton-warn' }, _('Preview truncated at %s.').format(fmtSize(reply.size))) : '',
+				E('pre', { class: 'fx-preview-pre' }, text),
+				reply.truncated ? E('p', { class: 'fx-warn' }, _('Preview truncated at %s.').format(fmtSize(reply.size))) : '',
 				E('div', { class: 'right', style: 'margin-top:1em' }, [
 					E('button', { class: 'btn', click: function () { self.actionDownload(entry); } }, _('Download')),
 					' ',
@@ -1013,7 +1013,7 @@ return view.extend({
 
 	showHeadTail: function (entry, text, label) {
 		ui.showModal(entry.path + ' — ' + label, [
-			E('pre', { class: 'proton-preview-pre' }, text),
+			E('pre', { class: 'fx-preview-pre' }, text),
 			E('div', { class: 'right', style: 'margin-top:1em' }, E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
 		]);
 	},
@@ -1031,7 +1031,7 @@ return view.extend({
 				return notifyError(reply, _('Cannot open file for editing'));
 			}
 			var original = b64DecodeUtf8(reply.data);
-			var textarea = E('textarea', { class: 'proton-editor-textarea', spellcheck: 'false' }, original);
+			var textarea = E('textarea', { class: 'fx-editor-textarea', spellcheck: 'false' }, original);
 			var dirty = false;
 			textarea.addEventListener('input', function () { dirty = true; });
 
@@ -1089,7 +1089,7 @@ return view.extend({
 					' ',
 					E('button', { class: 'btn cbi-button-action', click: function () { doSave(false); } }, _('Save'))
 				])
-			], 'proton-editor-modal');
+			], 'fx-editor-modal');
 
 			textarea.focus();
 		});
@@ -1132,8 +1132,8 @@ return view.extend({
 		var idx = 0;
 
 		var overallLabel = E('div', {}, _('%d / %d files').format(0, total));
-		var fileLabel = E('div', { class: 'proton-upload-filename' }, '');
-		var bar = E('div', { class: 'proton-progress-bar' }, E('div', { class: 'proton-progress-fill' }));
+		var fileLabel = E('div', { class: 'fx-upload-filename' }, '');
+		var bar = E('div', { class: 'fx-progress-bar' }, E('div', { class: 'fx-progress-fill' }));
 		var fill = bar.firstChild;
 		var cancelled = false;
 		var xhr = null;
@@ -1224,7 +1224,7 @@ return view.extend({
 				rows.push(E('tr', { class: 'tr' }, E('td', { class: 'td', colspan: 4, style: 'padding:1em' }, _('No matches'))));
 			list.forEach(function (entry) {
 				rows.push(E('tr', { class: 'tr' }, [
-					E('td', { class: 'td' }, E('span', { class: 'proton-name-link', click: function () { self.openEntry(entry); } }, iconFor(entry, classify(entry)) + ' ' + entry.name)),
+					E('td', { class: 'td' }, E('span', { class: 'fx-name-link', click: function () { self.openEntry(entry); } }, iconFor(entry, classify(entry)) + ' ' + entry.name)),
 					E('td', { class: 'td' }, dirName(entry.path)),
 					E('td', { class: 'td' }, classify(entry)),
 					E('td', { class: 'td' }, entry.type === 'directory' ? '—' : fmtSize(entry.size))

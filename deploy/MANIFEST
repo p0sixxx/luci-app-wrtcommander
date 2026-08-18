@@ -1,4 +1,4 @@
-# Proton File Explorer - deployment manifest
+# FileXplorer - deployment manifest
 #
 # One "<source relative to runtime/>  <destination absolute path>" pair per
 # line. install.sh / uninstall.sh parse this file so the file list only

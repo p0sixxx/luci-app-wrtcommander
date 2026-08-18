@@ -33,7 +33,7 @@ STAT_BROKEN="$(ubus_call stat "{\"path\":\"$TESTFS/broken-symlink\"}")"
 echo "$STAT_BROKEN" | grep -q '"broken": *true' && { echo "PASS: broken symlink flagged as broken"; PASS=$((PASS+1)); } \
 	|| { echo "FAIL: broken symlink not flagged"; FAIL=$((FAIL+1)); }
 
-expect_ok   "stat long file name"             "$(ubus_call stat "{\"path\":\"$TESTFS/this-is-a-deliberately-very-long-file-name-used-to-exercise-long-name-handling-in-the-listing-and-rename-dialogs-of-proton-file-explorer.txt\"}")"
+expect_ok   "stat long file name"             "$(ubus_call stat "{\"path\":\"$TESTFS/this-is-a-deliberately-very-long-file-name-used-to-exercise-long-name-handling-in-the-listing-and-rename-dialogs-of-filexplorer.txt\"}")"
 
 # create / mkdir
 expect_ok   "create new empty file"           "$(ubus_call create "{\"path\":\"$TESTFS/created.txt\"}")"
@@ -41,10 +41,10 @@ expect_fail "create refuses existing file"    "$(ubus_call create "{\"path\":\"$
 expect_ok   "mkdir new directory"             "$(ubus_call mkdir "{\"path\":\"$TESTFS/newdir\"}")"
 expect_fail "mkdir refuses existing directory" "$(ubus_call mkdir "{\"path\":\"$TESTFS/newdir\"}")" EEXIST
 
-# write / read round-trip (base64 of "hello proton")
-expect_ok   "write to created.txt"            "$(ubus_call write "{\"path\":\"$TESTFS/created.txt\",\"data\":\"aGVsbG8gcHJvdG9u\",\"encoding\":\"base64\"}")"
+# write / read round-trip (base64 of "hello filexplorer")
+expect_ok   "write to created.txt"            "$(ubus_call write "{\"path\":\"$TESTFS/created.txt\",\"data\":\"aGVsbG8gZmlsZXhwbG9yZXI=\",\"encoding\":\"base64\"}")"
 READBACK="$(ubus_call read "{\"path\":\"$TESTFS/created.txt\",\"mode\":\"preview\"}")"
-echo "$READBACK" | grep -q '"data": *"aGVsbG8gcHJvdG9u"' && { echo "PASS: write/read round-trip matches"; PASS=$((PASS+1)); } \
+echo "$READBACK" | grep -q '"data": *"aGVsbG8gZmlsZXhwbG9yZXI="' && { echo "PASS: write/read round-trip matches"; PASS=$((PASS+1)); } \
 	|| { echo "FAIL: write/read round-trip mismatch"; echo "$READBACK" | sed 's/^/    /'; FAIL=$((FAIL+1)); }
 
 # rename

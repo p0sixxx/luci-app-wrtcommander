@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Explorer - restart.sh
+# FileXplorer - restart.sh
 #
 # Reloads exactly what is needed to pick up updated files after a
 # re-copy during development: rpcd (ACL + ucode backend) and LuCI's
@@ -19,13 +19,13 @@ fi
 UCODE_SRC="/usr/share/rpcd/ucode/filexplorer.uc"
 if command -v ucode >/dev/null 2>&1 && [ -f "$UCODE_SRC" ]; then
 	echo "Checking backend syntax..."
-	if ! ucode "$UCODE_SRC" >/tmp/proton-fm-ucode-check.log 2>&1; then
+	if ! ucode "$UCODE_SRC" >/tmp/filexplorer-ucode-check.log 2>&1; then
 		echo "ERROR: $UCODE_SRC fails to parse, not reloading rpcd:" >&2
-		cat /tmp/proton-fm-ucode-check.log >&2
-		rm -f /tmp/proton-fm-ucode-check.log
+		cat /tmp/filexplorer-ucode-check.log >&2
+		rm -f /tmp/filexplorer-ucode-check.log
 		exit 1
 	fi
-	rm -f /tmp/proton-fm-ucode-check.log
+	rm -f /tmp/filexplorer-ucode-check.log
 	echo "  OK"
 fi
 
@@ -47,4 +47,4 @@ else
 	echo "WARNING: luci.filexplorer is not registered. Check: logread | grep rpcd" >&2
 fi
 
-echo "Done. Reload the File Explorer page in your browser (hard-refresh if JS/CSS look stale)."
+echo "Done. Reload the FileXplorer page in your browser (hard-refresh if JS/CSS look stale)."

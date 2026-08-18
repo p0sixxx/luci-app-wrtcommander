@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Explorer - uninstall.sh
+# FileXplorer - uninstall.sh
 #
 # Removes exactly the files listed in deploy/MANIFEST - nothing else.
 # Never touches anything outside that fixed list, so it can never
@@ -24,7 +24,7 @@ for arg in "$@"; do
 	esac
 done
 
-echo "== Proton File Explorer uninstaller =="
+echo "== FileXplorer uninstaller =="
 
 if [ "$(id -u)" != "0" ]; then
 	echo "ERROR: this must be run as root on the router." >&2
@@ -66,7 +66,7 @@ if [ -x /etc/init.d/rpcd ]; then
 fi
 
 echo
-echo "Proton File Explorer has been uninstalled."
+echo "FileXplorer has been uninstalled."
 if [ "$PURGE" != "1" ]; then
 	echo "Configuration kept at /etc/config/filexplorer - remove manually or re-run with --purge."
 fi

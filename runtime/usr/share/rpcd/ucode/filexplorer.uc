@@ -1,5 +1,5 @@
 /*
- * Proton File Explorer - rpcd/ubus backend
+ * FileXplorer - rpcd/ubus backend
  *
  * Registers the "luci.filexplorer" ubus object. Loaded by rpcd's ucode
  * plugin loader (rpcd-mod-ucode) from /usr/share/rpcd/ucode/.
@@ -545,7 +545,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				let show_hidden = (a.show_hidden != null) ? a.show_hidden : cfg.show_hidden;
 				let c = canon(a.path, { must_exist: true, must_be_dir: true });
@@ -579,7 +579,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let c = canon(req.args.path, { must_exist: true });
 				if (c.err)
 					return c.err;
@@ -600,7 +600,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				let mode = a.mode || 'preview';
 				let c = canon(a.path, { must_exist: true });
@@ -664,7 +664,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: false });
 				if (c.err)
@@ -714,7 +714,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let c = canon(req.args.path, { must_exist: false });
 				if (c.err)
 					return c.err;
@@ -731,7 +731,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let c = canon(req.args.path, { must_exist: false });
 				if (c.err)
 					return c.err;
@@ -748,7 +748,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				if (type(a.name) != 'string' || a.name == '' || index(a.name, '/') >= 0 || a.name == '.' || a.name == '..')
 					return fail('EINVAL', 'Invalid name');
@@ -773,7 +773,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let paths = req.args.paths;
 				if (type(paths) != 'array' || length(paths) == 0)
 					return fail('EINVAL', 'No paths given');
@@ -798,7 +798,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				if (type(a.items) != 'array' || length(a.items) == 0)
 					return fail('EINVAL', 'No items given');
@@ -848,7 +848,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				if (type(a.items) != 'array' || length(a.items) == 0)
 					return fail('EINVAL', 'No items given');
@@ -911,7 +911,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: true });
 				if (c.err)
@@ -930,7 +930,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: true });
 				if (c.err)
@@ -951,7 +951,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let a = req.args;
 				if (type(a.query) != 'string' || a.query == '')
 					return fail('EINVAL', 'Empty query');
@@ -980,7 +980,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'File Explorer is disabled');
+					return fail('EACCES', 'FileXplorer is disabled');
 				let c = canon(req.args.path, { must_exist: true });
 				if (c.err)
 					return c.err;

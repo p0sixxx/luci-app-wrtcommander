@@ -1,4 +1,6 @@
-# Proton File Explorer
+# FileXplorer
+
+**Package:** `luci-app-filexplorer` — displayed in LuCI as **FileXplorer**.
 
 A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
 runtime/development edition** described in the project brief: a
@@ -103,11 +105,11 @@ README.md   this file
 
 ```sh
 # from your workstation
-scp -r runtime deploy root@ROUTER:/tmp/proton-filexplorer/
+scp -r runtime deploy root@ROUTER:/tmp/filexplorer/
 ssh root@ROUTER
 
 # on the router
-cd /tmp/proton-filexplorer/deploy
+cd /tmp/filexplorer/deploy
 sh install.sh
 ```
 
@@ -130,14 +132,14 @@ sh install.sh
 It deliberately never restarts `uhttpd` - static files and the Lua
 controller are picked up on the next request with no restart needed.
 
-Open **LuCI -> System -> File Explorer**.
+Open **LuCI -> System -> FileXplorer**.
 
 ### Re-deploying after a change
 
 Edit files under `runtime/`, `scp` the changed one(s) over, then:
 
 ```sh
-sh /tmp/proton-filexplorer/deploy/restart.sh
+sh /tmp/filexplorer/deploy/restart.sh
 ```
 
 This re-validates the ucode syntax, reloads `rpcd`, and clears the
@@ -146,8 +148,8 @@ index cache - the fast inner loop for iterating on the app.
 ### Uninstalling
 
 ```sh
-sh /tmp/proton-filexplorer/deploy/uninstall.sh          # keeps your config
-sh /tmp/proton-filexplorer/deploy/uninstall.sh --purge   # also removes it
+sh /tmp/filexplorer/deploy/uninstall.sh          # keeps your config
+sh /tmp/filexplorer/deploy/uninstall.sh --purge   # also removes it
 ```
 
 `uninstall.sh` only ever touches the exact absolute paths listed in
@@ -158,11 +160,11 @@ OpenWrt files by construction.
 ## Testing
 
 ```sh
-cd /tmp/proton-filexplorer/tests
+cd /tmp/filexplorer/tests
 sh run-all.sh
 ```
 
-This builds a disposable test tree at `/tmp/proton-filexplorer-test/`
+This builds a disposable test tree at `/tmp/filexplorer-test/`
 (Unicode names, spaces, hidden files, a large file, symlinks including
 a deliberately broken one) and runs, in order:
 

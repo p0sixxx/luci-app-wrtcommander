@@ -36,49 +36,49 @@ do_upload() {
 
 echo "== Upload tests =="
 
-: > /tmp/proton-upload-empty.txt
-OUT=$(do_upload /tmp/proton-upload-empty.txt "$DEST_ENC" 1)
+: > /tmp/fx-upload-empty.txt
+OUT=$(do_upload /tmp/fx-upload-empty.txt "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload an empty file"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: upload an empty file"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
-printf 'small upload content\n' > /tmp/proton-upload-small.txt
-OUT=$(do_upload /tmp/proton-upload-small.txt "$DEST_ENC" 1)
+printf 'small upload content\n' > /tmp/fx-upload-small.txt
+OUT=$(do_upload /tmp/fx-upload-small.txt "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload a small file"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: upload a small file"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
-cp /tmp/proton-upload-small.txt "/tmp/юникод-имя.txt"
+cp /tmp/fx-upload-small.txt "/tmp/юникод-имя.txt"
 OUT=$(do_upload "/tmp/юникод-имя.txt" "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload with a Unicode filename"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: upload with a Unicode filename"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
-cp /tmp/proton-upload-small.txt "/tmp/name with spaces.txt"
+cp /tmp/fx-upload-small.txt "/tmp/name with spaces.txt"
 OUT=$(do_upload "/tmp/name with spaces.txt" "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload with a space in the filename"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: upload with a space in the filename"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
-OUT=$(do_upload /tmp/proton-upload-small.txt "$DEST_ENC" 0)
+OUT=$(do_upload /tmp/fx-upload-small.txt "$DEST_ENC" 0)
 echo "$OUT" | grep -q '"code":[[:space:]]*"EEXIST"' && { echo "PASS: upload without overwrite refuses an existing file"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: expected EEXIST"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
-OUT=$(do_upload /tmp/proton-upload-small.txt "$DEST_ENC" 1)
+OUT=$(do_upload /tmp/fx-upload-small.txt "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload with overwrite=1 replaces an existing file"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: overwrite upload"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 
 if [ -d /rom ]; then
-	OUT=$(do_upload /tmp/proton-upload-small.txt "%2From" 1)
+	OUT=$(do_upload /tmp/fx-upload-small.txt "%2From" 1)
 	echo "$OUT" | grep -qE '"code":[[:space:]]*"(EROFS|EACCES|EIO)"' && { echo "PASS: upload into /rom (read-only) is rejected"; PASS=$((PASS + 1)); } \
 		|| { echo "FAIL: expected upload into /rom to be rejected"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 fi
 
-dd if=/dev/urandom of=/tmp/proton-upload-large.bin bs=1024 count=2048 >/dev/null 2>&1
-OUT=$(do_upload /tmp/proton-upload-large.bin "$DEST_ENC" 1)
+dd if=/dev/urandom of=/tmp/fx-upload-large.bin bs=1024 count=2048 >/dev/null 2>&1
+OUT=$(do_upload /tmp/fx-upload-large.bin "$DEST_ENC" 1)
 echo "$OUT" | grep -q '"ok":[[:space:]]*true' && { echo "PASS: upload a 2 MiB file"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: upload a 2 MiB file"; echo "$OUT"; FAIL=$((FAIL + 1)); }
 SIZE_REPORTED=$(echo "$OUT" | sed -n 's/.*"size":[[:space:]]*\([0-9]*\).*/\1/p')
 [ "$SIZE_REPORTED" = "2097152" ] && { echo "PASS: reported size matches the 2 MiB payload exactly"; PASS=$((PASS + 1)); } \
 	|| { echo "FAIL: size mismatch (got '$SIZE_REPORTED', expected 2097152)"; FAIL=$((FAIL + 1)); }
 
-rm -f /tmp/proton-upload-empty.txt /tmp/proton-upload-small.txt /tmp/proton-upload-large.bin \
+rm -f /tmp/fx-upload-empty.txt /tmp/fx-upload-small.txt /tmp/fx-upload-large.bin \
 	"/tmp/юникод-имя.txt" "/tmp/name with spaces.txt"
 
 # NOTE: a true "permission denied" (ACL) case needs a non-root LuCI

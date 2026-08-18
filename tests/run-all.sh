@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the full Proton File Explorer on-router test suite in order.
+# Runs the full FileXplorer on-router test suite in order.
 # Run this ON the router, as root, after deploy/install.sh.
 #
 #   sh run-all.sh
@@ -25,7 +25,7 @@ run_stage() {
 	fi
 }
 
-echo "Proton File Explorer - full on-router test suite"
+echo "FileXplorer - full on-router test suite"
 echo "Checking prerequisites..."
 command -v ubus >/dev/null 2>&1 || { echo "ERROR: ubus not found - run this on the router after install.sh" >&2; exit 1; }
 ubus list 2>/dev/null | grep -qx 'luci.filexplorer' || {

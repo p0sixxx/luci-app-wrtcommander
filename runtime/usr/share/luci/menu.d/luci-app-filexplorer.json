@@ -1,6 +1,6 @@
 {
 	"admin/system/filexplorer": {
-		"title": "File Explorer",
+		"title": "FileXplorer",
 		"order": 45,
 		"action": {
 			"type": "view",

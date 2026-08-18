@@ -1,12 +1,12 @@
 #!/bin/sh
-# Shared helpers for the Proton File Explorer on-router test suite.
+# Shared helpers for the FileXplorer on-router test suite.
 # Source this from the other tests/*.sh scripts:  . "$(dirname "$0")/lib.sh"
 #
 # These tests talk to the real ubus object, so they must run ON the
 # router (or against a router reachable via `ubus -s`), after
 # deploy/install.sh has been run.
 
-TESTFS="/tmp/proton-filexplorer-test"
+TESTFS="/tmp/filexplorer-test"
 PASS=0
 FAIL=0
 

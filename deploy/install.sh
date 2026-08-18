@@ -1,5 +1,5 @@
 #!/bin/sh
-# Proton File Explorer - install.sh
+# FileXplorer - install.sh
 #
 # Copies the files listed in deploy/MANIFEST onto a running OpenWrt
 # router and reloads exactly the services needed to pick them up
@@ -26,7 +26,7 @@ for arg in "$@"; do
 	esac
 done
 
-echo "== Proton File Explorer installer =="
+echo "== FileXplorer installer =="
 
 if [ "$(id -u)" != "0" ]; then
 	echo "ERROR: this must be run as root on the router." >&2
@@ -63,13 +63,13 @@ fi
 
 echo "Validating ucode backend syntax..."
 UCODE_SRC="${RUNTIME_DIR}/usr/share/rpcd/ucode/filexplorer.uc"
-if ! ucode "$UCODE_SRC" >/tmp/proton-fm-ucode-check.log 2>&1; then
+if ! ucode "$UCODE_SRC" >/tmp/filexplorer-ucode-check.log 2>&1; then
 	echo "ERROR: filexplorer.uc failed to parse - aborting before touching the live install:" >&2
-	cat /tmp/proton-fm-ucode-check.log >&2
-	rm -f /tmp/proton-fm-ucode-check.log
+	cat /tmp/filexplorer-ucode-check.log >&2
+	rm -f /tmp/filexplorer-ucode-check.log
 	exit 1
 fi
-rm -f /tmp/proton-fm-ucode-check.log
+rm -f /tmp/filexplorer-ucode-check.log
 echo "  OK"
 
 echo "Installing files..."
@@ -112,6 +112,6 @@ else
 fi
 
 echo
-echo "Proton File Explorer installed successfully."
-echo "Open LuCI -> System -> File Explorer in your browser."
+echo "FileXplorer installed successfully."
+echo "Open LuCI -> System -> FileXplorer in your browser."
 echo "(If the menu entry is missing, log out and back in, or hard-refresh the page.)"
