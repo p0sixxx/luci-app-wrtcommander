@@ -17,21 +17,24 @@ Norton / Midnight / Total Commander: две независимые панели 
 рядом, одна из них активная, и любая операция по умолчанию идёт «из
 активной панели в противоположную».
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ Wrt Commander   F3 Просмотр  F4 Правка  F5 Копир.  F6 Перем.   │
-├───────────────────────────────┬──────────────────────────────┤
-│ /etc/config                   │ /tmp                         │
-├───────────────────────────────┼──────────────────────────────┤
-│ .. (вверх)                    │ .. (вверх)                   │
-│ [ ] wireless                - │ [ ] dhcp.leases      1.2 КиБ │
-│ [ ] network           2.1 КиБ │ [ ] log              4.0 КиБ │
-│ [x] firewall          1.8 КиБ │ [ ] run                    - │
-├───────────────────────────────┼──────────────────────────────┤
-│ отмечен 1, 1.8 КиБ            │ 12 объектов                  │
-│              свободно 4.2 МиБ │            свободно 28.1 МиБ │
-└───────────────────────────────┴──────────────────────────────┘
-```
+![Wrt Commander — тёмная тема Proton2025](docs/img/desktop-dark-ru.png)
+
+<details>
+<summary><b>Светлая тема и вид на телефоне</b></summary>
+
+<br>
+
+![Светлая тема](docs/img/desktop-light-ru.png)
+
+<p align="center">
+  <img src="docs/img/mobile-dark-ru.png"  width="300" alt="Тёмная тема на телефоне">
+  <img src="docs/img/mobile-light-ru.png" width="300" alt="Светлая тема на телефоне">
+</p>
+
+</details>
+
+<sub>Снимки сделаны на настоящей таблице стилей Proton2025 и разметке
+приложения, с примерным содержимым каталогов.</sub>
 
 - Две панели с независимыми путём, сортировкой и выделением; **Tab**
   переключает, активная обведена рамкой
@@ -152,38 +155,110 @@ tests/      набор тестов для запуска на роутере (�
 README.md   этот файл
 ```
 
-## Установка на роутер (рабочий процесс разработки)
+## 📦 Установка на роутер
+
+Два пути. Скриптом — быстрее и он сам всё проверяет; вручную — если
+удобнее копировать файлы по одному.
+
+### ⚡ Вариант A — скриптом
+
+**💻 На рабочей машине**
 
 ```sh
-# с рабочей машины
 scp -r runtime deploy root@ROUTER:/tmp/wrtcommander/
 ssh root@ROUTER
+```
 
-# на роутере
+**🖥 На роутере**
+
+```sh
 cd /tmp/wrtcommander/deploy
 sh install.sh
 ```
 
-`install.sh`:
+Что делает `install.sh`:
 
-1. отказывается работать не от root
-2. проверяет, что это действительно система OpenWrt с `ubus`, `rpcd`,
-   `ucode` и LuCI, и предупреждает (но не прерывается), если нет
-   `luci-lua-runtime`
-3. разбирает ucode-бэкенд командой `ucode wrtcommander.uc` и прерывается
-   *до того, как тронет рабочую установку*, если разбор не удался
-4. копирует каждый файл из `deploy/MANIFEST` по его абсолютному пути,
-   не трогая существующий `/etc/config/wrtcommander`, если не передать
-   `--force-config`
-5. перезагружает `rpcd` (подхватывает новый ACL-файл и ucode-плагин) и
-   чистит кэш индекса диспетчера LuCI
-6. проверяет, что `luci.wrtcommander` действительно зарегистрирован в
-   `ubus list`, и внятно сообщает, если это не так
+| | шаг |
+|---|---|
+| 🔒 | отказывается работать не от root |
+| 🔍 | проверяет, что это OpenWrt с `ubus`, `rpcd`, `ucode` и LuCI; предупреждает (но не прерывается), если нет `luci-lua-runtime` |
+| 🧪 | разбирает ucode-бэкенд и прерывается **до того, как тронет рабочую установку**, если разбор не удался |
+| 📄 | копирует каждый файл из `deploy/MANIFEST` по его абсолютному пути, не трогая существующий `/etc/config/wrtcommander` (если не передать `--force-config`) |
+| 🧹 | удаляет прежнюю установку FileXplorer по точным путям и переносит её конфиг на новое имя |
+| 🔄 | перезагружает `rpcd` и чистит кэш индекса LuCI |
+| ✅ | проверяет, что `luci.wrtcommander` появился в `ubus list` |
 
-Скрипт намеренно никогда не перезапускает `uhttpd` — статика и
-Lua-контроллер подхватываются на следующем запросе без перезапуска.
+`uhttpd` намеренно не перезапускается: статика и Lua-контроллер
+подхватываются на следующем запросе.
 
-Откройте **LuCI → Службы → Wrt Commander**.
+### 🛠 Вариант B — вручную через scp
+
+**🖥 На роутере — до копирования** (каталог новый, иначе `scp` упадёт):
+
+```sh
+mkdir -p /www/luci-static/resources/wrtcommander
+```
+
+**💻 На рабочей машине** — из каталога `runtime/`:
+
+```sh
+cd runtime
+scp etc/config/wrtcommander                                 root@ROUTER:/etc/config/wrtcommander
+scp usr/share/rpcd/ucode/wrtcommander.uc                    root@ROUTER:/usr/share/rpcd/ucode/wrtcommander.uc
+scp usr/share/rpcd/acl.d/luci-app-wrtcommander.json         root@ROUTER:/usr/share/rpcd/acl.d/luci-app-wrtcommander.json
+scp usr/share/luci/menu.d/luci-app-wrtcommander.json        root@ROUTER:/usr/share/luci/menu.d/luci-app-wrtcommander.json
+scp usr/lib/lua/luci/controller/wrtcommander.lua            root@ROUTER:/usr/lib/lua/luci/controller/wrtcommander.lua
+scp usr/lib/lua/luci/i18n/wrtcommander.ru.lmo               root@ROUTER:/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo
+scp www/luci-static/resources/view/wrtcommander.js          root@ROUTER:/www/luci-static/resources/view/wrtcommander.js
+scp www/luci-static/resources/wrtcommander/wrtcommander.css root@ROUTER:/www/luci-static/resources/wrtcommander/wrtcommander.css
+```
+
+Или одной командой:
+
+```sh
+cd runtime && tar cf - . | ssh root@ROUTER "mkdir -p /www/luci-static/resources/wrtcommander && tar xf - -C /"
+```
+
+**🖥 На роутере — после копирования.** 🧹 Уборка прежней установки здесь
+**обязательна**: при копировании вручную она не выполняется сама, а
+старые файлы лежат по другим путям, поэтому на роутере окажутся два
+приложения сразу — со своими ubus-объектом, ACL и пунктом в «Службах».
+
+```sh
+# перенести настройки со старого имени, если они правились
+[ -f /etc/config/filexplorer ] && cp /etc/config/filexplorer /etc/config/wrtcommander
+
+# убрать прежнюю установку - точные пути, без масок
+rm -f /usr/share/rpcd/ucode/filexplorer.uc \
+      /usr/share/rpcd/acl.d/luci-app-filexplorer.json \
+      /usr/share/luci/menu.d/luci-app-filexplorer.json \
+      /usr/lib/lua/luci/controller/filexplorer.lua \
+      /usr/lib/lua/luci/i18n/filexplorer.ru.lmo \
+      /www/luci-static/resources/view/filexplorer.js \
+      /www/luci-static/resources/filexplorer/filexplorer.css
+rmdir /www/luci-static/resources/filexplorer 2>/dev/null
+
+# 🔄 перезапуск
+rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
+/etc/init.d/rpcd restart
+/etc/init.d/uhttpd restart
+```
+
+### ✅ Проверка
+
+```sh
+ubus list | grep wrtcommander        # ожидается luci.wrtcommander
+ubus list | grep filexplorer         # ожидается пусто
+ubus call luci.wrtcommander list '{"path":"/etc/config"}' | head
+```
+
+Если объект не появился — посмотрите, что скажет разбор бэкенда:
+
+```sh
+ucode /usr/share/rpcd/ucode/wrtcommander.uc
+```
+
+Затем **Ctrl+Shift+R** в браузере и **LuCI → Службы → Wrt Commander**.
 
 ### Повторное развёртывание после правок
 
@@ -775,21 +850,24 @@ standard: two independent directory panels side by side, one of them
 active, and every operation defaulting to "from the active panel to the
 other one".
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ Wrt Commander   F3 View  F4 Edit  F5 Copy  F6 Move  F7 New dir │
-├───────────────────────────────┬──────────────────────────────┤
-│ /etc/config                   │ /tmp                         │
-├───────────────────────────────┼──────────────────────────────┤
-│ .. (up)                       │ .. (up)                      │
-│ [ ] wireless                - │ [ ] dhcp.leases      1.2 KiB │
-│ [ ] network           2.1 KiB │ [ ] log              4.0 KiB │
-│ [x] firewall          1.8 KiB │ [ ] run                    - │
-├───────────────────────────────┼──────────────────────────────┤
-│ 1 selected, 1.8 KiB           │ 12 items                     │
-│                  4.2 MiB free │                28.1 MiB free │
-└───────────────────────────────┴──────────────────────────────┘
-```
+![Wrt Commander on the Proton2025 dark theme](docs/img/desktop-dark-en.png)
+
+<details>
+<summary><b>Light theme and the phone layout</b></summary>
+
+<br>
+
+![Light theme](docs/img/desktop-light-en.png)
+
+<p align="center">
+  <img src="docs/img/mobile-dark-en.png"  width="300" alt="Dark theme on a phone">
+  <img src="docs/img/mobile-light-en.png" width="300" alt="Light theme on a phone">
+</p>
+
+</details>
+
+<sub>Rendered against the real Proton2025 stylesheet and the app's own
+markup, with sample directory contents.</sub>
 
 - Two panels with independent path, sorting and selection; **Tab**
   switches, the active one is outlined
@@ -905,38 +983,111 @@ tests/      on-router test suite (functional, security, upload,
 README.md   this file
 ```
 
-## Installing on a router (development workflow)
+## 📦 Installing on a router
+
+Two ways. The script is quicker and checks itself; by hand is there if
+you would rather copy the files one at a time.
+
+### ⚡ Option A — the script
+
+**💻 On your workstation**
 
 ```sh
-# from your workstation
 scp -r runtime deploy root@ROUTER:/tmp/wrtcommander/
 ssh root@ROUTER
+```
 
-# on the router
+**🖥 On the router**
+
+```sh
 cd /tmp/wrtcommander/deploy
 sh install.sh
 ```
 
-`install.sh`:
+What `install.sh` does:
 
-1. refuses to run as anything but root
-2. checks this is actually an OpenWrt system with `ubus`, `rpcd`,
-   `ucode` and LuCI present, and warns (but doesn't abort) if
-   `luci-lua-runtime` is missing
-3. parses the ucode backend with `ucode wrtcommander.uc` and aborts
-   *before touching the live install* if it fails to parse
-4. copies every file listed in `deploy/MANIFEST` to its absolute
-   destination, leaving an existing `/etc/config/wrtcommander` alone
-   unless you pass `--force-config`
-5. reloads `rpcd` (picks up the new ACL file and ucode plugin) and
-   clears LuCI's dispatch index cache
-6. verifies `luci.wrtcommander` is actually registered on `ubus list`
-   and reports clearly if it isn't
+| | step |
+|---|---|
+| 🔒 | refuses to run as anything but root |
+| 🔍 | checks this is OpenWrt with `ubus`, `rpcd`, `ucode` and LuCI; warns (but does not abort) if `luci-lua-runtime` is missing |
+| 🧪 | parses the ucode backend and aborts **before touching the live install** if it fails |
+| 📄 | copies every file in `deploy/MANIFEST` to its absolute destination, leaving an existing `/etc/config/wrtcommander` alone unless you pass `--force-config` |
+| 🧹 | removes a previous FileXplorer installation by exact path and carries its config over to the new name |
+| 🔄 | reloads `rpcd` and clears LuCI's index cache |
+| ✅ | verifies `luci.wrtcommander` is registered on `ubus list` |
 
-It deliberately never restarts `uhttpd` - static files and the Lua
-controller are picked up on the next request with no restart needed.
+It deliberately never restarts `uhttpd` — static files and the Lua
+controller are picked up on the next request.
 
-Open **LuCI -> Services -> Wrt Commander**.
+### 🛠 Option B — by hand over scp
+
+**🖥 On the router, first** (the directory is new, or `scp` will fail):
+
+```sh
+mkdir -p /www/luci-static/resources/wrtcommander
+```
+
+**💻 On your workstation**, from `runtime/`:
+
+```sh
+cd runtime
+scp etc/config/wrtcommander                                 root@ROUTER:/etc/config/wrtcommander
+scp usr/share/rpcd/ucode/wrtcommander.uc                    root@ROUTER:/usr/share/rpcd/ucode/wrtcommander.uc
+scp usr/share/rpcd/acl.d/luci-app-wrtcommander.json         root@ROUTER:/usr/share/rpcd/acl.d/luci-app-wrtcommander.json
+scp usr/share/luci/menu.d/luci-app-wrtcommander.json        root@ROUTER:/usr/share/luci/menu.d/luci-app-wrtcommander.json
+scp usr/lib/lua/luci/controller/wrtcommander.lua            root@ROUTER:/usr/lib/lua/luci/controller/wrtcommander.lua
+scp usr/lib/lua/luci/i18n/wrtcommander.ru.lmo               root@ROUTER:/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo
+scp www/luci-static/resources/view/wrtcommander.js          root@ROUTER:/www/luci-static/resources/view/wrtcommander.js
+scp www/luci-static/resources/wrtcommander/wrtcommander.css root@ROUTER:/www/luci-static/resources/wrtcommander/wrtcommander.css
+```
+
+Or in one go:
+
+```sh
+cd runtime && tar cf - . | ssh root@ROUTER "mkdir -p /www/luci-static/resources/wrtcommander && tar xf - -C /"
+```
+
+**🖥 On the router, afterwards.** 🧹 Clearing the previous installation is
+**required** here: copying by hand does not run that step, and the old
+files live at different absolute paths, so the router would end up with
+two copies of the app registered — each with its own ubus object, ACL
+scopes and entry under Services.
+
+```sh
+# carry settings over from the old name, if they were customised
+[ -f /etc/config/filexplorer ] && cp /etc/config/filexplorer /etc/config/wrtcommander
+
+# remove the previous installation - exact paths, no wildcards
+rm -f /usr/share/rpcd/ucode/filexplorer.uc \
+      /usr/share/rpcd/acl.d/luci-app-filexplorer.json \
+      /usr/share/luci/menu.d/luci-app-filexplorer.json \
+      /usr/lib/lua/luci/controller/filexplorer.lua \
+      /usr/lib/lua/luci/i18n/filexplorer.ru.lmo \
+      /www/luci-static/resources/view/filexplorer.js \
+      /www/luci-static/resources/filexplorer/filexplorer.css
+rmdir /www/luci-static/resources/filexplorer 2>/dev/null
+
+# 🔄 restart
+rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
+/etc/init.d/rpcd restart
+/etc/init.d/uhttpd restart
+```
+
+### ✅ Checking it took
+
+```sh
+ubus list | grep wrtcommander        # expect luci.wrtcommander
+ubus list | grep filexplorer         # expect nothing
+ubus call luci.wrtcommander list '{"path":"/etc/config"}' | head
+```
+
+If the object is missing, see what the backend parse says:
+
+```sh
+ucode /usr/share/rpcd/ucode/wrtcommander.uc
+```
+
+Then **Ctrl+Shift+R** in the browser and **LuCI → Services → Wrt Commander**.
 
 ### Re-deploying after a change
 
