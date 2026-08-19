@@ -92,43 +92,6 @@ while IFS= read -r line; do
 	echo "  install $dst"
 done < "$MANIFEST"
 
-# The app used to be called FileXplorer (luci-app-filexplorer). Those files
-# sit at different absolute paths, so installing the renamed version does
-# not replace them - it leaves a second copy of the app registered, with
-# its own ubus object, its own ACL scopes and its own entry under
-# Services. Remove them, once, by their exact paths: no wildcards, same
-# rule as uninstall.sh.
-OLD_FILES="/usr/share/rpcd/ucode/filexplorer.uc
-/usr/share/rpcd/acl.d/luci-app-filexplorer.json
-/usr/share/luci/menu.d/luci-app-filexplorer.json
-/usr/lib/lua/luci/controller/filexplorer.lua
-/usr/lib/lua/luci/i18n/filexplorer.ru.lmo
-/www/luci-static/resources/view/filexplorer.js
-/www/luci-static/resources/filexplorer/filexplorer.css"
-
-old_found=0
-for f in $OLD_FILES; do
-	if [ -e "$f" ]; then
-		if [ "$old_found" = 0 ]; then
-			echo "Removing the previous FileXplorer installation..."
-			old_found=1
-		fi
-		rm -f "$f"
-		echo "  removed $f"
-	fi
-done
-[ -d /www/luci-static/resources/filexplorer ] && \
-	rmdir /www/luci-static/resources/filexplorer 2>/dev/null || true
-
-# The old config is left in place deliberately - it holds the operator's
-# allowed_root and limits, and the new package reads the same option
-# names, so it can simply be copied across.
-if [ "$old_found" = 1 ] && [ -f /etc/config/filexplorer ] && [ ! -f /etc/config/wrtcommander ]; then
-	cp /etc/config/filexplorer /etc/config/wrtcommander
-	echo "  carried /etc/config/filexplorer over to /etc/config/wrtcommander"
-	echo "  (the old file is left alone; delete it once you are happy)"
-fi
-
 echo "Reloading rpcd and clearing the LuCI index cache..."
 rm -f /tmp/luci-indexcache* 2>/dev/null || true
 rm -f /tmp/luci-modulecache/* 2>/dev/null || true

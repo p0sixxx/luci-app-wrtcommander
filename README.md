@@ -168,7 +168,6 @@ sh install.sh
 | 🔍 | проверяет, что это OpenWrt с `ubus`, `rpcd`, `ucode` и LuCI; предупреждает (но не прерывается), если нет `luci-lua-runtime` |
 | 🧪 | разбирает ucode-бэкенд и прерывается **до того, как тронет рабочую установку**, если разбор не удался |
 | 📄 | копирует каждый файл из `deploy/MANIFEST` по его абсолютному пути, не трогая существующий `/etc/config/wrtcommander` (если не передать `--force-config`) |
-| 🧹 | удаляет прежнюю установку FileXplorer по точным путям и переносит её конфиг на новое имя |
 | 🔄 | перезагружает `rpcd` и чистит кэш индекса LuCI |
 | ✅ | проверяет, что `luci.wrtcommander` появился в `ubus list` |
 
@@ -203,26 +202,9 @@ scp www/luci-static/resources/wrtcommander/wrtcommander.css root@ROUTER:/www/luc
 cd runtime && tar cf - . | ssh root@ROUTER "mkdir -p /www/luci-static/resources/wrtcommander && tar xf - -C /"
 ```
 
-**🖥 На роутере — после копирования.** 🧹 Уборка прежней установки здесь
-**обязательна**: при копировании вручную она не выполняется сама, а
-старые файлы лежат по другим путям, поэтому на роутере окажутся два
-приложения сразу — со своими ubus-объектом, ACL и пунктом в «Службах».
+**🖥 На роутере — после копирования** 🔄
 
 ```sh
-# перенести настройки со старого имени, если они правились
-[ -f /etc/config/filexplorer ] && cp /etc/config/filexplorer /etc/config/wrtcommander
-
-# убрать прежнюю установку - точные пути, без масок
-rm -f /usr/share/rpcd/ucode/filexplorer.uc \
-      /usr/share/rpcd/acl.d/luci-app-filexplorer.json \
-      /usr/share/luci/menu.d/luci-app-filexplorer.json \
-      /usr/lib/lua/luci/controller/filexplorer.lua \
-      /usr/lib/lua/luci/i18n/filexplorer.ru.lmo \
-      /www/luci-static/resources/view/filexplorer.js \
-      /www/luci-static/resources/filexplorer/filexplorer.css
-rmdir /www/luci-static/resources/filexplorer 2>/dev/null
-
-# 🔄 перезапуск
 rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
 /etc/init.d/rpcd restart
 /etc/init.d/uhttpd restart
@@ -232,7 +214,6 @@ rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
 
 ```sh
 ubus list | grep wrtcommander        # ожидается luci.wrtcommander
-ubus list | grep filexplorer         # ожидается пусто
 ubus call luci.wrtcommander list '{"path":"/etc/config"}' | head
 ```
 
@@ -999,7 +980,6 @@ What `install.sh` does:
 | 🔍 | checks this is OpenWrt with `ubus`, `rpcd`, `ucode` and LuCI; warns (but does not abort) if `luci-lua-runtime` is missing |
 | 🧪 | parses the ucode backend and aborts **before touching the live install** if it fails |
 | 📄 | copies every file in `deploy/MANIFEST` to its absolute destination, leaving an existing `/etc/config/wrtcommander` alone unless you pass `--force-config` |
-| 🧹 | removes a previous FileXplorer installation by exact path and carries its config over to the new name |
 | 🔄 | reloads `rpcd` and clears LuCI's index cache |
 | ✅ | verifies `luci.wrtcommander` is registered on `ubus list` |
 
@@ -1034,27 +1014,9 @@ Or in one go:
 cd runtime && tar cf - . | ssh root@ROUTER "mkdir -p /www/luci-static/resources/wrtcommander && tar xf - -C /"
 ```
 
-**🖥 On the router, afterwards.** 🧹 Clearing the previous installation is
-**required** here: copying by hand does not run that step, and the old
-files live at different absolute paths, so the router would end up with
-two copies of the app registered — each with its own ubus object, ACL
-scopes and entry under Services.
+**🖥 On the router, afterwards** 🔄
 
 ```sh
-# carry settings over from the old name, if they were customised
-[ -f /etc/config/filexplorer ] && cp /etc/config/filexplorer /etc/config/wrtcommander
-
-# remove the previous installation - exact paths, no wildcards
-rm -f /usr/share/rpcd/ucode/filexplorer.uc \
-      /usr/share/rpcd/acl.d/luci-app-filexplorer.json \
-      /usr/share/luci/menu.d/luci-app-filexplorer.json \
-      /usr/lib/lua/luci/controller/filexplorer.lua \
-      /usr/lib/lua/luci/i18n/filexplorer.ru.lmo \
-      /www/luci-static/resources/view/filexplorer.js \
-      /www/luci-static/resources/filexplorer/filexplorer.css
-rmdir /www/luci-static/resources/filexplorer 2>/dev/null
-
-# 🔄 restart
 rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
 /etc/init.d/rpcd restart
 /etc/init.d/uhttpd restart
@@ -1064,7 +1026,6 @@ rm -f /tmp/luci-indexcache* /tmp/luci-modulecache/*
 
 ```sh
 ubus list | grep wrtcommander        # expect luci.wrtcommander
-ubus list | grep filexplorer         # expect nothing
 ubus call luci.wrtcommander list '{"path":"/etc/config"}' | head
 ```
 
