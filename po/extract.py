@@ -43,7 +43,11 @@ MENU = os.path.join(ROOT, 'runtime/usr/share/luci/menu.d/luci-app-wrtcommander.j
 OUTPUT = os.path.join(HERE, 'templates/wrtcommander.pot')
 
 STR = r"'((?:[^'\\]|\\.)*)'"
-RE_PLURAL = re.compile(r"N_\(\s*[^,]+,\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
+# N_(n, singular, plural) with an optional fourth message-context
+# argument, which is what every call in this app now passes - see the note
+# about the shared key space in po/README.md
+RE_PLURAL = re.compile(r"N_\(\s*[^,]+,\s*" + STR + r"\s*,\s*" + STR +
+                       r"\s*(?:,\s*" + STR + r"\s*)?\)", re.S)
 RE_SINGLE = re.compile(r"(?<![A-Za-z0-9_])_\(\s*" + STR + r"\s*\)")
 # _('text', 'context') - a disambiguating message context, see po/README.md
 RE_CTXT = re.compile(r"(?<![A-Za-z0-9_])_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
@@ -70,16 +74,16 @@ def menu_titles():
 def main():
     src = open(SOURCE, encoding='utf-8').read()
 
-    plurals = sorted({(unescape_js(a), unescape_js(b))
-                      for a, b in RE_PLURAL.findall(src)})
-    plural_singulars = {a for a, _b in plurals}
+    plurals = sorted({(unescape_js(a), unescape_js(b), unescape_js(c))
+                      for a, b, c in RE_PLURAL.findall(src)})
+    plural_singulars = {a for a, _b, _c in plurals}
     contexts = sorted({(unescape_js(s), unescape_js(c))
                        for s, c in RE_CTXT.findall(src)})
     singles = sorted(({unescape_js(s) for s in RE_SINGLE.findall(src)}
                       | menu_titles())
                      - plural_singulars)
 
-    bad = [s for s in singles + [x for p in plurals for x in p]
+    bad = [s for s in singles + [x for p in plurals for x in p if x]
            + [x for p in contexts for x in p]
            if s != ' '.join(s.split())]
     if bad:
@@ -111,7 +115,9 @@ def main():
         out.append('msgstr ""')
         out.append('')
 
-    for a, b in plurals:
+    for a, b, c in plurals:
+        if c:
+            out.append('msgctxt "%s"' % po_escape(c))
         out.append('msgid "%s"' % po_escape(a))
         out.append('msgid_plural "%s"' % po_escape(b))
         out.append('msgstr[0] ""')

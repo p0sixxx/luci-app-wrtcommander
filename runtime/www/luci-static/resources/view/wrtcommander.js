@@ -72,15 +72,15 @@ function fmtSize(n) {
 	if (n === null || n === undefined)
 		return '—';
 	if (n < 1024)
-		return _('%d B').format(n);
+		return _('%d B', 'wrtcommander').format(n);
 	var v = n / 1024;
 	if (v < 1024)
-		return _('%s KiB').format(v.toFixed(v < 10 ? 1 : 0));
+		return _('%s KiB', 'wrtcommander').format(v.toFixed(v < 10 ? 1 : 0));
 	v = v / 1024;
 	if (v < 1024)
-		return _('%s MiB').format(v.toFixed(v < 10 ? 2 : 1));
+		return _('%s MiB', 'wrtcommander').format(v.toFixed(v < 10 ? 2 : 1));
 	v = v / 1024;
-	return _('%s GiB').format(v.toFixed(2));
+	return _('%s GiB', 'wrtcommander').format(v.toFixed(2));
 }
 
 function fmtTime(sec) {
@@ -139,15 +139,15 @@ function classify(entry) {
 
 function typeLabel(cls) {
 	switch (cls) {
-		case 'directory': return _('Directory');
-		case 'symlink': return _('Symlink');
-		case 'device': return _('Device');
-		case 'fifo': return _('FIFO');
-		case 'socket': return _('Socket');
+		case 'directory': return _('Directory', 'wrtcommander');
+		case 'symlink': return _('Symlink', 'wrtcommander');
+		case 'device': return _('Device', 'wrtcommander');
+		case 'fifo': return _('FIFO', 'wrtcommander');
+		case 'socket': return _('Socket', 'wrtcommander');
 		case 'image': return _('Image', 'wrtcommander');
-		case 'archive': return _('Archive');
-		case 'text': return _('Text');
-		default: return _('Binary');
+		case 'archive': return _('Archive', 'wrtcommander');
+		case 'text': return _('Text', 'wrtcommander');
+		default: return _('Binary', 'wrtcommander');
 	}
 }
 
@@ -165,10 +165,10 @@ function iconFor(entry, cls) {
 
 function errorMessage(reply, fallback) {
 	if (!reply)
-		return fallback || _('Unknown error');
+		return fallback || _('Unknown error', 'wrtcommander');
 	if (reply.error && reply.error.message)
 		return reply.error.message;
-	return fallback || _('Unknown error');
+	return fallback || _('Unknown error', 'wrtcommander');
 }
 
 function notifyError(reply, fallback) {
@@ -193,11 +193,11 @@ function pickDirectory(initialPath) {
 
 		function renderList(path) {
 			listNode.innerHTML = '';
-			listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('Loading…')));
+			listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('Loading…', 'wrtcommander')));
 			callList(path, true).then(function (reply) {
 				listNode.innerHTML = '';
 				if (!reply || reply.ok === false) {
-					listNode.appendChild(E('p', { class: 'alert-message warning' }, errorMessage(reply, _('Cannot open directory'))));
+					listNode.appendChild(E('p', { class: 'alert-message warning' }, errorMessage(reply, _('Cannot open directory', 'wrtcommander'))));
 					return;
 				}
 				current = reply.path;
@@ -209,7 +209,7 @@ function pickDirectory(initialPath) {
 				if (reply.parent !== null)
 					listNode.appendChild(E('div', { class: 'fx-picker-item', click: function () { renderList(reply.parent); } }, '↑ ..'));
 				if (!dirs.length)
-					listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('No subdirectories')));
+					listNode.appendChild(E('div', { class: 'fx-picker-empty' }, _('No subdirectories', 'wrtcommander')));
 				dirs.forEach(function (d) {
 					listNode.appendChild(E('div', {
 						class: 'fx-picker-item',
@@ -225,16 +225,16 @@ function pickDirectory(initialPath) {
 				renderList(pathInput.value);
 		});
 
-		ui.showModal(_('Select destination'), [
+		ui.showModal(_('Select destination', 'wrtcommander'), [
 			pathInput,
 			listNode,
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel')),
+				E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel', 'wrtcommander')),
 				' ',
 				E('button', {
 					class: 'btn cbi-button-action',
 					click: function () { ui.hideModal(); resolve(current); }
-				}, _('Select this folder'))
+				}, _('Select this folder', 'wrtcommander'))
 			])
 		]);
 
@@ -623,28 +623,28 @@ return view.extend({
 			E('h2', { class: 'fx-title' }, _('Wrt Commander')),
 			sep(),
 
-			act('\ud83d\udc41\ufe0f', 'F3', _('View'), function () { self.actF3(); }),
+			act('\ud83d\udc41\ufe0f', 'F3', _('View', 'wrtcommander'), function () { self.actF3(); }),
 			act('\ud83d\udcdd', 'F4', _('Edit', 'wrtcommander'), function () { self.actF4(); }),
-			act('\ud83d\udccb', 'F5', _('Copy'), function () { self.actF5(); }),
-			act('\u27a1\ufe0f', 'F6', _('Move'), function () { self.actF6(); }),
-			act('\ud83d\udcc2', 'F7', _('New folder'), function () { self.actF7(); }),
-			act('\ud83c\udff7\ufe0f', 'F2', _('Rename'), function () { self.actF2(); }),
-			act('\ud83d\uddd1\ufe0f', 'F8', _('Delete'), function () { self.actF8(); }, 'cbi-button-remove fx-act-danger'),
+			act('\ud83d\udccb', 'F5', _('Copy', 'wrtcommander'), function () { self.actF5(); }),
+			act('\u27a1\ufe0f', 'F6', _('Move', 'wrtcommander'), function () { self.actF6(); }),
+			act('\ud83d\udcc2', 'F7', _('New folder', 'wrtcommander'), function () { self.actF7(); }),
+			act('\ud83c\udff7\ufe0f', 'F2', _('Rename', 'wrtcommander'), function () { self.actF2(); }),
+			act('\ud83d\uddd1\ufe0f', 'F8', _('Delete', 'wrtcommander'), function () { self.actF8(); }, 'cbi-button-remove fx-act-danger'),
 			sep(),
 
-			act('\ud83d\udcc4', '', _('New file'), function () { self.actNewFile(); }),
-			act(self.trayIcon('up'), '', _('Upload'), function () { self.actUpload(); }),
-			act(self.trayIcon('down'), '', _('Download'), function () { self.actDownload(); }),
-			act('\ud83d\udd0d', '', _('Search'), function () { self.actSearch(); }),
+			act('\ud83d\udcc4', '', _('New file', 'wrtcommander'), function () { self.actNewFile(); }),
+			act(self.trayIcon('up'), '', _('Upload', 'wrtcommander'), function () { self.actUpload(); }),
+			act(self.trayIcon('down'), '', _('Download', 'wrtcommander'), function () { self.actDownload(); }),
+			act('\ud83d\udd0d', '', _('Search', 'wrtcommander'), function () { self.actSearch(); }),
 
 			E('span', { class: 'fx-fn-spacer' }),
 			n ? E('span', { class: 'fx-fn-count' },
-				N_(n, '%d selected', '%d selected').format(n)) : '',
+				N_(n, '%d selected', '%d selected', 'wrtcommander').format(n)) : '',
 			/* U+2328 without the emoji variation selector: with it the
 			   keyboard renders washed-out and nearly invisible on a dark
 			   theme, without it as a crisp glyph */
-			act('\u2328', '', _('Keyboard shortcuts'), function () { self.actShortcuts(); }),
-			act('\u2699\ufe0f', '', _('Settings'), function () { self.actSettings(); })
+			act('\u2328', '', _('Keyboard shortcuts', 'wrtcommander'), function () { self.actShortcuts(); }),
+			act('\u2699\ufe0f', '', _('Settings', 'wrtcommander'), function () { self.actSettings(); })
 		]);
 	},
 
@@ -663,8 +663,8 @@ return view.extend({
 			}, label);
 		}
 		dom.content(this.paneSwitchNode, [
-			tab('left', _('Left panel')),
-			tab('right', _('Right panel'))
+			tab('left', _('Left panel', 'wrtcommander')),
+			tab('right', _('Right panel', 'wrtcommander'))
 		]);
 	},
 
@@ -673,16 +673,16 @@ return view.extend({
 	loadPane: function (id, keepCursor) {
 		var self = this;
 		var p = this.panes[id];
-		dom.content(p.node.body, E('div', { class: 'fx-loading' }, _('Loading…')));
+		dom.content(p.node.body, E('div', { class: 'fx-loading' }, _('Loading…', 'wrtcommander')));
 
 		return callList(p.path, true).then(function (reply) {
 			if (!reply || reply.ok === false) {
-				notifyError(reply, _('Cannot open directory'));
+				notifyError(reply, _('Cannot open directory', 'wrtcommander'));
 				if (p.path !== '/') {
 					p.path = '/';
 					return self.loadPane(id);
 				}
-				dom.content(p.node.body, E('div', { class: 'fx-loading' }, errorMessage(reply, _('Cannot open directory'))));
+				dom.content(p.node.body, E('div', { class: 'fx-loading' }, errorMessage(reply, _('Cannot open directory', 'wrtcommander'))));
 				return;
 			}
 			p.path = reply.path;
@@ -697,7 +697,7 @@ return view.extend({
 			self.renderPane(id);
 			self.loadDisk(id);
 		}).catch(function (err) {
-			ui.addNotification(null, E('p', {}, _('Request failed: %s').format(err.message || err)), 'error');
+			ui.addNotification(null, E('p', {}, _('Request failed: %s', 'wrtcommander').format(err.message || err)), 'error');
 		});
 	},
 
@@ -771,7 +771,7 @@ return view.extend({
 
 		var input = E('input', {
 			type: 'text', class: 'cbi-input-text fx-path-input', value: p.path,
-			title: _('Type a path and press Enter')
+			title: _('Type a path and press Enter', 'wrtcommander')
 		});
 		input.addEventListener('keydown', function (ev) {
 			ev.stopPropagation();
@@ -784,7 +784,7 @@ return view.extend({
 
 		var crumbs = E('div', { class: 'fx-crumbs' });
 		crumbs.appendChild(E('span', {
-			class: 'fx-crumb', title: _('Root directory'),
+			class: 'fx-crumb', title: _('Root directory', 'wrtcommander'),
 			click: function () { self.navigate(id, '/'); }
 		}, '/'));
 		var acc = '';
@@ -803,7 +803,7 @@ return view.extend({
 		dom.content(p.node.head, [
 			E('div', { class: 'fx-head-row' }, [
 				E('button', {
-					class: 'btn fx-icon-btn', title: _('Up one level'),
+					class: 'btn fx-icon-btn', title: _('Up one level', 'wrtcommander'),
 					disabled: p.parent ? null : true,
 					click: function (ev) {
 						ev.stopPropagation();
@@ -812,7 +812,7 @@ return view.extend({
 				}, '↑'),
 				input,
 				E('button', {
-					class: 'btn fx-icon-btn', title: _('Refresh'),
+					class: 'btn fx-icon-btn', title: _('Refresh', 'wrtcommander'),
 					click: function (ev) { ev.stopPropagation(); self.loadPane(id, true); }
 				}, '↻')
 			]),
@@ -917,7 +917,7 @@ return view.extend({
 			if (resize) {
 				cell.appendChild(E('span', {
 					class: 'fx-resizer',
-					title: _('Drag to resize, double-click to reset'),
+					title: _('Drag to resize, double-click to reset', 'wrtcommander'),
 					pointerdown: function (ev) { self.startColumnResize(ev, resize, cell); },
 					/* the handle lives inside the sort header, so both of
 					   these have to stop here or a resize would also sort */
@@ -935,9 +935,9 @@ return view.extend({
 		var rows = [
 			E('div', { class: 'fx-row fx-header' }, [
 				E('div', { class: 'fx-cell fx-c-mark' }, ''),
-				sortHeader(_('Name'), 'name', 'fx-c-name'),
-				sortHeader(_('Size'), 'size', 'fx-c-size', 'size'),
-				sortHeader(_('Modified'), 'mtime', 'fx-c-time', 'time'),
+				sortHeader(_('Name', 'wrtcommander'), 'name', 'fx-c-name'),
+				sortHeader(_('Size', 'wrtcommander'), 'size', 'fx-c-size', 'size'),
+				sortHeader(_('Modified', 'wrtcommander'), 'mtime', 'fx-c-time', 'time'),
 				/* short label on purpose: this column shows the mode string
 				   (-rw-r--r--), and the full word does not fit a half-width
 				   panel once translated */
@@ -960,7 +960,7 @@ return view.extend({
 		}
 
 		if (!list.length) {
-			rows.push(E('div', { class: 'fx-empty' }, _('This directory is empty')));
+			rows.push(E('div', { class: 'fx-empty' }, _('This directory is empty', 'wrtcommander')));
 		}
 
 		list.forEach(function (entry, idx) {
@@ -995,12 +995,12 @@ return view.extend({
 			   because that is exactly what this is - the column says
 			   nothing rather than saying something that is not a size */
 			sizeText = '—';
-			sizeTitle = _('Ctrl+Space calculates the size of this folder');
+			sizeTitle = _('Ctrl+Space calculates the size of this folder', 'wrtcommander');
 		}
 		else if (sizeInfo.pending) {
 			sizeText = '…';
 			sizeClass = ' fx-size-busy';
-			sizeTitle = _('Calculating…');
+			sizeTitle = _('Calculating…', 'wrtcommander');
 		}
 		else if (sizeInfo.failed) {
 			/* back to the dash, but coloured: otherwise a failed walk is
@@ -1014,8 +1014,8 @@ return view.extend({
 			   presenting a partial total as the answer */
 			sizeText = (sizeInfo.truncated ? '>' : '') + fmtSize(sizeInfo.size);
 			sizeTitle = sizeInfo.truncated
-				? _('At least %s: the folder is too large to measure in full.').format(fmtSize(sizeInfo.size))
-				: N_(sizeInfo.files, '%d file', '%d files').format(sizeInfo.files);
+				? _('At least %s: the folder is too large to measure in full.', 'wrtcommander').format(fmtSize(sizeInfo.size))
+				: N_(sizeInfo.files, '%d file', '%d files', 'wrtcommander').format(sizeInfo.files);
 		}
 
 		var mark = E('span', {
@@ -1086,13 +1086,13 @@ return view.extend({
 
 		var left = sel.length
 			? E('span', { class: 'fx-foot-sel' },
-				N_(sel.length, '%d item selected', '%d items selected').format(sel.length) +
+				N_(sel.length, '%d item selected', '%d items selected', 'wrtcommander').format(sel.length) +
 				(bytes > 0 ? ' · ' + fmtSize(bytes) : ''))
-			: E('span', {}, N_(p.visible.length, '%d item', '%d items').format(p.visible.length));
+			: E('span', {}, N_(p.visible.length, '%d item', '%d items', 'wrtcommander').format(p.visible.length));
 
 		var right = p.disk
 			? E('span', { class: 'fx-foot-disk', title: p.disk.filesystem + ' (' + p.disk.fstype + ')' },
-				_('%s free of %s').format(fmtSize(p.disk.free), fmtSize(p.disk.total)))
+				_('%s free of %s', 'wrtcommander').format(fmtSize(p.disk.free), fmtSize(p.disk.total)))
 			: E('span', {}, '');
 
 		dom.content(p.node.foot, [left, right]);
@@ -1233,7 +1233,7 @@ return view.extend({
 			return;
 		}
 		if (entry.type === 'link' && entry.broken) {
-			ui.addNotification(null, E('p', {}, _('Broken symlink: %s').format(entry.symlink_target || '?')), 'warning');
+			ui.addNotification(null, E('p', {}, _('Broken symlink: %s', 'wrtcommander').format(entry.symlink_target || '?')), 'warning');
 			return;
 		}
 		this.previewEntry(entry);
@@ -1268,30 +1268,30 @@ return view.extend({
 		var items = [];
 
 		if (one) {
-			items.push([_('Open'), 'Enter', function () { self.openEntry(id, one); }]);
+			items.push([_('Open', 'wrtcommander'), 'Enter', function () { self.openEntry(id, one); }]);
 			if (!isDir) {
-				items.push([_('View'), 'F3', function () { self.previewEntry(one); }]);
+				items.push([_('View', 'wrtcommander'), 'F3', function () { self.previewEntry(one); }]);
 				items.push([_('Edit', 'wrtcommander'), 'F4', function () { self.editEntry(one); }]);
-				items.push([_('Download'), '', function () { self.downloadEntry(one); }]);
+				items.push([_('Download', 'wrtcommander'), '', function () { self.downloadEntry(one); }]);
 			}
 			items.push(SEP);
 		}
 
 		if (targets.length) {
-			var label = many ? N_(targets.length, '%d item', '%d items').format(targets.length) : '';
-			items.push([_('Copy') + (label ? ' \u2014 ' + label : ''), 'F5',
+			var label = many ? N_(targets.length, '%d item', '%d items', 'wrtcommander').format(targets.length) : '';
+			items.push([_('Copy', 'wrtcommander') + (label ? ' \u2014 ' + label : ''), 'F5',
 				function () { self.copyOrMove('copy', id, targets); }]);
-			items.push([_('Move') + (label ? ' \u2014 ' + label : ''), 'F6',
+			items.push([_('Move', 'wrtcommander') + (label ? ' \u2014 ' + label : ''), 'F6',
 				function () { self.copyOrMove('move', id, targets); }]);
 			if (one)
-				items.push([_('Rename'), 'F2', function () { self.renameEntry(id, one); }]);
-			items.push([_('Delete') + (label ? ' \u2014 ' + label : ''), 'F8',
+				items.push([_('Rename', 'wrtcommander'), 'F2', function () { self.renameEntry(id, one); }]);
+			items.push([_('Delete', 'wrtcommander') + (label ? ' \u2014 ' + label : ''), 'F8',
 				function () { self.deleteEntries(id, targets); }, 'fx-ctx-danger']);
 			items.push(SEP);
 		}
 
 		if (targets.some(function (t) { return t.type === 'directory'; })) {
-			items.push([_('Calculate size'), 'Ctrl+Space', function () {
+			items.push([_('Calculate size', 'wrtcommander'), 'Ctrl+Space', function () {
 				self.setActive(id);
 				self.actCalcSize();
 			}]);
@@ -1299,28 +1299,28 @@ return view.extend({
 		}
 
 		if (entry) {
-			items.push([p.selected[entry.path] ? _('Unselect') : _('Select', 'wrtcommander'), 'Space',
+			items.push([p.selected[entry.path] ? _('Unselect', 'wrtcommander') : _('Select', 'wrtcommander'), 'Space',
 				function () {
 					self.toggleSelect(id, entry);
 					self.renderBody(id); self.renderFoot(id); self.renderHeader();
 				}]);
 		}
-		items.push([_('Select all'), 'Ctrl+A', function () { self.selectAll(id); }]);
+		items.push([_('Select all', 'wrtcommander'), 'Ctrl+A', function () { self.selectAll(id); }]);
 		if (sel.length)
 			items.push([_('Clear selection', 'wrtcommander'), '', function () { self.clearSelection(id); }]);
 		items.push(SEP);
 
-		items.push([_('New file'), '', function () { self.setActive(id); self.newFile(); }]);
-		items.push([_('New folder'), 'F7', function () { self.setActive(id); self.newDirectory(); }]);
-		items.push([_('Upload'), '', function () { self.setActive(id); self.actUpload(); }]);
+		items.push([_('New file', 'wrtcommander'), '', function () { self.setActive(id); self.newFile(); }]);
+		items.push([_('New folder', 'wrtcommander'), 'F7', function () { self.setActive(id); self.newDirectory(); }]);
+		items.push([_('Upload', 'wrtcommander'), '', function () { self.setActive(id); self.actUpload(); }]);
 		items.push(SEP);
 
 		if (one && one.type !== 'link')
-			items.push([_('Permissions'), '', function () { self.permissionsEntry(id, one); }]);
+			items.push([_('Permissions', 'wrtcommander'), '', function () { self.permissionsEntry(id, one); }]);
 		if (one)
-			items.push([_('Properties'), '', function () { self.propertiesEntry(one); }]);
-		items.push([_('Search'), '', function () { self.setActive(id); self.actSearch(); }]);
-		items.push([_('Refresh'), 'Ctrl+R', function () { self.loadPane(id); }]);
+			items.push([_('Properties', 'wrtcommander'), '', function () { self.propertiesEntry(one); }]);
+		items.push([_('Search', 'wrtcommander'), '', function () { self.setActive(id); self.actSearch(); }]);
+		items.push([_('Refresh', 'wrtcommander'), 'Ctrl+R', function () { self.loadPane(id); }]);
 
 		/* drop a separator that ended up first, last, or next to another */
 		var clean = [];
@@ -1380,7 +1380,7 @@ return view.extend({
 		var id = this.active, p = this.panes[id];
 		var t = this.targetEntries(p);
 		if (t.length === 1) this.renameEntry(id, t[0]);
-		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one item to rename.')), 'warning');
+		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one item to rename.', 'wrtcommander')), 'warning');
 	},
 
 	actF3: function () {
@@ -1423,7 +1423,7 @@ return view.extend({
 
 		if (!dirs.length) {
 			ui.addNotification(null, E('p', {},
-				_('Select a folder to calculate its size.')), 'warning');
+				_('Select a folder to calculate its size.', 'wrtcommander')), 'warning');
 			return;
 		}
 
@@ -1440,7 +1440,7 @@ return view.extend({
 			return callDirSize(d.path).then(function (r) {
 				if (!r || r.ok === false) {
 					p.dirSizes[d.path] = {
-						failed: errorMessage(r, _('Cannot read properties'))
+						failed: errorMessage(r, _('Cannot read properties', 'wrtcommander'))
 					};
 				} else {
 					p.dirSizes[d.path] = {
@@ -1466,16 +1466,16 @@ return view.extend({
 	actDownload: function () {
 		var t = this.targetEntries(this.activePane());
 		if (t.length === 1 && t[0].type !== 'directory') this.downloadEntry(t[0]);
-		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one file to download.')), 'warning');
+		else if (t.length) ui.addNotification(null, E('p', {}, _('Select exactly one file to download.', 'wrtcommander')), 'warning');
 	},
 
 	/* ------------------------------------------------ create/rename */
 
 	validateName: function (name) {
-		if (!name || !name.length) return _('Name cannot be empty');
-		if (name === '.' || name === '..') return _('Invalid name');
-		if (name.indexOf('/') >= 0) return _('Name cannot contain a slash');
-		if (name.length > 255) return _('Name is too long');
+		if (!name || !name.length) return _('Name cannot be empty', 'wrtcommander');
+		if (name === '.' || name === '..') return _('Invalid name', 'wrtcommander');
+		if (name.indexOf('/') >= 0) return _('Name cannot contain a slash', 'wrtcommander');
+		if (name.length > 255) return _('Name is too long', 'wrtcommander');
 		return null;
 	},
 
@@ -1496,14 +1496,14 @@ return view.extend({
 			});
 			ui.showModal(title, [
 				E('div', { class: 'cbi-value' }, [
-					E('label', { class: 'cbi-value-title' }, _('Name')),
+					E('label', { class: 'cbi-value-title' }, _('Name', 'wrtcommander')),
 					input
 				]),
 				err,
 				E('div', { class: 'right fx-modal-actions' }, [
-					E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel')),
+					E('button', { class: 'btn', click: function () { ui.hideModal(); resolve(null); } }, _('Cancel', 'wrtcommander')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: submit }, okLabel || _('Create'))
+					E('button', { class: 'btn cbi-button-action', click: submit }, okLabel || _('Create', 'wrtcommander'))
 				])
 			]);
 			input.focus();
@@ -1513,11 +1513,11 @@ return view.extend({
 
 	newFile: function () {
 		var self = this, id = this.active, p = this.panes[id];
-		this.promptName(_('New file'), '').then(function (name) {
+		this.promptName(_('New file', 'wrtcommander'), '').then(function (name) {
 			if (!name) return;
 			callCreate(joinPath(p.path, name)).then(function (r) {
-				if (!r || r.ok === false) return notifyError(r, _('Cannot create file'));
-				notifyOk(_('File created'));
+				if (!r || r.ok === false) return notifyError(r, _('Cannot create file', 'wrtcommander'));
+				notifyOk(_('File created', 'wrtcommander'));
 				self.loadPane(id, true);
 			});
 		});
@@ -1525,11 +1525,11 @@ return view.extend({
 
 	newDirectory: function () {
 		var self = this, id = this.active, p = this.panes[id];
-		this.promptName(_('New folder'), '').then(function (name) {
+		this.promptName(_('New folder', 'wrtcommander'), '').then(function (name) {
 			if (!name) return;
 			callMkdir(joinPath(p.path, name)).then(function (r) {
-				if (!r || r.ok === false) return notifyError(r, _('Cannot create folder'));
-				notifyOk(_('Folder created'));
+				if (!r || r.ok === false) return notifyError(r, _('Cannot create folder', 'wrtcommander'));
+				notifyOk(_('Folder created', 'wrtcommander'));
 				self.loadPane(id, true);
 			});
 		});
@@ -1537,11 +1537,11 @@ return view.extend({
 
 	renameEntry: function (id, entry) {
 		var self = this;
-		this.promptName(_('Rename'), entry.name, _('Rename')).then(function (name) {
+		this.promptName(_('Rename', 'wrtcommander'), entry.name, _('Rename', 'wrtcommander')).then(function (name) {
 			if (!name || name === entry.name) return;
 			callRename(entry.path, name).then(function (r) {
-				if (!r || r.ok === false) return notifyError(r, _('Cannot rename'));
-				notifyOk(_('Renamed'));
+				if (!r || r.ok === false) return notifyError(r, _('Cannot rename', 'wrtcommander'));
+				notifyOk(_('Renamed', 'wrtcommander'));
 				self.loadPane(id, true);
 			});
 		});
@@ -1559,38 +1559,38 @@ return view.extend({
 		var msg;
 		if (entries.length === 1)
 			msg = (entries[0].type === 'directory')
-				? _('Delete folder "%s" and all of its contents?').format(entries[0].name)
-				: _('Delete "%s"?').format(entries[0].name);
+				? _('Delete folder "%s" and all of its contents?', 'wrtcommander').format(entries[0].name)
+				: _('Delete "%s"?', 'wrtcommander').format(entries[0].name);
 		else
-			msg = N_(entries.length, 'Delete %d selected item?', 'Delete %d selected items?').format(entries.length);
+			msg = N_(entries.length, 'Delete %d selected item?', 'Delete %d selected items?', 'wrtcommander').format(entries.length);
 
 		var body = [
 			E('p', {}, msg),
 			E('div', { class: 'fx-del-list' }, entries.slice(0, 12).map(function (e) {
 				return E('div', {}, e.path);
 			}).concat(entries.length > 12
-				? [E('div', {}, _('…and %d more').format(entries.length - 12))] : [])),
-			E('p', { class: 'fx-warn' }, _('This action cannot be undone.'))
+				? [E('div', {}, _('…and %d more', 'wrtcommander').format(entries.length - 12))] : [])),
+			E('p', { class: 'fx-warn' }, _('This action cannot be undone.', 'wrtcommander'))
 		];
 		if (systemish)
 			body.push(E('p', { class: 'fx-warn fx-warn-strong' },
-				_('WARNING: this includes a core system path. Deleting it can break the router.')));
+				_('WARNING: this includes a core system path. Deleting it can break the router.', 'wrtcommander')));
 
-		ui.showModal(_('Confirm delete'), body.concat([
+		ui.showModal(_('Confirm delete', 'wrtcommander'), body.concat([
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
 				' ',
 				E('button', {
 					class: 'btn cbi-button-remove',
 					click: function () {
 						ui.hideModal();
 						callRemove(entries.map(function (e) { return e.path; })).then(function (r) {
-							if (!r || r.ok === false) return notifyError(r, _('Delete failed'));
-							self.reportBulk(r, _('Deleted'));
+							if (!r || r.ok === false) return notifyError(r, _('Delete failed', 'wrtcommander'));
+							self.reportBulk(r, _('Deleted', 'wrtcommander'));
 							self.refreshAll();
 						});
 					}
-				}, _('Delete'))
+				}, _('Delete', 'wrtcommander'))
 			])
 		]));
 	},
@@ -1605,21 +1605,21 @@ return view.extend({
 		var destInput = E('input', { type: 'text', class: 'cbi-input-text fx-full', value: destPane.path });
 		destInput.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
 
-		var title = (mode === 'copy') ? _('Copy') : _('Move');
+		var title = (mode === 'copy') ? _('Copy', 'wrtcommander') : _('Move', 'wrtcommander');
 		var heading = (entries.length === 1)
 			? ((mode === 'copy')
-				? _('Copy "%s" to:').format(entries[0].name)
-				: _('Move "%s" to:').format(entries[0].name))
+				? _('Copy "%s" to:', 'wrtcommander').format(entries[0].name)
+				: _('Move "%s" to:', 'wrtcommander').format(entries[0].name))
 			: ((mode === 'copy')
-				? N_(entries.length, 'Copy %d item to:', 'Copy %d items to:').format(entries.length)
-				: N_(entries.length, 'Move %d item to:', 'Move %d items to:').format(entries.length));
+				? N_(entries.length, 'Copy %d item to:', 'Copy %d items to:', 'wrtcommander').format(entries.length)
+				: N_(entries.length, 'Move %d item to:', 'Move %d items to:', 'wrtcommander').format(entries.length));
 
 		function run(destination, overwrite) {
 			var items = entries.map(function (e) { return e.path; });
 			var call = (mode === 'copy') ? callCopy : callMove;
 			return call(items, destination, !!overwrite).then(function (r) {
 				if (!r || r.ok === false) {
-					notifyError(r, _('Operation failed'));
+					notifyError(r, _('Operation failed', 'wrtcommander'));
 					return;
 				}
 				var conflicts = (r.results || []).filter(function (x) {
@@ -1632,7 +1632,7 @@ return view.extend({
 					self.refreshAll();
 					return;
 				}
-				self.reportBulk(r, (mode === 'copy') ? _('Copied') : _('Moved'));
+				self.reportBulk(r, (mode === 'copy') ? _('Copied', 'wrtcommander') : _('Moved', 'wrtcommander'));
 				self.refreshAll();
 			});
 		}
@@ -1642,17 +1642,17 @@ return view.extend({
 			E('div', { class: 'fx-del-list' }, entries.slice(0, 12).map(function (e) {
 				return E('div', {}, e.path);
 			}).concat(entries.length > 12
-				? [E('div', {}, _('…and %d more').format(entries.length - 12))] : [])),
+				? [E('div', {}, _('…and %d more', 'wrtcommander').format(entries.length - 12))] : [])),
 			E('div', { class: 'fx-dest-row' }, [
 				destInput,
 				E('button', {
 					class: 'btn', click: function () {
 						pickDirectory(destInput.value).then(function (d) { if (d) destInput.value = d; });
 					}
-				}, _('Browse…'))
+				}, _('Browse…', 'wrtcommander'))
 			]),
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
 				' ',
 				E('button', {
 					class: 'btn cbi-button-action',
@@ -1667,16 +1667,17 @@ return view.extend({
 	},
 
 	confirmOverwrite: function (n, onYes) {
-		ui.showModal(_('Items already exist'), [
+		ui.showModal(_('Items already exist', 'wrtcommander'), [
 			E('p', {}, N_(n, '%d item already exists at the destination. Overwrite it?',
-				'%d items already exist at the destination. Overwrite them?').format(n)),
+				'%d items already exist at the destination. Overwrite them?',
+				'wrtcommander').format(n)),
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
 				' ',
 				E('button', {
 					class: 'btn cbi-button-negative',
 					click: function () { ui.hideModal(); onYes(); }
-				}, _('Overwrite'))
+				}, _('Overwrite', 'wrtcommander'))
 			])
 		]);
 	},
@@ -1685,7 +1686,7 @@ return view.extend({
 		var failed = (reply.results || []).filter(function (r) { return !r.ok; });
 		if (!failed.length) { notifyOk(okMsg); return; }
 		ui.addNotification(null, E('div', {}, failed.map(function (f) {
-			return E('p', {}, (f.path || '') + ': ' + errorMessage(f, _('failed')));
+			return E('p', {}, (f.path || '') + ': ' + errorMessage(f, _('failed', 'wrtcommander')));
 		})), 'error');
 	},
 
@@ -1693,25 +1694,25 @@ return view.extend({
 
 	propertiesEntry: function (entry) {
 		callStat(entry.path).then(function (st) {
-			if (!st || st.ok === false) return notifyError(st, _('Cannot read properties'));
+			if (!st || st.ok === false) return notifyError(st, _('Cannot read properties', 'wrtcommander'));
 			var rows = [
-				[_('Name'), st.name],
-				[_('Path'), st.path],
-				[_('Type'), typeLabel(classify(st))],
-				[_('Size'), st.type === 'directory' ? '—' : fmtSize(st.size)],
-				[_('Owner'), st.owner + ' (' + st.uid + ')'],
-				[_('Group'), st.group + ' (' + st.gid + ')'],
-				[_('Permissions'), st.mode_string + ' (' + st.mode_octal + ')'],
-				[_('Modified'), fmtTime(st.mtime)],
-				[_('Accessed'), fmtTime(st.atime)],
-				[_('Changed'), fmtTime(st.ctime)],
-				[_('Filesystem'), st.fstype + ' · ' + st.mount]
+				[_('Name', 'wrtcommander'), st.name],
+				[_('Path', 'wrtcommander'), st.path],
+				[_('Type', 'wrtcommander'), typeLabel(classify(st))],
+				[_('Size', 'wrtcommander'), st.type === 'directory' ? '—' : fmtSize(st.size)],
+				[_('Owner', 'wrtcommander'), st.owner + ' (' + st.uid + ')'],
+				[_('Group', 'wrtcommander'), st.group + ' (' + st.gid + ')'],
+				[_('Permissions', 'wrtcommander'), st.mode_string + ' (' + st.mode_octal + ')'],
+				[_('Modified', 'wrtcommander'), fmtTime(st.mtime)],
+				[_('Accessed', 'wrtcommander'), fmtTime(st.atime)],
+				[_('Changed', 'wrtcommander'), fmtTime(st.ctime)],
+				[_('Filesystem', 'wrtcommander'), st.fstype + ' · ' + st.mount]
 			];
 			if (st.is_symlink)
-				rows.splice(3, 0, [_('Symlink target'),
-					st.symlink_target + (st.broken ? ' (' + _('broken') + ')' : '')]);
+				rows.splice(3, 0, [_('Symlink target', 'wrtcommander'),
+					st.symlink_target + (st.broken ? ' (' + _('broken', 'wrtcommander') + ')' : '')]);
 
-			ui.showModal(_('Properties'), [
+			ui.showModal(_('Properties', 'wrtcommander'), [
 				E('table', { class: 'table fx-props' }, rows.map(function (r) {
 					return E('tr', { class: 'tr' }, [
 						E('td', { class: 'td fx-prop-k' }, r[0]),
@@ -1719,7 +1720,7 @@ return view.extend({
 					]);
 				})),
 				E('div', { class: 'right fx-modal-actions' },
-					E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+					E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander')))
 			]);
 		});
 	},
@@ -1729,7 +1730,7 @@ return view.extend({
 	permissionsEntry: function (id, entry) {
 		var self = this;
 		callStat(entry.path).then(function (st) {
-			if (!st || st.ok === false) return notifyError(st, _('Cannot read permissions'));
+			if (!st || st.ok === false) return notifyError(st, _('Cannot read permissions', 'wrtcommander'));
 			var octal = parseInt(st.mode_octal, 8);
 			var checks = {};
 
@@ -1770,13 +1771,13 @@ return view.extend({
 			var table = E('table', { class: 'table' }, [
 				E('tr', { class: 'tr table-titles' }, [
 					E('th', { class: 'th' }, ''),
-					E('th', { class: 'th' }, _('Read')),
-					E('th', { class: 'th' }, _('Write')),
-					E('th', { class: 'th' }, _('Execute'))
+					E('th', { class: 'th' }, _('Read', 'wrtcommander')),
+					E('th', { class: 'th' }, _('Write', 'wrtcommander')),
+					E('th', { class: 'th' }, _('Execute', 'wrtcommander'))
 				]),
-				row(_('Owner'), ['ur', 'uw', 'ux'], [0o400, 0o200, 0o100]),
-				row(_('Group'), ['gr', 'gw', 'gx'], [0o040, 0o020, 0o010]),
-				row(_('Others'), ['or', 'ow', 'ox'], [0o004, 0o002, 0o001])
+				row(_('Owner', 'wrtcommander'), ['ur', 'uw', 'ux'], [0o400, 0o200, 0o100]),
+				row(_('Group', 'wrtcommander'), ['gr', 'gw', 'gx'], [0o040, 0o020, 0o010]),
+				row(_('Others', 'wrtcommander'), ['or', 'ow', 'ox'], [0o004, 0o002, 0o001])
 			]);
 			recompute();
 
@@ -1786,15 +1787,15 @@ return view.extend({
 				i.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
 			});
 
-			ui.showModal(_('Permissions') + ' — ' + entry.name, [
+			ui.showModal(_('Permissions', 'wrtcommander') + ' — ' + entry.name, [
 				table,
 				preview,
 				E('div', { class: 'fx-owner-row' }, [
-					E('label', {}, _('User ID')), uidInput,
-					E('label', {}, _('Group ID')), gidInput
+					E('label', {}, _('User ID', 'wrtcommander')), uidInput,
+					E('label', {}, _('Group ID', 'wrtcommander')), gidInput
 				]),
 				E('div', { class: 'right fx-modal-actions' }, [
-					E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+					E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
 					' ',
 					E('button', {
 						class: 'btn cbi-button-action',
@@ -1808,12 +1809,12 @@ return view.extend({
 							ui.hideModal();
 							Promise.all(ops).then(function (rs) {
 								var bad = rs.filter(function (r) { return !r || r.ok === false; });
-								if (bad.length) notifyError(bad[0], _('Cannot change permissions'));
-								else notifyOk(_('Permissions updated'));
+								if (bad.length) notifyError(bad[0], _('Cannot change permissions', 'wrtcommander'));
+								else notifyOk(_('Permissions updated', 'wrtcommander'));
 								self.loadPane(id, true);
 							});
 						}
-					}, _('Apply'))
+					}, _('Apply', 'wrtcommander'))
 				])
 			]);
 		});
@@ -1827,7 +1828,7 @@ return view.extend({
 			if (!r || r.ok === false) {
 				if (r && r.error && r.error.code === 'EFBIG')
 					return self.previewTooLarge(entry);
-				return notifyError(r, _('Cannot open file'));
+				return notifyError(r, _('Cannot open file', 'wrtcommander'));
 			}
 			if (r.is_binary) {
 				if (classify(entry) === 'image') return self.previewImage(entry);
@@ -1836,13 +1837,13 @@ return view.extend({
 			ui.showModal(entry.path, [
 				E('pre', { class: 'fx-pre' }, b64DecodeUtf8(r.data)),
 				r.truncated ? E('p', { class: 'fx-warn' },
-					_('Preview truncated, the file is %s.').format(fmtSize(r.size))) : '',
+					_('Preview truncated, the file is %s.', 'wrtcommander').format(fmtSize(r.size))) : '',
 				E('div', { class: 'right fx-modal-actions' }, [
-					E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
+					E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download', 'wrtcommander')),
 					' ',
 					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit', 'wrtcommander')),
 					' ',
-					E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
+					E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander'))
 				])
 			], 'fx-modal-wide');
 		});
@@ -1853,9 +1854,9 @@ return view.extend({
 		ui.showModal(entry.path, [
 			E('div', { class: 'fx-img-wrap' }, E('img', { src: this.downloadUrl(entry.path) })),
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
+				E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download', 'wrtcommander')),
 				' ',
-				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander'))
 			])
 		], 'fx-modal-wide');
 	},
@@ -1863,11 +1864,11 @@ return view.extend({
 	previewBinary: function (entry) {
 		var self = this;
 		ui.showModal(entry.path, [
-			E('p', {}, _('This is a binary file and cannot be shown as text.')),
+			E('p', {}, _('This is a binary file and cannot be shown as text.', 'wrtcommander')),
 			E('div', { class: 'right fx-modal-actions' }, [
-				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download')),
+				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download', 'wrtcommander')),
 				' ',
-				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander'))
 			])
 		]);
 	},
@@ -1878,24 +1879,24 @@ return view.extend({
 			return E('button', {
 				class: 'btn', click: function () {
 					callRead(entry.path, mode).then(function (r) {
-						if (!r || r.ok === false) return notifyError(r, _('Cannot open file'));
+						if (!r || r.ok === false) return notifyError(r, _('Cannot open file', 'wrtcommander'));
 						ui.showModal(entry.path + ' — ' + label, [
 							E('pre', { class: 'fx-pre' }, b64DecodeUtf8(r.data)),
 							E('div', { class: 'right fx-modal-actions' },
-								E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+								E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander')))
 						], 'fx-modal-wide');
 					});
 				}
 			}, label);
 		}
 		ui.showModal(entry.path, [
-			E('p', {}, _('The file is too large to show in full.')),
+			E('p', {}, _('The file is too large to show in full.', 'wrtcommander')),
 			E('div', { class: 'right fx-modal-actions' }, [
-				part('head', _('First part')), ' ',
-				part('tail', _('Last part')), ' ',
-				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download')),
+				part('head', _('First part', 'wrtcommander')), ' ',
+				part('tail', _('Last part', 'wrtcommander')), ' ',
+				E('button', { class: 'btn cbi-button-action', click: function () { self.downloadEntry(entry); } }, _('Download', 'wrtcommander')),
 				' ',
-				E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander'))
 			])
 		]);
 	},
@@ -1907,10 +1908,10 @@ return view.extend({
 		callRead(entry.path, 'edit').then(function (r) {
 			if (!r || r.ok === false) {
 				if (r && r.error && r.error.code === 'EFBIG')
-					return ui.addNotification(null, E('p', {}, _('The file is too large to edit. Download it instead.')), 'warning');
+					return ui.addNotification(null, E('p', {}, _('The file is too large to edit. Download it instead.', 'wrtcommander')), 'warning');
 				if (r && r.error && r.error.code === 'EINVAL')
-					return ui.addNotification(null, E('p', {}, _('This does not look like a text file.')), 'warning');
-				return notifyError(r, _('Cannot open file'));
+					return ui.addNotification(null, E('p', {}, _('This does not look like a text file.', 'wrtcommander')), 'warning');
+				return notifyError(r, _('Cannot open file', 'wrtcommander'));
 			}
 
 			var textarea = E('textarea', {
@@ -1937,47 +1938,47 @@ return view.extend({
 				callWrite(entry.path, b64EncodeUtf8(content), 'base64', mtime, size, !!force).then(function (w) {
 					if (!w || w.ok === false) {
 						if (w && w.error && w.error.code === 'ECONFLICT') {
-							ui.showModal(_('File changed on disk'), [
-								E('p', {}, _('This file was modified by something else after you opened it. Overwrite those changes?')),
+							ui.showModal(_('File changed on disk', 'wrtcommander'), [
+								E('p', {}, _('This file was modified by something else after you opened it. Overwrite those changes?', 'wrtcommander')),
 								E('div', { class: 'right fx-modal-actions' }, [
-									E('button', { class: 'btn', click: ui.hideModal }, _('Cancel')),
+									E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
 									' ',
 									E('button', {
 										class: 'btn cbi-button-negative',
 										click: function () { ui.hideModal(); save(true); }
-									}, _('Overwrite'))
+									}, _('Overwrite', 'wrtcommander'))
 								])
 							]);
 							return;
 						}
-						return notifyError(w, _('Cannot save file'));
+						return notifyError(w, _('Cannot save file', 'wrtcommander'));
 					}
 					dirty = false;
 					mtime = w.mtime;
 					size = w.size;
-					notifyOk(_('Saved'));
+					notifyOk(_('Saved', 'wrtcommander'));
 				});
 			}
 
 			function close() {
 				if (!dirty) { ui.hideModal(); return; }
-				ui.showModal(_('Unsaved changes'), [
-					E('p', {}, _('You have unsaved changes. Discard them?')),
+				ui.showModal(_('Unsaved changes', 'wrtcommander'), [
+					E('p', {}, _('You have unsaved changes. Discard them?', 'wrtcommander')),
 					E('div', { class: 'right fx-modal-actions' }, [
-						E('button', { class: 'btn', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Keep editing')),
+						E('button', { class: 'btn', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Keep editing', 'wrtcommander')),
 						' ',
-						E('button', { class: 'btn cbi-button-negative', click: ui.hideModal }, _('Discard'))
+						E('button', { class: 'btn cbi-button-negative', click: ui.hideModal }, _('Discard', 'wrtcommander'))
 					])
 				]);
 			}
 
 			ui.showModal(entry.path, [
 				textarea,
-				E('div', { class: 'fx-editor-hint' }, _('Press Ctrl+S to save.')),
+				E('div', { class: 'fx-editor-hint' }, _('Press Ctrl+S to save.', 'wrtcommander')),
 				E('div', { class: 'right fx-modal-actions' }, [
-					E('button', { class: 'btn', click: close }, _('Cancel')),
+					E('button', { class: 'btn', click: close }, _('Cancel', 'wrtcommander')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: function () { save(false); } }, _('Save'))
+					E('button', { class: 'btn cbi-button-action', click: function () { save(false); } }, _('Save', 'wrtcommander'))
 				])
 			], 'fx-modal-wide');
 
@@ -2024,16 +2025,16 @@ return view.extend({
 		var overall = E('div', { class: 'fx-up-overall' });
 		var fileLabel = E('div', { class: 'fx-up-name' });
 		var fill = E('div', { class: 'fx-bar-fill' });
-		var destLine = E('div', { class: 'fx-up-dest' }, _('Destination: %s').format(dest));
+		var destLine = E('div', { class: 'fx-up-dest' }, _('Destination: %s', 'wrtcommander').format(dest));
 
-		ui.showModal(_('Uploading'), [
+		ui.showModal(_('Uploading', 'wrtcommander'), [
 			destLine, overall, fileLabel,
 			E('div', { class: 'fx-bar' }, fill),
 			E('div', { class: 'right fx-modal-actions' },
 				E('button', {
 					class: 'btn',
 					click: function () { cancelled = true; if (xhr) xhr.abort(); ui.hideModal(); }
-				}, _('Cancel')))
+				}, _('Cancel', 'wrtcommander')))
 		]);
 
 		function post(file, overwrite, onDone) {
@@ -2059,13 +2060,13 @@ return view.extend({
 			if (cancelled) return;
 			if (idx >= total) {
 				ui.hideModal();
-				notifyOk(N_(total, 'Uploaded %d file', 'Uploaded %d files').format(total));
+				notifyOk(N_(total, 'Uploaded %d file', 'Uploaded %d files', 'wrtcommander').format(total));
 				self.loadPane(paneId, true);
 				return;
 			}
 			var file = files[idx];
 			fileLabel.textContent = file.name;
-			overall.textContent = _('File %d of %d').format(idx + 1, total);
+			overall.textContent = _('File %d of %d', 'wrtcommander').format(idx + 1, total);
 			fill.style.width = '0%';
 
 			post(file, false, function (status, resp) {
@@ -2078,7 +2079,7 @@ return view.extend({
 					return;
 				}
 				ui.addNotification(null, E('p', {},
-					file.name + ': ' + errorMessage(resp, _('Upload failed'))), 'error');
+					file.name + ': ' + errorMessage(resp, _('Upload failed', 'wrtcommander'))), 'error');
 				idx++;
 				next();
 			});
@@ -2094,7 +2095,7 @@ return view.extend({
 		var id = this.active;
 		var base = this.panes[id].path;
 
-		var input = E('input', { type: 'text', class: 'cbi-input-text fx-full', placeholder: _('Part of a file name') });
+		var input = E('input', { type: 'text', class: 'cbi-input-text fx-full', placeholder: _('Part of a file name', 'wrtcommander') });
 		var recursive = E('input', { type: 'checkbox' });
 		var results = E('div', { class: 'fx-search-results' });
 		var timer = null;
@@ -2112,15 +2113,15 @@ return view.extend({
 		function run() {
 			var q = input.value;
 			if (!q) { results.innerHTML = ''; return; }
-			dom.content(results, E('div', { class: 'fx-loading' }, _('Searching…')));
+			dom.content(results, E('div', { class: 'fx-loading' }, _('Searching…', 'wrtcommander')));
 			callSearch(base, q, recursive.checked, 500).then(function (r) {
 				if (!r || r.ok === false) {
 					dom.content(results, E('p', { class: 'alert-message warning' },
-						errorMessage(r, _('Search failed'))));
+						errorMessage(r, _('Search failed', 'wrtcommander'))));
 					return;
 				}
 				if (!r.results.length) {
-					dom.content(results, E('div', { class: 'fx-empty' }, _('Nothing found')));
+					dom.content(results, E('div', { class: 'fx-empty' }, _('Nothing found', 'wrtcommander')));
 					return;
 				}
 				var rows = r.results.map(function (entry) {
@@ -2139,18 +2140,18 @@ return view.extend({
 				});
 				if (r.truncated)
 					rows.push(E('div', { class: 'fx-warn' },
-						_('Too many matches, only the first %d are shown.').format(r.results.length)));
+						_('Too many matches, only the first %d are shown.', 'wrtcommander').format(r.results.length)));
 				dom.content(results, rows);
 			});
 		}
 
-		ui.showModal(_('Search'), [
-			E('p', {}, _('Searching in: %s').format(base)),
+		ui.showModal(_('Search', 'wrtcommander'), [
+			E('p', {}, _('Searching in: %s', 'wrtcommander').format(base)),
 			input,
-			E('label', { class: 'fx-check-row' }, [recursive, ' ', _('Search inside subfolders')]),
+			E('label', { class: 'fx-check-row' }, [recursive, ' ', _('Search inside subfolders', 'wrtcommander')]),
 			results,
 			E('div', { class: 'right fx-modal-actions' },
-				E('button', { class: 'btn', click: ui.hideModal }, _('Close')))
+				E('button', { class: 'btn', click: ui.hideModal }, _('Close', 'wrtcommander')))
 		], 'fx-modal-wide');
 
 		input.focus();
@@ -2196,25 +2197,25 @@ return view.extend({
 				[E('div', { class: 'fx-set-group-title' }, title)].concat(kids));
 		}
 
-		ui.showModal(_('Settings'), [
+		ui.showModal(_('Settings', 'wrtcommander'), [
 			E('div', { class: 'fx-settings' }, [
-				group(_('Appearance'), [
-					check(_('Show hidden files'),
-						_('Files and folders whose name starts with a dot.'),
+				group(_('Appearance', 'wrtcommander'), [
+					check(_('Show hidden files', 'wrtcommander'),
+						_('Files and folders whose name starts with a dot.', 'wrtcommander'),
 						'showHidden', 'showHidden', true),
-					check(_('Folders first'),
-						_('Sort folders above files, whatever the sort column.'),
+					check(_('Folders first', 'wrtcommander'),
+						_('Sort folders above files, whatever the sort column.', 'wrtcommander'),
 						'dirsFirst', 'dirsFirst', true)
 				]),
-				group(_('Panels'), [
-					check(_('Remember panel paths'),
-						_('Open both panels where you left them last time.'),
+				group(_('Panels', 'wrtcommander'), [
+					check(_('Remember panel paths', 'wrtcommander'),
+						_('Open both panels where you left them last time.', 'wrtcommander'),
 						'rememberPaths', 'rememberPaths', false),
 					E('div', { class: 'fx-set-row fx-set-row-action' }, [
 						E('span', { class: 'fx-set-text' }, [
-							E('span', { class: 'fx-set-label' }, _('Column widths')),
+							E('span', { class: 'fx-set-label' }, _('Column widths', 'wrtcommander')),
 							E('span', { class: 'fx-set-hint' },
-								_('Drag the edge of a column header to change it.'))
+								_('Drag the edge of a column header to change it.', 'wrtcommander'))
 						]),
 						E('button', {
 							class: 'btn cbi-button',
@@ -2225,14 +2226,14 @@ return view.extend({
 						}, _('Reset', 'wrtcommander'))
 					])
 				]),
-				group(_('Editor'), [
-					check(_('Wrap long lines'),
-						_('Applies the next time a file is opened for editing.'),
+				group(_('Editor', 'wrtcommander'), [
+					check(_('Wrap long lines', 'wrtcommander'),
+						_('Applies the next time a file is opened for editing.', 'wrtcommander'),
 						'wrapEditor', 'wrapEditor', false)
 				])
 			]),
 			E('div', { class: 'right fx-modal-actions' },
-				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))
+				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close', 'wrtcommander')))
 		]);
 	},
 
@@ -2255,33 +2256,33 @@ return view.extend({
 			rows.push(E('div', { class: 'fx-keys-v' }, what));
 		}
 
-		group(_('Navigation'));
-		row(['Tab'], _('Switch panel'));
-		row(['Enter'], _('Open'));
-		row(['Backspace'], _('Go up one level'));
-		row(['Ctrl', 'R'], _('Refresh the active panel'));
+		group(_('Navigation', 'wrtcommander'));
+		row(['Tab'], _('Switch panel', 'wrtcommander'));
+		row(['Enter'], _('Open', 'wrtcommander'));
+		row(['Backspace'], _('Go up one level', 'wrtcommander'));
+		row(['Ctrl', 'R'], _('Refresh the active panel', 'wrtcommander'));
 
-		group(_('Selection'));
-		row(['Insert', 'Space'], _('Select or unselect'));
-		row(['Ctrl', 'A'], _('Select all'));
-		row(['Ctrl', 'Space'], _('Calculate folder size'));
+		group(_('Selection', 'wrtcommander'));
+		row(['Insert', 'Space'], _('Select or unselect', 'wrtcommander'));
+		row(['Ctrl', 'A'], _('Select all', 'wrtcommander'));
+		row(['Ctrl', 'Space'], _('Calculate folder size', 'wrtcommander'));
 
-		group(_('File actions'));
-		row(['F2'], _('Rename'));
-		row(['F3'], _('View'));
+		group(_('File actions', 'wrtcommander'));
+		row(['F2'], _('Rename', 'wrtcommander'));
+		row(['F3'], _('View', 'wrtcommander'));
 		row(['F4'], _('Edit', 'wrtcommander'));
-		row(['F5'], _('Copy'));
-		row(['F6'], _('Move'));
-		row(['F7'], _('New folder'));
-		row(['F8', 'Delete'], _('Delete'));
-		row(['Ctrl', 'S'], _('Save in the editor'));
+		row(['F5'], _('Copy', 'wrtcommander'));
+		row(['F6'], _('Move', 'wrtcommander'));
+		row(['F7'], _('New folder', 'wrtcommander'));
+		row(['F8', 'Delete'], _('Delete', 'wrtcommander'));
+		row(['Ctrl', 'S'], _('Save in the editor', 'wrtcommander'));
 
-		ui.showModal(_('Keyboard shortcuts'), [
+		ui.showModal(_('Keyboard shortcuts', 'wrtcommander'), [
 			E('div', { class: 'fx-keys' }, rows),
 			E('p', { class: 'fx-help fx-help-centred' },
-				_('Shortcuts work while the file list has focus, not while typing in a field.')),
+				_('Shortcuts work while the file list has focus, not while typing in a field.', 'wrtcommander')),
 			E('div', { class: 'right fx-modal-actions' },
-				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close')))
+				E('button', { class: 'btn cbi-button', click: ui.hideModal }, _('Close', 'wrtcommander')))
 		]);
 	}
 

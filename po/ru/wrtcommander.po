@@ -6,69 +6,91 @@ msgstr ""
 "Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
+msgctxt "wrtcommander"
 msgid "%d B"
 msgstr "%d Б"
 
+msgctxt "wrtcommander"
 msgid "%s GiB"
 msgstr "%s ГиБ"
 
+msgctxt "wrtcommander"
 msgid "%s KiB"
 msgstr "%s КиБ"
 
+msgctxt "wrtcommander"
 msgid "%s MiB"
 msgstr "%s МиБ"
 
+msgctxt "wrtcommander"
 msgid "%s free of %s"
 msgstr "свободно %s из %s"
 
+msgctxt "wrtcommander"
 msgid "Accessed"
 msgstr "Последний доступ"
 
+msgctxt "wrtcommander"
 msgid "Apply"
 msgstr "Применить"
 
+msgctxt "wrtcommander"
 msgid "Archive"
 msgstr "Архив"
 
+msgctxt "wrtcommander"
 msgid "Binary"
 msgstr "Двоичный"
 
+msgctxt "wrtcommander"
 msgid "Broken symlink: %s"
 msgstr "Битая ссылка: %s"
 
+msgctxt "wrtcommander"
 msgid "Browse…"
 msgstr "Обзор…"
 
+msgctxt "wrtcommander"
 msgid "Cancel"
 msgstr "Отмена"
 
+msgctxt "wrtcommander"
 msgid "Cannot change permissions"
 msgstr "Не удалось изменить права"
 
+msgctxt "wrtcommander"
 msgid "Cannot create file"
 msgstr "Не удалось создать файл"
 
+msgctxt "wrtcommander"
 msgid "Cannot create folder"
 msgstr "Не удалось создать папку"
 
+msgctxt "wrtcommander"
 msgid "Cannot open directory"
 msgstr "Не удалось открыть каталог"
 
+msgctxt "wrtcommander"
 msgid "Cannot open file"
 msgstr "Не удалось открыть файл"
 
+msgctxt "wrtcommander"
 msgid "Cannot read permissions"
 msgstr "Не удалось прочитать права"
 
+msgctxt "wrtcommander"
 msgid "Cannot read properties"
 msgstr "Не удалось прочитать свойства"
 
+msgctxt "wrtcommander"
 msgid "Cannot rename"
 msgstr "Не удалось переименовать"
 
+msgctxt "wrtcommander"
 msgid "Cannot save file"
 msgstr "Не удалось сохранить файл"
 
+msgctxt "wrtcommander"
 msgid "Changed"
 msgstr "Изменение метаданных"
 
@@ -79,56 +101,72 @@ msgctxt "wrtcommander"
 msgid "Clear selection"
 msgstr "Снять отметки"
 
+msgctxt "wrtcommander"
 msgid "Close"
 msgstr "Закрыть"
 
+msgctxt "wrtcommander"
 msgid "Confirm delete"
 msgstr "Подтверждение удаления"
 
+msgctxt "wrtcommander"
 msgid "Copied"
 msgstr "Скопировано"
 
+msgctxt "wrtcommander"
 msgid "Copy"
 msgstr "Копировать"
 
+msgctxt "wrtcommander"
 msgid "Copy \"%s\" to:"
 msgstr "Копировать «%s» в:"
 
+msgctxt "wrtcommander"
 msgid "Create"
 msgstr "Создать"
 
-
+msgctxt "wrtcommander"
 msgid "Delete"
 msgstr "Удалить"
 
+msgctxt "wrtcommander"
 msgid "Delete \"%s\"?"
 msgstr "Удалить «%s»?"
 
+msgctxt "wrtcommander"
 msgid "Delete failed"
 msgstr "Не удалось удалить"
 
+msgctxt "wrtcommander"
 msgid "Delete folder \"%s\" and all of its contents?"
 msgstr "Удалить папку «%s» вместе со всем содержимым?"
 
+msgctxt "wrtcommander"
 msgid "Deleted"
 msgstr "Удалено"
 
+msgctxt "wrtcommander"
 msgid "Destination: %s"
 msgstr "Куда: %s"
 
+msgctxt "wrtcommander"
 msgid "Device"
 msgstr "Устройство"
 
+msgctxt "wrtcommander"
 msgid "Directory"
 msgstr "Каталог"
 
+msgctxt "wrtcommander"
 msgid "Discard"
 msgstr "Не сохранять"
 
+msgctxt "wrtcommander"
 msgid "Download"
 msgstr "Скачать"
 
 #. Tooltip on the drag handle between two column headers.
+msgctxt "wrtcommander"
 msgid "Drag to resize, double-click to reset"
 msgstr "Потяните, чтобы изменить ширину; двойной клик — сброс"
 
@@ -136,14 +174,15 @@ msgctxt "wrtcommander"
 msgid "Edit"
 msgstr "Правка"
 
-
+msgctxt "wrtcommander"
 msgid "Execute"
 msgstr "Выполнение"
 
-
+msgctxt "wrtcommander"
 msgid "FIFO"
 msgstr "Канал FIFO"
 
+msgctxt "wrtcommander"
 msgid "File %d of %d"
 msgstr "Файл %d из %d"
 
@@ -155,27 +194,35 @@ msgstr "Файл %d из %d"
 msgid "Wrt Commander"
 msgstr "Wrt Commander"
 
+msgctxt "wrtcommander"
 msgid "File changed on disk"
 msgstr "Файл изменился на диске"
 
+msgctxt "wrtcommander"
 msgid "File created"
 msgstr "Файл создан"
 
+msgctxt "wrtcommander"
 msgid "Filesystem"
 msgstr "Файловая система"
 
+msgctxt "wrtcommander"
 msgid "First part"
 msgstr "Начало файла"
 
+msgctxt "wrtcommander"
 msgid "Folder created"
 msgstr "Папка создана"
 
+msgctxt "wrtcommander"
 msgid "Folders first"
 msgstr "Папки в начале"
 
+msgctxt "wrtcommander"
 msgid "Group"
 msgstr "Группа"
 
+msgctxt "wrtcommander"
 msgid "Group ID"
 msgstr "ID группы"
 
@@ -183,25 +230,31 @@ msgctxt "wrtcommander"
 msgid "Image"
 msgstr "Изображение"
 
-
+msgctxt "wrtcommander"
 msgid "Invalid name"
 msgstr "Недопустимое имя"
 
+msgctxt "wrtcommander"
 msgid "Items already exist"
 msgstr "Объекты уже существуют"
 
+msgctxt "wrtcommander"
 msgid "Keep editing"
 msgstr "Вернуться к правке"
 
+msgctxt "wrtcommander"
 msgid "Keyboard shortcuts"
 msgstr "Горячие клавиши"
 
+msgctxt "wrtcommander"
 msgid "Last part"
 msgstr "Конец файла"
 
+msgctxt "wrtcommander"
 msgid "Left panel"
 msgstr "Левая панель"
 
+msgctxt "wrtcommander"
 msgid "Loading…"
 msgstr "Загрузка…"
 
@@ -211,117 +264,155 @@ msgctxt "wrtcommander"
 msgid "Mode"
 msgstr "Права"
 
+msgctxt "wrtcommander"
 msgid "Modified"
 msgstr "Изменён"
 
+msgctxt "wrtcommander"
 msgid "Move"
 msgstr "Переместить"
 
+msgctxt "wrtcommander"
 msgid "Move \"%s\" to:"
 msgstr "Переместить «%s» в:"
 
+msgctxt "wrtcommander"
 msgid "Moved"
 msgstr "Перемещено"
 
+msgctxt "wrtcommander"
 msgid "Name"
 msgstr "Имя"
 
+msgctxt "wrtcommander"
 msgid "Name cannot be empty"
 msgstr "Имя не может быть пустым"
 
+msgctxt "wrtcommander"
 msgid "Name cannot contain a slash"
 msgstr "Имя не может содержать косую черту"
 
+msgctxt "wrtcommander"
 msgid "Name is too long"
 msgstr "Имя слишком длинное"
 
+msgctxt "wrtcommander"
 msgid "New file"
 msgstr "Новый файл"
 
+msgctxt "wrtcommander"
 msgid "New folder"
 msgstr "Новая папка"
 
+msgctxt "wrtcommander"
 msgid "No subdirectories"
 msgstr "Вложенных папок нет"
 
+msgctxt "wrtcommander"
 msgid "Nothing found"
 msgstr "Ничего не найдено"
 
+msgctxt "wrtcommander"
 msgid "Open"
 msgstr "Открыть"
 
+msgctxt "wrtcommander"
 msgid "Operation failed"
 msgstr "Операция не выполнена"
 
+msgctxt "wrtcommander"
 msgid "Others"
 msgstr "Остальные"
 
+msgctxt "wrtcommander"
 msgid "Overwrite"
 msgstr "Перезаписать"
 
+msgctxt "wrtcommander"
 msgid "Owner"
 msgstr "Владелец"
 
+msgctxt "wrtcommander"
 msgid "Part of a file name"
 msgstr "Часть имени файла"
 
+msgctxt "wrtcommander"
 msgid "Path"
 msgstr "Путь"
 
+msgctxt "wrtcommander"
 msgid "Permissions"
 msgstr "Права доступа"
 
+msgctxt "wrtcommander"
 msgid "Permissions updated"
 msgstr "Права обновлены"
 
+msgctxt "wrtcommander"
 msgid "Press Ctrl+S to save."
 msgstr "Ctrl+S — сохранить."
 
+msgctxt "wrtcommander"
 msgid "Preview truncated, the file is %s."
 msgstr "Показана только часть файла, его размер %s."
 
+msgctxt "wrtcommander"
 msgid "Properties"
 msgstr "Свойства"
 
+msgctxt "wrtcommander"
 msgid "Read"
 msgstr "Чтение"
 
+msgctxt "wrtcommander"
 msgid "Refresh"
 msgstr "Обновить"
 
+msgctxt "wrtcommander"
 msgid "Rename"
 msgstr "Переименовать"
 
+msgctxt "wrtcommander"
 msgid "Renamed"
 msgstr "Переименовано"
 
+msgctxt "wrtcommander"
 msgid "Request failed: %s"
 msgstr "Сбой запроса: %s"
 
+msgctxt "wrtcommander"
 msgid "Right panel"
 msgstr "Правая панель"
 
+msgctxt "wrtcommander"
 msgid "Root directory"
 msgstr "Корневой каталог"
 
+msgctxt "wrtcommander"
 msgid "Save"
 msgstr "Сохранить"
 
+msgctxt "wrtcommander"
 msgid "Saved"
 msgstr "Сохранено"
 
+msgctxt "wrtcommander"
 msgid "Search"
 msgstr "Поиск"
 
+msgctxt "wrtcommander"
 msgid "Search failed"
 msgstr "Поиск не выполнен"
 
+msgctxt "wrtcommander"
 msgid "Search inside subfolders"
 msgstr "Искать во вложенных папках"
 
+msgctxt "wrtcommander"
 msgid "Searching in: %s"
 msgstr "Поиск в: %s"
 
+msgctxt "wrtcommander"
 msgid "Searching…"
 msgstr "Идёт поиск…"
 
@@ -329,111 +420,145 @@ msgctxt "wrtcommander"
 msgid "Select"
 msgstr "Отметить"
 
+msgctxt "wrtcommander"
 msgid "Select destination"
 msgstr "Выбор папки назначения"
 
+msgctxt "wrtcommander"
 msgid "Select exactly one file to download."
 msgstr "Для скачивания выберите ровно один файл."
 
+msgctxt "wrtcommander"
 msgid "Select exactly one item to rename."
 msgstr "Для переименования выберите ровно один объект."
 
+msgctxt "wrtcommander"
 msgid "Select this folder"
 msgstr "Выбрать эту папку"
 
+msgctxt "wrtcommander"
 msgid "Settings"
 msgstr "Настройки"
 
+msgctxt "wrtcommander"
 msgid "Show hidden files"
 msgstr "Показывать скрытые файлы"
 
+msgctxt "wrtcommander"
 msgid "Size"
 msgstr "Размер"
 
+msgctxt "wrtcommander"
 msgid "Socket"
 msgstr "Сокет"
 
+msgctxt "wrtcommander"
 msgid "Symlink"
 msgstr "Символьная ссылка"
 
+msgctxt "wrtcommander"
 msgid "Symlink target"
 msgstr "Цель ссылки"
 
-
+msgctxt "wrtcommander"
 msgid "Text"
 msgstr "Текст"
 
+msgctxt "wrtcommander"
 msgid "The file is too large to edit. Download it instead."
 msgstr "Файл слишком большой для редактирования. Скачайте его."
 
+msgctxt "wrtcommander"
 msgid "The file is too large to show in full."
 msgstr "Файл слишком большой, чтобы показать его целиком."
 
+msgctxt "wrtcommander"
 msgid "This action cannot be undone."
 msgstr "Это действие нельзя отменить."
 
+msgctxt "wrtcommander"
 msgid "This directory is empty"
 msgstr "Каталог пуст"
 
+msgctxt "wrtcommander"
 msgid "This does not look like a text file."
 msgstr "Это не похоже на текстовый файл."
 
+msgctxt "wrtcommander"
 msgid "This file was modified by something else after you opened it. Overwrite those changes?"
 msgstr "После открытия файл изменил кто-то ещё. Перезаписать эти изменения?"
 
+msgctxt "wrtcommander"
 msgid "This is a binary file and cannot be shown as text."
 msgstr "Это двоичный файл, показать его как текст нельзя."
 
+msgctxt "wrtcommander"
 msgid "Too many matches, only the first %d are shown."
 msgstr "Слишком много совпадений, показаны только первые %d."
 
+msgctxt "wrtcommander"
 msgid "Type"
 msgstr "Тип"
 
+msgctxt "wrtcommander"
 msgid "Type a path and press Enter"
 msgstr "Введите путь и нажмите Enter"
 
+msgctxt "wrtcommander"
 msgid "Unknown error"
 msgstr "Неизвестная ошибка"
 
+msgctxt "wrtcommander"
 msgid "Unsaved changes"
 msgstr "Несохранённые изменения"
 
 #. Context-menu item shown in place of "Select" when the row is already
 #. marked.
+msgctxt "wrtcommander"
 msgid "Unselect"
 msgstr "Снять отметку"
 
+msgctxt "wrtcommander"
 msgid "Up one level"
 msgstr "На уровень выше"
 
+msgctxt "wrtcommander"
 msgid "Upload"
 msgstr "Загрузить"
 
+msgctxt "wrtcommander"
 msgid "Upload failed"
 msgstr "Не удалось загрузить"
 
+msgctxt "wrtcommander"
 msgid "Uploading"
 msgstr "Загрузка на роутер"
 
+msgctxt "wrtcommander"
 msgid "User ID"
 msgstr "ID пользователя"
 
+msgctxt "wrtcommander"
 msgid "View"
 msgstr "Просмотр"
 
+msgctxt "wrtcommander"
 msgid "WARNING: this includes a core system path. Deleting it can break the router."
 msgstr "ВНИМАНИЕ: среди выбранного есть системный путь. Его удаление может нарушить работу роутера."
 
+msgctxt "wrtcommander"
 msgid "Write"
 msgstr "Запись"
 
+msgctxt "wrtcommander"
 msgid "You have unsaved changes. Discard them?"
 msgstr "Есть несохранённые изменения. Отбросить их?"
 
+msgctxt "wrtcommander"
 msgid "broken"
 msgstr "битая"
 
+msgctxt "wrtcommander"
 msgid "failed"
 msgstr "ошибка"
 
@@ -441,39 +566,51 @@ msgctxt "wrtcommander"
 msgid "up"
 msgstr "вверх"
 
+msgctxt "wrtcommander"
 msgid "…and %d more"
 msgstr "…и ещё %d"
 
+msgctxt "wrtcommander"
 msgid "Appearance"
 msgstr "Внешний вид"
 
+msgctxt "wrtcommander"
 msgid "Applies the next time a file is opened for editing."
 msgstr "Применится при следующем открытии файла на правку."
 
+msgctxt "wrtcommander"
 msgid "Column widths"
 msgstr "Ширина столбцов"
 
+msgctxt "wrtcommander"
 msgid "Drag the edge of a column header to change it."
 msgstr "Потяните за край заголовка столбца, чтобы изменить её."
 
+msgctxt "wrtcommander"
 msgid "Editor"
 msgstr "Редактор"
 
+msgctxt "wrtcommander"
 msgid "File actions"
 msgstr "Действия с файлами"
 
+msgctxt "wrtcommander"
 msgid "Files and folders whose name starts with a dot."
 msgstr "Файлы и папки, имя которых начинается с точки."
 
+msgctxt "wrtcommander"
 msgid "Navigation"
 msgstr "Навигация"
 
+msgctxt "wrtcommander"
 msgid "Open both panels where you left them last time."
 msgstr "Открывать обе панели там, где вы их оставили."
 
+msgctxt "wrtcommander"
 msgid "Panels"
 msgstr "Панели"
 
+msgctxt "wrtcommander"
 msgid "Remember panel paths"
 msgstr "Запоминать пути панелей"
 
@@ -483,105 +620,129 @@ msgctxt "wrtcommander"
 msgid "Reset"
 msgstr "Сбросить"
 
+msgctxt "wrtcommander"
 msgid "Selection"
 msgstr "Выделение"
 
+msgctxt "wrtcommander"
 msgid "Sort folders above files, whatever the sort column."
 msgstr "Папки всегда выше файлов, независимо от столбца сортировки."
 
+msgctxt "wrtcommander"
 msgid "Wrap long lines"
 msgstr "Переносить длинные строки"
 
+msgctxt "wrtcommander"
 msgid "At least %s: the folder is too large to measure in full."
 msgstr "Не менее %s: папка слишком велика, чтобы измерить её целиком."
 
+msgctxt "wrtcommander"
 msgid "Calculate folder size"
 msgstr "Посчитать размер папки"
 
+msgctxt "wrtcommander"
 msgid "Calculate size"
 msgstr "Посчитать размер"
 
+msgctxt "wrtcommander"
 msgid "Calculating…"
 msgstr "Идёт подсчёт…"
 
+msgctxt "wrtcommander"
 msgid "Ctrl+Space calculates the size of this folder"
 msgstr "Ctrl+Space — посчитать размер этой папки"
 
+msgctxt "wrtcommander"
 msgid "Select a folder to calculate its size."
 msgstr "Выберите папку, чтобы посчитать её размер."
 
+msgctxt "wrtcommander"
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] "%d объект"
 msgstr[1] "%d объекта"
 msgstr[2] "%d объектов"
 
+msgctxt "wrtcommander"
 msgid "%d item already exists at the destination. Overwrite it?"
 msgid_plural "%d items already exist at the destination. Overwrite them?"
 msgstr[0] "%d объект уже существует в папке назначения. Перезаписать его?"
 msgstr[1] "%d объекта уже существуют в папке назначения. Перезаписать их?"
 msgstr[2] "%d объектов уже существуют в папке назначения. Перезаписать их?"
 
+msgctxt "wrtcommander"
 msgid "%d item selected"
 msgid_plural "%d items selected"
 msgstr[0] "отмечен %d объект"
 msgstr[1] "отмечено %d объекта"
 msgstr[2] "отмечено %d объектов"
 
+msgctxt "wrtcommander"
 msgid "%d selected"
 msgid_plural "%d selected"
 msgstr[0] "%d отмечен"
 msgstr[1] "%d отмечено"
 msgstr[2] "%d отмечено"
 
+msgctxt "wrtcommander"
 msgid "Copy %d item to:"
 msgid_plural "Copy %d items to:"
 msgstr[0] "Копировать %d объект в:"
 msgstr[1] "Копировать %d объекта в:"
 msgstr[2] "Копировать %d объектов в:"
 
+msgctxt "wrtcommander"
 msgid "Delete %d selected item?"
 msgid_plural "Delete %d selected items?"
 msgstr[0] "Удалить %d отмеченный объект?"
 msgstr[1] "Удалить %d отмеченных объекта?"
 msgstr[2] "Удалить %d отмеченных объектов?"
 
+msgctxt "wrtcommander"
 msgid "Move %d item to:"
 msgid_plural "Move %d items to:"
 msgstr[0] "Переместить %d объект в:"
 msgstr[1] "Переместить %d объекта в:"
 msgstr[2] "Переместить %d объектов в:"
 
+msgctxt "wrtcommander"
 msgid "Uploaded %d file"
 msgid_plural "Uploaded %d files"
 msgstr[0] "Загружен %d файл"
 msgstr[1] "Загружено %d файла"
 msgstr[2] "Загружено %d файлов"
 
+msgctxt "wrtcommander"
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] "%d файл"
 msgstr[1] "%d файла"
 msgstr[2] "%d файлов"
 
+msgctxt "wrtcommander"
 msgid "Go up one level"
 msgstr "На уровень выше"
 
+msgctxt "wrtcommander"
 msgid "Refresh the active panel"
 msgstr "Обновить активную панель"
 
+msgctxt "wrtcommander"
 msgid "Save in the editor"
 msgstr "Сохранить в редакторе"
 
+msgctxt "wrtcommander"
 msgid "Select all"
 msgstr "Отметить всё"
 
+msgctxt "wrtcommander"
 msgid "Select or unselect"
 msgstr "Отметить или снять отметку"
 
+msgctxt "wrtcommander"
 msgid "Shortcuts work while the file list has focus, not while typing in a field."
 msgstr "Горячие клавиши работают, когда фокус на списке файлов, а не в поле ввода."
 
+msgctxt "wrtcommander"
 msgid "Switch panel"
 msgstr "Переключить панель"
-

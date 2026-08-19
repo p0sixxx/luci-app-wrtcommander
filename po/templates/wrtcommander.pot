@@ -5,481 +5,119 @@ msgstr ""
 "Project-Id-Version: luci-app-wrtcommander\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "%d B"
-msgstr ""
-
-msgid "%s GiB"
-msgstr ""
-
-msgid "%s KiB"
-msgstr ""
-
-msgid "%s MiB"
-msgstr ""
-
-msgid "%s free of %s"
-msgstr ""
-
-msgid "Accessed"
-msgstr ""
-
-msgid "Appearance"
-msgstr ""
-
-msgid "Applies the next time a file is opened for editing."
-msgstr ""
-
-msgid "Apply"
-msgstr ""
-
-msgid "Archive"
-msgstr ""
-
-msgid "At least %s: the folder is too large to measure in full."
-msgstr ""
-
-msgid "Binary"
-msgstr ""
-
-msgid "Broken symlink: %s"
-msgstr ""
-
-msgid "Browse…"
-msgstr ""
-
-msgid "Calculate folder size"
-msgstr ""
-
-msgid "Calculate size"
-msgstr ""
-
-msgid "Calculating…"
-msgstr ""
-
-msgid "Cancel"
-msgstr ""
-
-msgid "Cannot change permissions"
-msgstr ""
-
-msgid "Cannot create file"
-msgstr ""
-
-msgid "Cannot create folder"
-msgstr ""
-
-msgid "Cannot open directory"
-msgstr ""
-
-msgid "Cannot open file"
-msgstr ""
-
-msgid "Cannot read permissions"
-msgstr ""
-
-msgid "Cannot read properties"
-msgstr ""
-
-msgid "Cannot rename"
-msgstr ""
-
-msgid "Cannot save file"
-msgstr ""
-
-msgid "Changed"
-msgstr ""
-
-msgid "Close"
-msgstr ""
-
-msgid "Column widths"
-msgstr ""
-
-msgid "Confirm delete"
-msgstr ""
-
-msgid "Copied"
-msgstr ""
-
-msgid "Copy"
-msgstr ""
-
-msgid "Copy \"%s\" to:"
-msgstr ""
-
-msgid "Create"
-msgstr ""
-
-msgid "Ctrl+Space calculates the size of this folder"
-msgstr ""
-
-msgid "Delete"
-msgstr ""
-
-msgid "Delete \"%s\"?"
-msgstr ""
-
-msgid "Delete failed"
-msgstr ""
-
-msgid "Delete folder \"%s\" and all of its contents?"
-msgstr ""
-
-msgid "Deleted"
-msgstr ""
-
-msgid "Destination: %s"
-msgstr ""
-
-msgid "Device"
-msgstr ""
-
-msgid "Directory"
-msgstr ""
-
-msgid "Discard"
-msgstr ""
-
-msgid "Download"
-msgstr ""
-
-msgid "Drag the edge of a column header to change it."
-msgstr ""
-
-msgid "Drag to resize, double-click to reset"
-msgstr ""
-
-msgid "Editor"
-msgstr ""
-
-msgid "Execute"
-msgstr ""
-
-msgid "FIFO"
-msgstr ""
-
-msgid "File %d of %d"
-msgstr ""
-
-msgid "File actions"
-msgstr ""
-
-msgid "File changed on disk"
-msgstr ""
-
-msgid "File created"
-msgstr ""
-
-msgid "Files and folders whose name starts with a dot."
-msgstr ""
-
-msgid "Filesystem"
-msgstr ""
-
-msgid "First part"
-msgstr ""
-
-msgid "Folder created"
-msgstr ""
-
-msgid "Folders first"
-msgstr ""
-
-msgid "Go up one level"
-msgstr ""
-
-msgid "Group"
-msgstr ""
-
-msgid "Group ID"
-msgstr ""
-
-msgid "Invalid name"
-msgstr ""
-
-msgid "Items already exist"
-msgstr ""
-
-msgid "Keep editing"
-msgstr ""
-
-msgid "Keyboard shortcuts"
-msgstr ""
-
-msgid "Last part"
-msgstr ""
-
-msgid "Left panel"
-msgstr ""
-
-msgid "Loading…"
-msgstr ""
-
-msgid "Modified"
-msgstr ""
-
-msgid "Move"
-msgstr ""
-
-msgid "Move \"%s\" to:"
-msgstr ""
-
-msgid "Moved"
-msgstr ""
-
-msgid "Name"
-msgstr ""
-
-msgid "Name cannot be empty"
-msgstr ""
-
-msgid "Name cannot contain a slash"
-msgstr ""
-
-msgid "Name is too long"
-msgstr ""
-
-msgid "Navigation"
-msgstr ""
-
-msgid "New file"
-msgstr ""
-
-msgid "New folder"
-msgstr ""
-
-msgid "No subdirectories"
-msgstr ""
-
-msgid "Nothing found"
-msgstr ""
-
-msgid "Open"
-msgstr ""
-
-msgid "Open both panels where you left them last time."
-msgstr ""
-
-msgid "Operation failed"
-msgstr ""
-
-msgid "Others"
-msgstr ""
-
-msgid "Overwrite"
-msgstr ""
-
-msgid "Owner"
-msgstr ""
-
-msgid "Panels"
-msgstr ""
-
-msgid "Part of a file name"
-msgstr ""
-
-msgid "Path"
-msgstr ""
-
-msgid "Permissions"
-msgstr ""
-
-msgid "Permissions updated"
-msgstr ""
-
-msgid "Press Ctrl+S to save."
-msgstr ""
-
-msgid "Preview truncated, the file is %s."
-msgstr ""
-
-msgid "Properties"
-msgstr ""
-
-msgid "Read"
-msgstr ""
-
-msgid "Refresh"
-msgstr ""
-
-msgid "Refresh the active panel"
-msgstr ""
-
-msgid "Remember panel paths"
-msgstr ""
-
-msgid "Rename"
-msgstr ""
-
-msgid "Renamed"
-msgstr ""
-
-msgid "Request failed: %s"
-msgstr ""
-
-msgid "Right panel"
-msgstr ""
-
-msgid "Root directory"
-msgstr ""
-
-msgid "Save"
-msgstr ""
-
-msgid "Save in the editor"
-msgstr ""
-
-msgid "Saved"
-msgstr ""
-
-msgid "Search"
-msgstr ""
-
-msgid "Search failed"
-msgstr ""
-
-msgid "Search inside subfolders"
-msgstr ""
-
-msgid "Searching in: %s"
-msgstr ""
-
-msgid "Searching…"
-msgstr ""
-
-msgid "Select a folder to calculate its size."
-msgstr ""
-
-msgid "Select all"
-msgstr ""
-
-msgid "Select destination"
-msgstr ""
-
-msgid "Select exactly one file to download."
-msgstr ""
-
-msgid "Select exactly one item to rename."
-msgstr ""
-
-msgid "Select or unselect"
-msgstr ""
-
-msgid "Select this folder"
-msgstr ""
-
-msgid "Selection"
-msgstr ""
-
-msgid "Settings"
-msgstr ""
-
-msgid "Shortcuts work while the file list has focus, not while typing in a field."
-msgstr ""
-
-msgid "Show hidden files"
-msgstr ""
-
-msgid "Size"
-msgstr ""
-
-msgid "Socket"
-msgstr ""
-
-msgid "Sort folders above files, whatever the sort column."
-msgstr ""
-
-msgid "Switch panel"
-msgstr ""
-
-msgid "Symlink"
-msgstr ""
-
-msgid "Symlink target"
-msgstr ""
-
-msgid "Text"
-msgstr ""
-
-msgid "The file is too large to edit. Download it instead."
-msgstr ""
-
-msgid "The file is too large to show in full."
-msgstr ""
-
-msgid "This action cannot be undone."
-msgstr ""
-
-msgid "This directory is empty"
-msgstr ""
-
-msgid "This does not look like a text file."
-msgstr ""
-
-msgid "This file was modified by something else after you opened it. Overwrite those changes?"
-msgstr ""
-
-msgid "This is a binary file and cannot be shown as text."
-msgstr ""
-
-msgid "Too many matches, only the first %d are shown."
-msgstr ""
-
-msgid "Type"
-msgstr ""
-
-msgid "Type a path and press Enter"
-msgstr ""
-
-msgid "Unknown error"
-msgstr ""
-
-msgid "Unsaved changes"
-msgstr ""
-
-msgid "Unselect"
-msgstr ""
-
-msgid "Up one level"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Upload failed"
-msgstr ""
-
-msgid "Uploading"
-msgstr ""
-
-msgid "User ID"
-msgstr ""
-
-msgid "View"
-msgstr ""
-
-msgid "WARNING: this includes a core system path. Deleting it can break the router."
-msgstr ""
-
-msgid "Wrap long lines"
-msgstr ""
-
-msgid "Write"
-msgstr ""
-
 msgid "Wrt Commander"
 msgstr ""
 
-msgid "You have unsaved changes. Discard them?"
+msgctxt "wrtcommander"
+msgid "%d B"
 msgstr ""
 
-msgid "broken"
+msgctxt "wrtcommander"
+msgid "%s GiB"
 msgstr ""
 
-msgid "failed"
+msgctxt "wrtcommander"
+msgid "%s KiB"
 msgstr ""
 
-msgid "…and %d more"
+msgctxt "wrtcommander"
+msgid "%s MiB"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "%s free of %s"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Accessed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Appearance"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Applies the next time a file is opened for editing."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Apply"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Archive"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "At least %s: the folder is too large to measure in full."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Binary"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Broken symlink: %s"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Browse…"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Calculate folder size"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Calculate size"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Calculating…"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot change permissions"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot create file"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot create folder"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot open directory"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot open file"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot read permissions"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot read properties"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot rename"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot save file"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Changed"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -487,7 +125,147 @@ msgid "Clear selection"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Close"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Column widths"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Confirm delete"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Copied"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Copy"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Copy \"%s\" to:"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Create"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Ctrl+Space calculates the size of this folder"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Delete"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Delete \"%s\"?"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Delete failed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Delete folder \"%s\" and all of its contents?"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Deleted"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Destination: %s"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Device"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Directory"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Discard"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Download"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Drag the edge of a column header to change it."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Drag to resize, double-click to reset"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Edit"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Editor"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Execute"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "FIFO"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "File %d of %d"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "File actions"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "File changed on disk"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "File created"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Files and folders whose name starts with a dot."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Filesystem"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "First part"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Folder created"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Folders first"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Go up one level"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Group"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Group ID"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -495,7 +273,171 @@ msgid "Image"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Invalid name"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Items already exist"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Keep editing"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Keyboard shortcuts"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Last part"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Left panel"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Loading…"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Mode"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Modified"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Move"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Move \"%s\" to:"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Moved"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Name"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Name cannot be empty"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Name cannot contain a slash"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Name is too long"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Navigation"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "New file"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "New folder"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "No subdirectories"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Nothing found"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Open"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Open both panels where you left them last time."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Operation failed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Others"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Overwrite"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Owner"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Panels"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Part of a file name"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Path"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Permissions"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Permissions updated"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Press Ctrl+S to save."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Preview truncated, the file is %s."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Properties"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Read"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Refresh"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Refresh the active panel"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Remember panel paths"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Rename"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Renamed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Request failed: %s"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -503,53 +445,278 @@ msgid "Reset"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Right panel"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Root directory"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Save"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Save in the editor"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Saved"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Search"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Search failed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Search inside subfolders"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Searching in: %s"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Searching…"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Select"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select a folder to calculate its size."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select all"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select destination"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select exactly one file to download."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select exactly one item to rename."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select or unselect"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select this folder"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Selection"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Settings"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Shortcuts work while the file list has focus, not while typing in a field."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Show hidden files"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Size"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Socket"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Sort folders above files, whatever the sort column."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Switch panel"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Symlink"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Symlink target"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Text"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "The file is too large to edit. Download it instead."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "The file is too large to show in full."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This action cannot be undone."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This directory is empty"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This does not look like a text file."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This file was modified by something else after you opened it. Overwrite those changes?"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This is a binary file and cannot be shown as text."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Too many matches, only the first %d are shown."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Type"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Type a path and press Enter"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Unknown error"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Unsaved changes"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Unselect"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Up one level"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Upload"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Upload failed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Uploading"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "User ID"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "View"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "WARNING: this includes a core system path. Deleting it can break the router."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Wrap long lines"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Write"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "You have unsaved changes. Discard them?"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "broken"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "failed"
 msgstr ""
 
 msgctxt "wrtcommander"
 msgid "up"
 msgstr ""
 
+msgctxt "wrtcommander"
+msgid "…and %d more"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "%d item already exists at the destination. Overwrite it?"
 msgid_plural "%d items already exist at the destination. Overwrite them?"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "%d item selected"
 msgid_plural "%d items selected"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "%d selected"
 msgid_plural "%d selected"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "Copy %d item to:"
 msgid_plural "Copy %d items to:"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "Delete %d selected item?"
 msgid_plural "Delete %d selected items?"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "Move %d item to:"
 msgid_plural "Move %d items to:"
 msgstr[0] ""
 msgstr[1] ""
 
+msgctxt "wrtcommander"
 msgid "Uploaded %d file"
 msgid_plural "Uploaded %d files"
 msgstr[0] ""

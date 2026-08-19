@@ -33,8 +33,10 @@ Norton / Midnight / Total Commander: две независимые панели 
 
 </details>
 
-<sub>Снимки сделаны на настоящей таблице стилей Proton2025 и разметке
-приложения, с примерным содержимым каталогов.</sub>
+<sub>Снимки отрисованы на настоящей таблице стилей Proton2025 и разметке
+приложения, с примерным содержимым каталогов. Шапка LuCI воспроизведена по
+реальному роутеру на OpenWrt 25.12.5; акцентный цвет — штатный для темы,
+в её настройках он меняется.</sub>
 
 - Две панели с независимыми путём, сортировкой и выделением; **Tab**
   переключает, активная обведена рамкой
@@ -760,6 +762,17 @@ uci commit luci
 прочими, и `po/extract.py` подхватывает её из
 `menu.d/luci-app-wrtcommander.json` автоматически.
 
+**Каждая** строка приложения снабжена контекстом `msgctxt "wrtcommander"`.
+Все каталоги `.lmo` для одного языка делят в браузере одно плоское
+пространство ключей, поэтому любой установленный пакет может перехватить
+общеупотребительное слово: на реальном роутере заголовок столбца «Name»
+приходил как «Название» — не из luci-base, чей перевод совпадает с нашим
+(«Имя»), а из какого-то другого установленного пакета. Контекст на всех
+строках закрывает этот класс ошибок целиком, а не по одной находке:
+пересечений ключей с luci-base теперь **0** вместо 18. Исключение одно —
+имя продукта, потому что оно же служит заголовком пункта меню, а его LuCI
+переводит без контекста.
+
 Исходники, инструменты и инструкция по добавлению языка — в
 [`po/README.md`](po/README.md). Русский использует правильные три формы
 множественного числа (`1 объект / 2 объекта / 5 объектов`) через `N_()`.
@@ -866,7 +879,9 @@ other one".
 </details>
 
 <sub>Rendered against the real Proton2025 stylesheet and the app's own
-markup, with sample directory contents.</sub>
+markup, with sample directory contents. The LuCI header reproduces a real
+OpenWrt 25.12.5 router; the accent colour is the theme's stock one and is
+configurable in its settings.</sub>
 
 - Two panels with independent path, sorting and selection; **Tab**
   switches, the active one is outlined
@@ -1577,6 +1592,17 @@ everything else (upstream apps list `menu.d/…json` as a source for their
 title msgid), so the string lives in `po/` next to the rest and
 `po/extract.py` picks it up from `menu.d/luci-app-wrtcommander.json`
 automatically.
+
+**Every** string in the app carries a `msgctxt "wrtcommander"` context.
+All `.lmo` catalogues for one language share a single flat key space in
+the browser, so any installed package can hijack a common word: on a real
+router the "Name" column header arrived as "Название" — not from
+luci-base, whose translation matches ours ("Имя"), but from some other
+package that happened to be installed. Contexting everything closes that
+class of bug outright rather than one sighting at a time: shared keys with
+luci-base are now **0**, down from 18. The one exception is the product
+name, because it doubles as the menu entry title and LuCI translates menu
+titles without a context.
 
 Sources, tooling and instructions for adding a language live in
 [`po/README.md`](po/README.md). Russian uses proper three-form plurals
