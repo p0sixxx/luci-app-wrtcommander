@@ -15,17 +15,10 @@
 
 ![Светлая тема Proton2025](docs/img/desktop-light-ru.png)
 
-<details>
-<summary><b>Мобильная версия</b></summary>
-
-<br>
-
 <p align="center">
   <img src="docs/img/mobile-dark-ru.png"  width="300" alt="Тёмная тема на телефоне">
   <img src="docs/img/mobile-light-ru.png" width="300" alt="Светлая тема на телефоне">
 </p>
-
-</details>
 
 - Две панели с независимыми путём, сортировкой и выделением; **Tab**
   переключает, активная обведена рамкой
@@ -858,17 +851,10 @@ phone as readily as from a desktop.
 
 ![Proton2025 light theme](docs/img/desktop-light-en.png)
 
-<details>
-<summary><b>Mobile version</b></summary>
-
-<br>
-
 <p align="center">
   <img src="docs/img/mobile-dark-en.png"  width="300" alt="Dark theme on a phone">
   <img src="docs/img/mobile-light-en.png" width="300" alt="Light theme on a phone">
 </p>
-
-</details>
 
 - Two panels with independent path, sorting and selection; **Tab**
   switches, the active one is outlined
