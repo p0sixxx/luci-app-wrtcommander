@@ -2,18 +2,14 @@
 
 **Русский** · [English](#wrt-commander-english)
 
-Полноценный файловый менеджер для LuCI на OpenWrt, рассчитанный на
-администратора. **Это runtime-редакция для разработки**, описанная в
-техническом задании: готовое рабочее приложение, которое копируется на
-работающий роутер OpenWrt 25.12.x и сразу используется — без пакетного
-менеджера, без `.ipk`, без SDK и тулчейна.
-
-## Что это
-
-**Двухпанельный commander** — раскладка, которую сделали стандартом
-Norton / Midnight / Total Commander: две независимые панели каталогов
-рядом, одна из них активная, и любая операция по умолчанию идёт «из
-активной панели в противоположную».
+**Wrt Commander** — двухпанельный файловый менеджер для LuCI на OpenWrt,
+рассчитанный на того, кто администрирует роутер. Раскладка та, которую
+сделали стандартом Norton, Midnight и Total Commander: две независимые
+панели каталогов рядом, одна из них активная, и любая операция по
+умолчанию идёт «из активной панели в противоположную». Полный набор
+файловых операций, управление и с клавиатуры, и мышью, русский и
+английский интерфейс, тёмная и светлая темы, работа как с компьютера,
+так и с телефона.
 
 ![Wrt Commander — тёмная тема Proton2025](docs/img/desktop-dark-ru.png)
 
@@ -849,18 +845,14 @@ uci commit luci
 
 [Русский](#wrt-commander) · **English**
 
-A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
-runtime/development edition** described in the project brief: a
-complete, working application you copy onto a running OpenWrt 25.12.x
-router and use immediately, with no package manager, no `.ipk`, and no
-SDK/toolchain involved.
-
-## What it is
-
-A **two-pane commander**, the layout Norton/Midnight/Total Commander made
-standard: two independent directory panels side by side, one of them
-active, and every operation defaulting to "from the active panel to the
-other one".
+**Wrt Commander** is a two-pane file manager for LuCI on OpenWrt, built
+for whoever administers the router. The layout is the one Norton,
+Midnight and Total Commander made standard: two independent directory
+panels side by side, one of them active, and every operation defaulting
+to "from the active panel to the other one". It covers the full set of
+file operations, is driven equally from the keyboard or the mouse, speaks
+English and Russian, comes in a light or a dark theme, and works from a
+phone as readily as from a desktop.
 
 ![Wrt Commander on the Proton2025 dark theme](docs/img/desktop-dark-en.png)
 
