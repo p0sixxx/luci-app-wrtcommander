@@ -840,8 +840,7 @@ A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
 runtime/development edition** described in the project brief: a
 complete, working application you copy onto a running OpenWrt 25.12.x
 router and use immediately, with no package manager, no `.ipk`, and no
-SDK/toolchain involved. A proper OpenWrt package build is the planned
-next stage, once this has been exercised on real hardware.
+SDK/toolchain involved.
 
 ## What it is
 
