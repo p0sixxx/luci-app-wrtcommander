@@ -471,7 +471,19 @@ return view.extend({
 			Math.round(document.documentElement.clientHeight - top - 16)) + 'px';
 	},
 
-	/* view.extend() calls this when navigating away */
+	/* LuCI's base view renders a Save / Save & Apply / Reset footer if any
+	   one of these three is non-null (luci.js: `if (this.handleSaveApply ||
+	   this.handleSave || this.handleReset)`). Nulling only handleReset
+	   still left the other two, so a file manager - which has no form and
+	   nothing to save - was showing those buttons at the bottom of the
+	   page.
+
+	   Not merely untidy: the inherited handleSaveApply() runs
+	   ui.changes.apply(), so pressing it here would commit whatever
+	   unrelated staged UCI changes the session happened to be carrying,
+	   from a page that never touches UCI. All three are null. */
+	handleSaveApply: null,
+	handleSave: null,
 	handleReset: null,
 
 	injectCss: function () {

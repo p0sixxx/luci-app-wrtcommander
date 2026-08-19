@@ -718,6 +718,15 @@ margin разом, замеряет снова и возвращает все ч
 причине: ниже контейнер должен просто использовать экран, и наш лимит
 там был бы ещё одной вещью, с которой замеру пришлось бы спорить.
 
+LuCI сама дорисовывает страницам подвал с кнопками «Сохранить и
+применить» / «Сохранить» / «Сбросить», если у представления не обнулены
+все три обработчика (`luci.js`: `if (this.handleSaveApply ||
+this.handleSave || this.handleReset)`). Здесь обнулены все три. Дело не в
+опрятности: унаследованный `handleSaveApply()` вызывает
+`ui.changes.apply()`, поэтому на странице без единой формы эта кнопка
+применила бы те изменения UCI, которые сессия к тому моменту накопила
+где-то ещё.
+
 Соглашения commander'ов, которые стоит знать:
 
 - **Курсор и выделение — разные вещи.** Курсор — это обведённая строка,
@@ -1549,6 +1558,13 @@ The `.fx-wide` max-width rule is scoped to `min-width: 901px` for the
 same reason: below that the container should simply use the screen, and a
 cap of ours in play there would be one more thing for the measurement to
 fight.
+
+LuCI's own base view appends a Save & Apply / Save / Reset footer to a
+page unless all three handlers are nulled (`luci.js`: `if
+(this.handleSaveApply || this.handleSave || this.handleReset)`). All three
+are null here. That is not tidiness: the inherited `handleSaveApply()`
+calls `ui.changes.apply()`, so on a page with no form at all that button
+would commit whatever UCI changes the session had staged elsewhere.
 
 Commander conventions worth knowing:
 
