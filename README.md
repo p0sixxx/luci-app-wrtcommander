@@ -16,7 +16,7 @@
 ![Светлая тема Proton2025](docs/img/desktop-light-ru.png)
 
 <details>
-<summary><b>Вид на телефоне</b></summary>
+<summary><b>Мобильная версия</b></summary>
 
 <br>
 
@@ -859,7 +859,7 @@ phone as readily as from a desktop.
 ![Proton2025 light theme](docs/img/desktop-light-en.png)
 
 <details>
-<summary><b>The phone layout</b></summary>
+<summary><b>Mobile version</b></summary>
 
 <br>
 
