@@ -11,14 +11,14 @@
 английский интерфейс, тёмная и светлая темы, работа как с компьютера,
 так и с телефона.
 
-![Wrt Commander — тёмная тема Proton2025](docs/img/desktop-dark-ru.png)
+![Тёмная тема Proton2025](docs/img/desktop-dark-ru.png)
+
+![Светлая тема Proton2025](docs/img/desktop-light-ru.png)
 
 <details>
-<summary><b>Светлая тема и вид на телефоне</b></summary>
+<summary><b>Вид на телефоне</b></summary>
 
 <br>
-
-![Светлая тема](docs/img/desktop-light-ru.png)
 
 <p align="center">
   <img src="docs/img/mobile-dark-ru.png"  width="300" alt="Тёмная тема на телефоне">
@@ -854,14 +854,14 @@ file operations, is driven equally from the keyboard or the mouse, speaks
 English and Russian, comes in a light or a dark theme, and works from a
 phone as readily as from a desktop.
 
-![Wrt Commander on the Proton2025 dark theme](docs/img/desktop-dark-en.png)
+![Proton2025 dark theme](docs/img/desktop-dark-en.png)
+
+![Proton2025 light theme](docs/img/desktop-light-en.png)
 
 <details>
-<summary><b>Light theme and the phone layout</b></summary>
+<summary><b>The phone layout</b></summary>
 
 <br>
-
-![Light theme](docs/img/desktop-light-en.png)
 
 <p align="center">
   <img src="docs/img/mobile-dark-en.png"  width="300" alt="Dark theme on a phone">
