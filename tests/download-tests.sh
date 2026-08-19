@@ -25,7 +25,7 @@ curl -s -c "$COOKIEJAR" \
 grep -q sysauth "$COOKIEJAR" 2>/dev/null \
 	|| echo "WARNING: could not confirm a session cookie was obtained - tests below may fail with 403." >&2
 
-DOWNLOAD_URL="${ROUTER_URL}/cgi-bin/luci/admin/services/filexplorer/download"
+DOWNLOAD_URL="${ROUTER_URL}/cgi-bin/luci/admin/services/wrtcommander/download"
 
 url_encode_path() {
 	# minimal encoder: percent-encode space and non-ASCII bytes are left
@@ -91,10 +91,10 @@ CODE=$(do_download "$TESTFS" "$OUTDIR/dir.out")
 # directories"). To exercise the containment check on this HTTP
 # endpoint too, temporarily restrict allowed_root the same way
 # security-tests.sh does, then restore it.
-ORIG_ROOT=$(uci -q get filexplorer.main.allowed_root)
+ORIG_ROOT=$(uci -q get wrtcommander.main.allowed_root)
 [ -z "$ORIG_ROOT" ] && ORIG_ROOT="/"
-uci set filexplorer.main.allowed_root="$TESTFS"
-uci commit filexplorer
+uci set wrtcommander.main.allowed_root="$TESTFS"
+uci commit wrtcommander
 /etc/init.d/rpcd reload >/dev/null 2>&1 || /etc/init.d/rpcd restart >/dev/null 2>&1
 sleep 1
 
@@ -105,8 +105,8 @@ else
 	echo "FAIL: expected the out-of-root download to be rejected (got $CODE)"; FAIL=$((FAIL + 1))
 fi
 
-uci set filexplorer.main.allowed_root="$ORIG_ROOT"
-uci commit filexplorer
+uci set wrtcommander.main.allowed_root="$ORIG_ROOT"
+uci commit wrtcommander
 /etc/init.d/rpcd reload >/dev/null 2>&1 || /etc/init.d/rpcd restart >/dev/null 2>&1
 
 rm -f "$TESTFS/dl-empty.txt" "$TESTFS/dl-binary.bin" "$TESTFS/dl-large.bin"

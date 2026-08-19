@@ -1,0 +1,13 @@
+{
+	"admin/services/wrtcommander": {
+		"title": "Wrt Commander",
+		"order": 45,
+		"action": {
+			"type": "view",
+			"path": "wrtcommander"
+		},
+		"depends": {
+			"acl": [ "luci-app-wrtcommander" ]
+		}
+	}
+}

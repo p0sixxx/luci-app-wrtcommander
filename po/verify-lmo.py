@@ -18,8 +18,8 @@ What it checks, per message in the .po:
   * plural forms are stored under "msgid\\x02<index>" keys
   * the Plural-Forms expression is stored under key id 0
 
-Usage:  python3 po/verify-lmo.py po/ru/filexplorer.po \\
-                runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo
+Usage:  python3 po/verify-lmo.py po/ru/wrtcommander.po \\
+                runtime/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo
 """
 
 import re

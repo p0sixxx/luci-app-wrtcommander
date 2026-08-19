@@ -1,5 +1,5 @@
 #!/bin/sh
-# Editor round-trip tests against the "luci.filexplorer" ubus object:
+# Editor round-trip tests against the "luci.wrtcommander" ubus object:
 # empty file, UTF-8/Russian text, JSON, a UCI-style config, large-file
 # rejection, external-modification conflict detection, and read-only
 # filesystem behaviour (/rom).

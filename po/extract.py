@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Extract translatable strings from the FileXplorer LuCI view into a
+Extract translatable strings from the Wrt Commander LuCI view into a
 gettext .pot template.
 
 LuCI's own build uses xgettext with custom keywords; this project is
 deployed by copying files rather than through the OpenWrt build system,
-so this small extractor keeps po/templates/filexplorer.pot in sync
+so this small extractor keeps po/templates/wrtcommander.pot in sync
 without needing the LuCI build host tools.
 
 It collects strings from two places, matching what LuCI's own
@@ -38,9 +38,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-SOURCE = os.path.join(ROOT, 'runtime/www/luci-static/resources/view/filexplorer.js')
-MENU = os.path.join(ROOT, 'runtime/usr/share/luci/menu.d/luci-app-filexplorer.json')
-OUTPUT = os.path.join(HERE, 'templates/filexplorer.pot')
+SOURCE = os.path.join(ROOT, 'runtime/www/luci-static/resources/view/wrtcommander.js')
+MENU = os.path.join(ROOT, 'runtime/usr/share/luci/menu.d/luci-app-wrtcommander.json')
+OUTPUT = os.path.join(HERE, 'templates/wrtcommander.pot')
 
 STR = r"'((?:[^'\\]|\\.)*)'"
 RE_PLURAL = re.compile(r"N_\(\s*[^,]+,\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
@@ -95,7 +95,7 @@ def main():
         'msgstr ""',
         '"Content-Type: text/plain; charset=UTF-8\\n"',
         '"Content-Transfer-Encoding: 8bit\\n"',
-        '"Project-Id-Version: luci-app-filexplorer\\n"',
+        '"Project-Id-Version: luci-app-wrtcommander\\n"',
         '"Plural-Forms: nplurals=2; plural=(n != 1);\\n"',
         '',
     ]

@@ -1,0 +1,63 @@
+{
+	"luci-app-wrtcommander-read": {
+		"description": "Wrt Commander: browse, stat, preview, search, disk and directory usage",
+		"read": {
+			"ubus": {
+				"luci.wrtcommander": [ "list", "stat", "read", "search", "disk_info", "dirsize" ]
+			},
+			"uci": [ "wrtcommander" ]
+		}
+	},
+
+	"luci-app-wrtcommander-write": {
+		"description": "Wrt Commander: create, edit, rename, copy, move",
+		"write": {
+			"ubus": {
+				"luci.wrtcommander": [ "mkdir", "create", "rename", "write", "copy", "move" ]
+			}
+		}
+	},
+
+	"luci-app-wrtcommander-delete": {
+		"description": "Wrt Commander: delete files and directories",
+		"write": {
+			"ubus": {
+				"luci.wrtcommander": [ "remove" ]
+			}
+		}
+	},
+
+	"luci-app-wrtcommander-chmod": {
+		"description": "Wrt Commander: change permissions",
+		"write": {
+			"ubus": {
+				"luci.wrtcommander": [ "chmod" ]
+			}
+		}
+	},
+
+	"luci-app-wrtcommander-chown": {
+		"description": "Wrt Commander: change owner/group",
+		"write": {
+			"ubus": {
+				"luci.wrtcommander": [ "chown" ]
+			}
+		}
+	},
+
+	"luci-app-wrtcommander": {
+		"description": "Wrt Commander: full access (menu visibility + all operations)",
+		"read": {
+			"ubus": {
+				"luci.wrtcommander": [ "list", "stat", "read", "search", "disk_info", "dirsize" ]
+			},
+			"uci": [ "wrtcommander" ]
+		},
+		"write": {
+			"ubus": {
+				"luci.wrtcommander": [ "mkdir", "create", "rename", "write", "copy", "move", "remove", "chmod", "chown" ]
+			},
+			"uci": [ "wrtcommander" ]
+		}
+	}
+}

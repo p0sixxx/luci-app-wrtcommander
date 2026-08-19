@@ -1,5 +1,5 @@
 #!/bin/sh
-# Directory-size tests against "luci.filexplorer dirsize".
+# Directory-size tests against "luci.wrtcommander dirsize".
 #
 # The number this returns is the summed apparent size of a whole subtree,
 # so the things worth testing are not just "does it add up" but the three

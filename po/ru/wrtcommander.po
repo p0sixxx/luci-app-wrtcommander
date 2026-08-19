@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Project-Id-Version: luci-app-filexplorer\n"
+"Project-Id-Version: luci-app-wrtcommander\n"
 "Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -75,7 +75,7 @@ msgstr "Изменение метаданных"
 #. Needs its own context: luci-base also ships "Clear selection", with a
 #. different Russian wording, and all .lmo catalogues for a language share
 #. one flat key space in the browser.
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Clear selection"
 msgstr "Снять отметки"
 
@@ -132,7 +132,7 @@ msgstr "Скачать"
 msgid "Drag to resize, double-click to reset"
 msgstr "Потяните, чтобы изменить ширину; двойной клик — сброс"
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Edit"
 msgstr "Правка"
 
@@ -148,12 +148,12 @@ msgid "File %d of %d"
 msgstr "Файл %d из %d"
 
 #. Menu entry title, and the heading of the page itself. Deliberately
-#. left as the product name: FileXplorer is a name, not a description,
+#. left as the product name: Wrt Commander is a name, not a description,
 #. so it stays the same in every language. msgstr repeats msgid on
 #. purpose rather than being left empty, to record that this is a
 #. decision and not a string somebody forgot to translate.
-msgid "FileXplorer"
-msgstr "FileXplorer"
+msgid "Wrt Commander"
+msgstr "Wrt Commander"
 
 msgid "File changed on disk"
 msgstr "Файл изменился на диске"
@@ -179,7 +179,7 @@ msgstr "Группа"
 msgid "Group ID"
 msgstr "ID группы"
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Image"
 msgstr "Изображение"
 
@@ -207,7 +207,7 @@ msgstr "Загрузка…"
 
 #. Column header for the mode string (-rw-r--r--). Deliberately short:
 #. the full "Права доступа" does not fit a half-width panel column.
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Mode"
 msgstr "Права"
 
@@ -325,7 +325,7 @@ msgstr "Поиск в: %s"
 msgid "Searching…"
 msgstr "Идёт поиск…"
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Select"
 msgstr "Отметить"
 
@@ -437,7 +437,7 @@ msgstr "битая"
 msgid "failed"
 msgstr "ошибка"
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "up"
 msgstr "вверх"
 
@@ -479,7 +479,7 @@ msgstr "Запоминать пути панелей"
 
 #. Own context: luci-base also ships "Reset", worded differently, and all
 #. .lmo catalogues for a language share one flat key space in the browser.
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Reset"
 msgstr "Сбросить"
 

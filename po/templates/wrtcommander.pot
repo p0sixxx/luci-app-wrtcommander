@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Project-Id-Version: luci-app-filexplorer\n"
+"Project-Id-Version: luci-app-wrtcommander\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "%d B"
@@ -168,9 +168,6 @@ msgid "File changed on disk"
 msgstr ""
 
 msgid "File created"
-msgstr ""
-
-msgid "FileXplorer"
 msgstr ""
 
 msgid "Files and folders whose name starts with a dot."
@@ -470,6 +467,9 @@ msgstr ""
 msgid "Write"
 msgstr ""
 
+msgid "Wrt Commander"
+msgstr ""
+
 msgid "You have unsaved changes. Discard them?"
 msgstr ""
 
@@ -482,31 +482,31 @@ msgstr ""
 msgid "…and %d more"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Clear selection"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Edit"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Image"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Mode"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Reset"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Select"
 msgstr ""
 
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "up"
 msgstr ""
 

@@ -1,7 +1,7 @@
 /*
- * FileXplorer - rpcd/ubus backend
+ * Wrt Commander - rpcd/ubus backend
  *
- * Registers the "luci.filexplorer" ubus object. Loaded by rpcd's ucode
+ * Registers the "luci.wrtcommander" ubus object. Loaded by rpcd's ucode
  * plugin loader (rpcd-mod-ucode) from /usr/share/rpcd/ucode/.
  *
  * Every filesystem-affecting operation funnels through canon() before
@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as uci from 'uci';
 import * as math from 'math';
 
-const DEBUG_LOG = '/tmp/filexplorer-debug.log';
+const DEBUG_LOG = '/tmp/wrtcommander-debug.log';
 const DEBUG_LOG_MAX = 262144;
 
 /* ------------------------------------------------------------------ */
@@ -28,17 +28,17 @@ const DEBUG_LOG_MAX = 262144;
 
 function get_config() {
 	let ctx = uci.cursor();
-	let enabled = ctx.get('filexplorer', 'main', 'enabled');
-	let root = ctx.get('filexplorer', 'main', 'allowed_root');
-	let show_hidden = ctx.get('filexplorer', 'main', 'show_hidden');
-	let preview = ctx.get('filexplorer', 'main', 'preview_max_size');
-	let editor = ctx.get('filexplorer', 'main', 'editor_max_size');
-	let results = ctx.get('filexplorer', 'main', 'search_max_results');
-	let depth = ctx.get('filexplorer', 'main', 'search_max_depth');
-	let scanned = ctx.get('filexplorer', 'main', 'search_max_scanned');
-	let dsentries = ctx.get('filexplorer', 'main', 'dirsize_max_entries');
-	let dsdepth = ctx.get('filexplorer', 'main', 'dirsize_max_depth');
-	let debug = ctx.get('filexplorer', 'main', 'debug');
+	let enabled = ctx.get('wrtcommander', 'main', 'enabled');
+	let root = ctx.get('wrtcommander', 'main', 'allowed_root');
+	let show_hidden = ctx.get('wrtcommander', 'main', 'show_hidden');
+	let preview = ctx.get('wrtcommander', 'main', 'preview_max_size');
+	let editor = ctx.get('wrtcommander', 'main', 'editor_max_size');
+	let results = ctx.get('wrtcommander', 'main', 'search_max_results');
+	let depth = ctx.get('wrtcommander', 'main', 'search_max_depth');
+	let scanned = ctx.get('wrtcommander', 'main', 'search_max_scanned');
+	let dsentries = ctx.get('wrtcommander', 'main', 'dirsize_max_entries');
+	let dsdepth = ctx.get('wrtcommander', 'main', 'dirsize_max_depth');
+	let debug = ctx.get('wrtcommander', 'main', 'debug');
 
 	let root_norm = (root && root != '') ? root : '/';
 	if (length(root_norm) > 1 && substr(root_norm, -1) == '/')
@@ -620,7 +620,7 @@ function tmp_suffix() {
 /* ------------------------------------------------------------------ */
 
 return {
-	'luci.filexplorer': {
+	'luci.wrtcommander': {
 
 		list: {
 			args: { path: '/', show_hidden: true },
@@ -628,7 +628,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				let show_hidden = (a.show_hidden != null) ? a.show_hidden : cfg.show_hidden;
 				let c = canon(a.path, { must_exist: true, must_be_dir: true });
@@ -662,7 +662,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let c = canon(req.args.path, { must_exist: true });
 				if (c.err)
 					return c.err;
@@ -683,7 +683,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				let mode = a.mode || 'preview';
 				let c = canon(a.path, { must_exist: true });
@@ -747,7 +747,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: false });
 				if (c.err)
@@ -797,7 +797,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let c = canon(req.args.path, { must_exist: false });
 				if (c.err)
 					return c.err;
@@ -814,7 +814,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let c = canon(req.args.path, { must_exist: false });
 				if (c.err)
 					return c.err;
@@ -831,7 +831,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				if (type(a.name) != 'string' || a.name == '' || index(a.name, '/') >= 0 || a.name == '.' || a.name == '..')
 					return fail('EINVAL', 'Invalid name');
@@ -856,7 +856,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let paths = req.args.paths;
 				if (type(paths) != 'array' || length(paths) == 0)
 					return fail('EINVAL', 'No paths given');
@@ -881,7 +881,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				if (type(a.items) != 'array' || length(a.items) == 0)
 					return fail('EINVAL', 'No items given');
@@ -931,7 +931,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				if (type(a.items) != 'array' || length(a.items) == 0)
 					return fail('EINVAL', 'No items given');
@@ -994,7 +994,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: true });
 				if (c.err)
@@ -1013,7 +1013,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				let c = canon(a.path, { must_exist: true });
 				if (c.err)
@@ -1034,7 +1034,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let a = req.args;
 				if (type(a.query) != 'string' || a.query == '')
 					return fail('EINVAL', 'Empty query');
@@ -1068,7 +1068,7 @@ return {
 				let t0 = time();
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let c = canon(req.args.path, { must_exist: true, must_be_dir: true });
 				if (c.err)
 					return c.err;
@@ -1111,7 +1111,7 @@ return {
 			call: function(req) {
 				let cfg = get_config();
 				if (!cfg.enabled)
-					return fail('EACCES', 'FileXplorer is disabled');
+					return fail('EACCES', 'Wrt Commander is disabled');
 				let c = canon(req.args.path, { must_exist: true });
 				if (c.err)
 					return c.err;

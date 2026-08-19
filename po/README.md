@@ -1,27 +1,27 @@
 # Translations
 
-FileXplorer ships its interface strings through LuCI's normal gettext
+Wrt Commander ships its interface strings through LuCI's normal gettext
 pipeline, so it translates the same way any other `luci-app-*` does.
 
 ```
-po/templates/filexplorer.pot   source strings, regenerated from the sources
-po/ru/filexplorer.po           Russian translation
+po/templates/wrtcommander.pot   source strings, regenerated from the sources
+po/ru/wrtcommander.po           Russian translation
 po/extract.py                  extracts strings into the .pot
 po/verify-lmo.py               independently verifies a compiled .lmo
 ```
 
 Strings come from two places: `_()` / `N_()` calls in the JS view, and
 the `title` of the LuCI menu entry in
-`runtime/usr/share/luci/menu.d/luci-app-filexplorer.json`. The menu
+`runtime/usr/share/luci/menu.d/luci-app-wrtcommander.json`. The menu
 title goes through this same catalog at runtime. It resolves to the
-product name unchanged - FileXplorer is a name, not a description, so it
+product name unchanged - Wrt Commander is a name, not a description, so it
 reads the same in every language - but it still has to be *in* the
 catalog, because a msgid with no entry would leave the menu untranslated
 rather than deliberately unchanged.
 
 The compiled catalog is committed at
-`runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo` and installed to
-`/usr/lib/lua/luci/i18n/filexplorer.ru.lmo`. It is committed on purpose:
+`runtime/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo` and installed to
+`/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo`. It is committed on purpose:
 this stage of the project is deployed by copying files onto a router,
 which has neither a compiler nor the LuCI build host tools.
 
@@ -57,18 +57,18 @@ column.
 The fix is gettext's message context. In the view:
 
 ```js
-_('Mode', 'filexplorer')
+_('Mode', 'wrtcommander')
 ```
 
 and in the catalog:
 
 ```
-msgctxt "filexplorer"
+msgctxt "wrtcommander"
 msgid "Mode"
 msgstr "Права"
 ```
 
-which changes the lookup key to `filexplorer\x01Mode` and makes it ours
+which changes the lookup key to `wrtcommander\x01Mode` and makes it ours
 alone. Use a context for any short, generic word whose meaning here
 differs from its meaning elsewhere in LuCI. Currently that is `Edit`,
 `Image`, `Mode`, `Select` and `up`.
@@ -93,7 +93,7 @@ curl -sO https://raw.githubusercontent.com/openwrt/luci/master/modules/luci-base
 
 ## Adding or updating strings
 
-1. Edit `runtime/www/luci-static/resources/view/filexplorer.js`, wrapping
+1. Edit `runtime/www/luci-static/resources/view/wrtcommander.js`, wrapping
    user-visible text in `_('…')`, or `N_(n, '…', '…')` when a count is
    involved.
 2. Regenerate the template:
@@ -102,13 +102,13 @@ curl -sO https://raw.githubusercontent.com/openwrt/luci/master/modules/luci-base
    python3 po/extract.py
    ```
 
-3. Add the new msgids to `po/ru/filexplorer.po` (and any other language).
+3. Add the new msgids to `po/ru/wrtcommander.po` (and any other language).
 4. Rebuild the catalog — see below.
 5. Verify it:
 
    ```sh
-   python3 po/verify-lmo.py po/ru/filexplorer.po \
-       runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo
+   python3 po/verify-lmo.py po/ru/wrtcommander.po \
+       runtime/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo
    ```
 
 ## Rebuilding the .lmo
@@ -127,7 +127,7 @@ make po2lmo          # or, if that pulls in too much:
 Then, from the repository root:
 
 ```sh
-po2lmo po/ru/filexplorer.po runtime/usr/lib/lua/luci/i18n/filexplorer.ru.lmo
+po2lmo po/ru/wrtcommander.po runtime/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo
 ```
 
 `lib/lmo.c` also contains a bison-generated plural-form evaluator that
@@ -152,12 +152,12 @@ implementations, which is what guarantees the browser will find them.
 
 ```sh
 mkdir -p po/<lang>
-cp po/templates/filexplorer.pot po/<lang>/filexplorer.po
+cp po/templates/wrtcommander.pot po/<lang>/wrtcommander.po
 # translate, set a correct Plural-Forms header for that language, then:
-po2lmo po/<lang>/filexplorer.po \
-    runtime/usr/lib/lua/luci/i18n/filexplorer.<lang>.lmo
-python3 po/verify-lmo.py po/<lang>/filexplorer.po \
-    runtime/usr/lib/lua/luci/i18n/filexplorer.<lang>.lmo
+po2lmo po/<lang>/wrtcommander.po \
+    runtime/usr/lib/lua/luci/i18n/wrtcommander.<lang>.lmo
+python3 po/verify-lmo.py po/<lang>/wrtcommander.po \
+    runtime/usr/lib/lua/luci/i18n/wrtcommander.<lang>.lmo
 ```
 
 Then add the new `.lmo` to `deploy/MANIFEST` so `install.sh` picks it up

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the full FileXplorer on-router test suite in order.
+# Runs the full Wrt Commander on-router test suite in order.
 # Run this ON the router, as root, after deploy/install.sh.
 #
 #   sh run-all.sh
@@ -25,11 +25,11 @@ run_stage() {
 	fi
 }
 
-echo "FileXplorer - full on-router test suite"
+echo "Wrt Commander - full on-router test suite"
 echo "Checking prerequisites..."
 command -v ubus >/dev/null 2>&1 || { echo "ERROR: ubus not found - run this on the router after install.sh" >&2; exit 1; }
-ubus list 2>/dev/null | grep -qx 'luci.filexplorer' || {
-	echo "ERROR: luci.filexplorer is not registered on ubus. Run deploy/install.sh (or restart.sh) first." >&2
+ubus list 2>/dev/null | grep -qx 'luci.wrtcommander' || {
+	echo "ERROR: luci.wrtcommander is not registered on ubus. Run deploy/install.sh (or restart.sh) first." >&2
 	exit 1
 }
 

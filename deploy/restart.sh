@@ -1,5 +1,5 @@
 #!/bin/sh
-# FileXplorer - restart.sh
+# Wrt Commander - restart.sh
 #
 # Reloads exactly what is needed to pick up updated files after a
 # re-copy during development: rpcd (ACL + ucode backend) and LuCI's
@@ -16,16 +16,16 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-UCODE_SRC="/usr/share/rpcd/ucode/filexplorer.uc"
+UCODE_SRC="/usr/share/rpcd/ucode/wrtcommander.uc"
 if command -v ucode >/dev/null 2>&1 && [ -f "$UCODE_SRC" ]; then
 	echo "Checking backend syntax..."
-	if ! ucode "$UCODE_SRC" >/tmp/filexplorer-ucode-check.log 2>&1; then
+	if ! ucode "$UCODE_SRC" >/tmp/wrtcommander-ucode-check.log 2>&1; then
 		echo "ERROR: $UCODE_SRC fails to parse, not reloading rpcd:" >&2
-		cat /tmp/filexplorer-ucode-check.log >&2
-		rm -f /tmp/filexplorer-ucode-check.log
+		cat /tmp/wrtcommander-ucode-check.log >&2
+		rm -f /tmp/wrtcommander-ucode-check.log
 		exit 1
 	fi
-	rm -f /tmp/filexplorer-ucode-check.log
+	rm -f /tmp/wrtcommander-ucode-check.log
 	echo "  OK"
 fi
 
@@ -41,10 +41,10 @@ else
 fi
 
 sleep 1
-if ubus list 2>/dev/null | grep -qx 'luci.filexplorer'; then
-	echo "luci.filexplorer is registered on ubus."
+if ubus list 2>/dev/null | grep -qx 'luci.wrtcommander'; then
+	echo "luci.wrtcommander is registered on ubus."
 else
-	echo "WARNING: luci.filexplorer is not registered. Check: logread | grep rpcd" >&2
+	echo "WARNING: luci.wrtcommander is not registered. Check: logread | grep rpcd" >&2
 fi
 
-echo "Done. Reload the FileXplorer page in your browser (hard-refresh if JS/CSS look stale)."
+echo "Done. Reload the Wrt Commander page in your browser (hard-refresh if JS/CSS look stale)."

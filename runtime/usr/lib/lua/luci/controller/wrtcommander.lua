@@ -1,10 +1,10 @@
 --[[
-FileXplorer - HTTP streaming controller
+Wrt Commander - HTTP streaming controller
 
 The JS view and every regular filesystem operation (list, stat, mkdir,
 rename, copy, move, delete, chmod, chown, search, disk_info, small
-file read/write) go through the "luci.filexplorer" ubus/rpcd object
-(see /usr/share/rpcd/ucode/filexplorer.uc).
+file read/write) go through the "luci.wrtcommander" ubus/rpcd object
+(see /usr/share/rpcd/ucode/wrtcommander.uc).
 
 Arbitrarily large file upload and download cannot reasonably go through
 ubus/JSON-RPC (no streaming, base64 overhead, message size limits), so
@@ -17,11 +17,11 @@ path validation pipeline used by the ucode backend (normalize -> resolve
 two in sync if the policy ever changes.
 --]]
 
-module("luci.controller.filexplorer", package.seeall)
+module("luci.controller.wrtcommander", package.seeall)
 
 function index()
-	entry({"admin", "services", "filexplorer", "upload"}, call("action_upload")).leaf = true
-	entry({"admin", "services", "filexplorer", "download"}, call("action_download")).leaf = true
+	entry({"admin", "services", "wrtcommander", "upload"}, call("action_upload")).leaf = true
+	entry({"admin", "services", "wrtcommander", "download"}, call("action_download")).leaf = true
 end
 
 -- ------------------------------------------------------------------
@@ -30,7 +30,7 @@ end
 
 local function get_allowed_root()
 	local uci = require "luci.model.uci".cursor()
-	local root = uci:get("filexplorer", "main", "allowed_root")
+	local root = uci:get("wrtcommander", "main", "allowed_root")
 	if not root or root == "" then
 		root = "/"
 	end
@@ -42,7 +42,7 @@ end
 
 local function fm_enabled()
 	local uci = require "luci.model.uci".cursor()
-	local v = uci:get("filexplorer", "main", "enabled")
+	local v = uci:get("wrtcommander", "main", "enabled")
 	return v == nil or v == "1"
 end
 
@@ -174,7 +174,7 @@ local function send_json_error(http, status, code, message)
 end
 
 -- ------------------------------------------------------------------
--- download: GET /admin/services/filexplorer/download?path=/etc/config/network
+-- download: GET /admin/services/wrtcommander/download?path=/etc/config/network
 -- ------------------------------------------------------------------
 
 function action_download()
@@ -182,9 +182,9 @@ function action_download()
 	local fs = require "nixio.fs"
 
 	if not fm_enabled() then
-		return send_json_error(http, 403, "EACCES", "FileXplorer is disabled")
+		return send_json_error(http, 403, "EACCES", "Wrt Commander is disabled")
 	end
-	if not session_has_access("luci.filexplorer", "list") then
+	if not session_has_access("luci.wrtcommander", "list") then
 		return send_json_error(http, 403, "EACCES", "Permission denied")
 	end
 
@@ -232,7 +232,7 @@ function action_download()
 end
 
 -- ------------------------------------------------------------------
--- upload: POST /admin/services/filexplorer/upload?dest=/etc/config&overwrite=0
+-- upload: POST /admin/services/wrtcommander/upload?dest=/etc/config&overwrite=0
 -- multipart/form-data body, file field(s) named "file"
 -- ------------------------------------------------------------------
 
@@ -241,9 +241,9 @@ function action_upload()
 	local fs = require "nixio.fs"
 
 	if not fm_enabled() then
-		return send_json_error(http, 403, "EACCES", "FileXplorer is disabled")
+		return send_json_error(http, 403, "EACCES", "Wrt Commander is disabled")
 	end
-	if not session_has_access("luci.filexplorer", "write") then
+	if not session_has_access("luci.wrtcommander", "write") then
 		return send_json_error(http, 403, "EACCES", "Permission denied")
 	end
 

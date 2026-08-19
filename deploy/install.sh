@@ -1,5 +1,5 @@
 #!/bin/sh
-# FileXplorer - install.sh
+# Wrt Commander - install.sh
 #
 # Copies the files listed in deploy/MANIFEST onto a running OpenWrt
 # router and reloads exactly the services needed to pick them up
@@ -9,7 +9,7 @@
 # Usage (run ON the router, as root):
 #   sh install.sh [--force-config]
 #
-# --force-config   also overwrite an existing /etc/config/filexplorer
+# --force-config   also overwrite an existing /etc/config/wrtcommander
 #                   (by default an existing config is left untouched)
 
 set -e
@@ -26,7 +26,7 @@ for arg in "$@"; do
 	esac
 done
 
-echo "== FileXplorer installer =="
+echo "== Wrt Commander installer =="
 
 if [ "$(id -u)" != "0" ]; then
 	echo "ERROR: this must be run as root on the router." >&2
@@ -62,14 +62,14 @@ if [ ! -f "$MANIFEST" ]; then
 fi
 
 echo "Validating ucode backend syntax..."
-UCODE_SRC="${RUNTIME_DIR}/usr/share/rpcd/ucode/filexplorer.uc"
-if ! ucode "$UCODE_SRC" >/tmp/filexplorer-ucode-check.log 2>&1; then
-	echo "ERROR: filexplorer.uc failed to parse - aborting before touching the live install:" >&2
-	cat /tmp/filexplorer-ucode-check.log >&2
-	rm -f /tmp/filexplorer-ucode-check.log
+UCODE_SRC="${RUNTIME_DIR}/usr/share/rpcd/ucode/wrtcommander.uc"
+if ! ucode "$UCODE_SRC" >/tmp/wrtcommander-ucode-check.log 2>&1; then
+	echo "ERROR: wrtcommander.uc failed to parse - aborting before touching the live install:" >&2
+	cat /tmp/wrtcommander-ucode-check.log >&2
+	rm -f /tmp/wrtcommander-ucode-check.log
 	exit 1
 fi
-rm -f /tmp/filexplorer-ucode-check.log
+rm -f /tmp/wrtcommander-ucode-check.log
 echo "  OK"
 
 echo "Installing files..."
@@ -81,7 +81,7 @@ while IFS= read -r line; do
 	dst=$(echo "$line" | awk '{print $2}')
 	[ -n "$src" ] && [ -n "$dst" ] || continue
 
-	if [ "$dst" = "/etc/config/filexplorer" ] && [ -f "$dst" ] && [ "$FORCE_CONFIG" != "1" ]; then
+	if [ "$dst" = "/etc/config/wrtcommander" ] && [ -f "$dst" ] && [ "$FORCE_CONFIG" != "1" ]; then
 		echo "  skip    $dst (already exists - keeping your configuration, use --force-config to overwrite)"
 		continue
 	fi
@@ -91,6 +91,43 @@ while IFS= read -r line; do
 	chmod 0644 "$dst"
 	echo "  install $dst"
 done < "$MANIFEST"
+
+# The app used to be called FileXplorer (luci-app-filexplorer). Those files
+# sit at different absolute paths, so installing the renamed version does
+# not replace them - it leaves a second copy of the app registered, with
+# its own ubus object, its own ACL scopes and its own entry under
+# Services. Remove them, once, by their exact paths: no wildcards, same
+# rule as uninstall.sh.
+OLD_FILES="/usr/share/rpcd/ucode/filexplorer.uc
+/usr/share/rpcd/acl.d/luci-app-filexplorer.json
+/usr/share/luci/menu.d/luci-app-filexplorer.json
+/usr/lib/lua/luci/controller/filexplorer.lua
+/usr/lib/lua/luci/i18n/filexplorer.ru.lmo
+/www/luci-static/resources/view/filexplorer.js
+/www/luci-static/resources/filexplorer/filexplorer.css"
+
+old_found=0
+for f in $OLD_FILES; do
+	if [ -e "$f" ]; then
+		if [ "$old_found" = 0 ]; then
+			echo "Removing the previous FileXplorer installation..."
+			old_found=1
+		fi
+		rm -f "$f"
+		echo "  removed $f"
+	fi
+done
+[ -d /www/luci-static/resources/filexplorer ] && \
+	rmdir /www/luci-static/resources/filexplorer 2>/dev/null || true
+
+# The old config is left in place deliberately - it holds the operator's
+# allowed_root and limits, and the new package reads the same option
+# names, so it can simply be copied across.
+if [ "$old_found" = 1 ] && [ -f /etc/config/filexplorer ] && [ ! -f /etc/config/wrtcommander ]; then
+	cp /etc/config/filexplorer /etc/config/wrtcommander
+	echo "  carried /etc/config/filexplorer over to /etc/config/wrtcommander"
+	echo "  (the old file is left alone; delete it once you are happy)"
+fi
 
 echo "Reloading rpcd and clearing the LuCI index cache..."
 rm -f /tmp/luci-indexcache* 2>/dev/null || true
@@ -103,15 +140,15 @@ fi
 
 sleep 1
 echo "Verifying the backend is registered on ubus..."
-if ubus list 2>/dev/null | grep -qx 'luci.filexplorer'; then
-	echo "  luci.filexplorer is registered."
+if ubus list 2>/dev/null | grep -qx 'luci.wrtcommander'; then
+	echo "  luci.wrtcommander is registered."
 else
-	echo "WARNING: luci.filexplorer was not found on ubus after reload." >&2
-	echo "         Try: /etc/init.d/rpcd restart ; ubus list | grep filexplorer" >&2
+	echo "WARNING: luci.wrtcommander was not found on ubus after reload." >&2
+	echo "         Try: /etc/init.d/rpcd restart ; ubus list | grep wrtcommander" >&2
 	echo "         Check: logread | grep rpcd" >&2
 fi
 
-if [ -f /usr/lib/lua/luci/i18n/filexplorer.ru.lmo ]; then
+if [ -f /usr/lib/lua/luci/i18n/wrtcommander.ru.lmo ]; then
 	echo "Russian translation installed."
 	echo "  LuCI shows it when its language is Russian or set to auto with a"
 	echo "  Russian browser: System -> System -> Language, or"
@@ -124,6 +161,6 @@ if [ -f /usr/lib/lua/luci/i18n/filexplorer.ru.lmo ]; then
 fi
 
 echo
-echo "FileXplorer installed successfully."
-echo "Open LuCI -> Services -> FileXplorer in your browser."
+echo "Wrt Commander installed successfully."
+echo "Open LuCI -> Services -> Wrt Commander in your browser."
 echo "(If the menu entry is missing, log out and back in, or hard-refresh the page.)"

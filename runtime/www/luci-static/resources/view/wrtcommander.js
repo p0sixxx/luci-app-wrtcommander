@@ -5,12 +5,12 @@
 'require dom';
 
 /* ==================================================================
- * FileXplorer - LuCI JS view (two-pane commander)
+ * Wrt Commander - LuCI JS view (two-pane commander)
  *
- * Talks to the "luci.filexplorer" ubus object for every filesystem
- * operation (see /usr/share/rpcd/ucode/filexplorer.uc) and to two
+ * Talks to the "luci.wrtcommander" ubus object for every filesystem
+ * operation (see /usr/share/rpcd/ucode/wrtcommander.uc) and to two
  * plain HTTP endpoints on the Lua controller for streaming upload
- * and download (see /usr/lib/lua/luci/controller/filexplorer.lua).
+ * and download (see /usr/lib/lua/luci/controller/wrtcommander.lua).
  *
  * The backend is the sole security boundary: every call below is a
  * convenience for the user, never the reason an operation is allowed.
@@ -20,23 +20,23 @@
  * translated from po/*.po (see po/README.md).
  * ================================================================ */
 
-var callList = rpc.declare({ object: 'luci.filexplorer', method: 'list', params: ['path', 'show_hidden'] });
-var callStat = rpc.declare({ object: 'luci.filexplorer', method: 'stat', params: ['path'] });
-var callRead = rpc.declare({ object: 'luci.filexplorer', method: 'read', params: ['path', 'mode'] });
-var callWrite = rpc.declare({ object: 'luci.filexplorer', method: 'write', params: ['path', 'data', 'encoding', 'expected_mtime', 'expected_size', 'force'] });
-var callMkdir = rpc.declare({ object: 'luci.filexplorer', method: 'mkdir', params: ['path'] });
-var callCreate = rpc.declare({ object: 'luci.filexplorer', method: 'create', params: ['path'] });
-var callRename = rpc.declare({ object: 'luci.filexplorer', method: 'rename', params: ['path', 'name'] });
-var callRemove = rpc.declare({ object: 'luci.filexplorer', method: 'remove', params: ['paths'] });
-var callCopy = rpc.declare({ object: 'luci.filexplorer', method: 'copy', params: ['items', 'destination', 'overwrite'] });
-var callMove = rpc.declare({ object: 'luci.filexplorer', method: 'move', params: ['items', 'destination', 'overwrite'] });
-var callChmod = rpc.declare({ object: 'luci.filexplorer', method: 'chmod', params: ['path', 'mode'] });
-var callChown = rpc.declare({ object: 'luci.filexplorer', method: 'chown', params: ['path', 'uid', 'gid'] });
-var callSearch = rpc.declare({ object: 'luci.filexplorer', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
-var callDiskInfo = rpc.declare({ object: 'luci.filexplorer', method: 'disk_info', params: ['path'] });
-var callDirSize = rpc.declare({ object: 'luci.filexplorer', method: 'dirsize', params: ['path'] });
+var callList = rpc.declare({ object: 'luci.wrtcommander', method: 'list', params: ['path', 'show_hidden'] });
+var callStat = rpc.declare({ object: 'luci.wrtcommander', method: 'stat', params: ['path'] });
+var callRead = rpc.declare({ object: 'luci.wrtcommander', method: 'read', params: ['path', 'mode'] });
+var callWrite = rpc.declare({ object: 'luci.wrtcommander', method: 'write', params: ['path', 'data', 'encoding', 'expected_mtime', 'expected_size', 'force'] });
+var callMkdir = rpc.declare({ object: 'luci.wrtcommander', method: 'mkdir', params: ['path'] });
+var callCreate = rpc.declare({ object: 'luci.wrtcommander', method: 'create', params: ['path'] });
+var callRename = rpc.declare({ object: 'luci.wrtcommander', method: 'rename', params: ['path', 'name'] });
+var callRemove = rpc.declare({ object: 'luci.wrtcommander', method: 'remove', params: ['paths'] });
+var callCopy = rpc.declare({ object: 'luci.wrtcommander', method: 'copy', params: ['items', 'destination', 'overwrite'] });
+var callMove = rpc.declare({ object: 'luci.wrtcommander', method: 'move', params: ['items', 'destination', 'overwrite'] });
+var callChmod = rpc.declare({ object: 'luci.wrtcommander', method: 'chmod', params: ['path', 'mode'] });
+var callChown = rpc.declare({ object: 'luci.wrtcommander', method: 'chown', params: ['path', 'uid', 'gid'] });
+var callSearch = rpc.declare({ object: 'luci.wrtcommander', method: 'search', params: ['path', 'query', 'recursive', 'max_results'] });
+var callDiskInfo = rpc.declare({ object: 'luci.wrtcommander', method: 'disk_info', params: ['path'] });
+var callDirSize = rpc.declare({ object: 'luci.wrtcommander', method: 'dirsize', params: ['path'] });
 
-var LS_PREFIX = 'filexplorer.';
+var LS_PREFIX = 'wrtcommander.';
 
 /* ------------------------------------------------------------------
  * small utilities
@@ -144,7 +144,7 @@ function typeLabel(cls) {
 		case 'device': return _('Device');
 		case 'fifo': return _('FIFO');
 		case 'socket': return _('Socket');
-		case 'image': return _('Image', 'filexplorer');
+		case 'image': return _('Image', 'wrtcommander');
 		case 'archive': return _('Archive');
 		case 'text': return _('Text');
 		default: return _('Binary');
@@ -475,12 +475,12 @@ return view.extend({
 	handleReset: null,
 
 	injectCss: function () {
-		if (document.getElementById('filexplorer-css'))
+		if (document.getElementById('wrtcommander-css'))
 			return;
 		document.head.appendChild(E('link', {
-			id: 'filexplorer-css',
+			id: 'wrtcommander-css',
 			rel: 'stylesheet',
-			href: L.resource('filexplorer/filexplorer.css')
+			href: L.resource('wrtcommander/wrtcommander.css')
 		}));
 	},
 
@@ -620,11 +620,11 @@ return view.extend({
 		dom.content(this.headerNode, [
 			/* same string as the menu entry, so the page is titled the
 			   way the user got here */
-			E('h2', { class: 'fx-title' }, _('FileXplorer')),
+			E('h2', { class: 'fx-title' }, _('Wrt Commander')),
 			sep(),
 
 			act('\ud83d\udc41\ufe0f', 'F3', _('View'), function () { self.actF3(); }),
-			act('\ud83d\udcdd', 'F4', _('Edit', 'filexplorer'), function () { self.actF4(); }),
+			act('\ud83d\udcdd', 'F4', _('Edit', 'wrtcommander'), function () { self.actF4(); }),
 			act('\ud83d\udccb', 'F5', _('Copy'), function () { self.actF5(); }),
 			act('\u27a1\ufe0f', 'F6', _('Move'), function () { self.actF6(); }),
 			act('\ud83d\udcc2', 'F7', _('New folder'), function () { self.actF7(); }),
@@ -941,7 +941,7 @@ return view.extend({
 				/* short label on purpose: this column shows the mode string
 				   (-rw-r--r--), and the full word does not fit a half-width
 				   panel once translated */
-				sortHeader(_('Mode', 'filexplorer'), 'mode_octal', 'fx-c-perm', 'perm')
+				sortHeader(_('Mode', 'wrtcommander'), 'mode_octal', 'fx-c-perm', 'perm')
 			])
 		];
 
@@ -953,7 +953,7 @@ return view.extend({
 			}, [
 				E('div', { class: 'fx-cell fx-c-mark' }, ''),
 				E('div', { class: 'fx-cell fx-c-name' }, '↑ ..'),
-				E('div', { class: 'fx-cell fx-c-size' }, _('up', 'filexplorer')),
+				E('div', { class: 'fx-cell fx-c-size' }, _('up', 'wrtcommander')),
 				E('div', { class: 'fx-cell fx-c-time' }, ''),
 				E('div', { class: 'fx-cell fx-c-perm' }, '')
 			]));
@@ -1020,7 +1020,7 @@ return view.extend({
 
 		var mark = E('span', {
 			class: 'fx-mark' + (isSel ? ' fx-mark-on' : ''),
-			title: _('Select', 'filexplorer'),
+			title: _('Select', 'wrtcommander'),
 			click: function (ev) {
 				ev.stopPropagation();
 				self.setActive(id);
@@ -1271,7 +1271,7 @@ return view.extend({
 			items.push([_('Open'), 'Enter', function () { self.openEntry(id, one); }]);
 			if (!isDir) {
 				items.push([_('View'), 'F3', function () { self.previewEntry(one); }]);
-				items.push([_('Edit', 'filexplorer'), 'F4', function () { self.editEntry(one); }]);
+				items.push([_('Edit', 'wrtcommander'), 'F4', function () { self.editEntry(one); }]);
 				items.push([_('Download'), '', function () { self.downloadEntry(one); }]);
 			}
 			items.push(SEP);
@@ -1299,7 +1299,7 @@ return view.extend({
 		}
 
 		if (entry) {
-			items.push([p.selected[entry.path] ? _('Unselect') : _('Select', 'filexplorer'), 'Space',
+			items.push([p.selected[entry.path] ? _('Unselect') : _('Select', 'wrtcommander'), 'Space',
 				function () {
 					self.toggleSelect(id, entry);
 					self.renderBody(id); self.renderFoot(id); self.renderHeader();
@@ -1307,7 +1307,7 @@ return view.extend({
 		}
 		items.push([_('Select all'), 'Ctrl+A', function () { self.selectAll(id); }]);
 		if (sel.length)
-			items.push([_('Clear selection', 'filexplorer'), '', function () { self.clearSelection(id); }]);
+			items.push([_('Clear selection', 'wrtcommander'), '', function () { self.clearSelection(id); }]);
 		items.push(SEP);
 
 		items.push([_('New file'), '', function () { self.setActive(id); self.newFile(); }]);
@@ -1840,7 +1840,7 @@ return view.extend({
 				E('div', { class: 'right fx-modal-actions' }, [
 					E('button', { class: 'btn', click: function () { self.downloadEntry(entry); } }, _('Download')),
 					' ',
-					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit', 'filexplorer')),
+					E('button', { class: 'btn cbi-button-action', click: function () { ui.hideModal(); self.editEntry(entry); } }, _('Edit', 'wrtcommander')),
 					' ',
 					E('button', { class: 'btn', click: ui.hideModal }, _('Close'))
 				])
@@ -1988,7 +1988,7 @@ return view.extend({
 	/* ------------------------------------------------------ download */
 
 	downloadUrl: function (path) {
-		return L.url('admin', 'services', 'filexplorer', 'download') + '?path=' + encodeURIComponent(path);
+		return L.url('admin', 'services', 'wrtcommander', 'download') + '?path=' + encodeURIComponent(path);
 	},
 
 	downloadEntry: function (entry) {
@@ -2040,7 +2040,7 @@ return view.extend({
 			var fd = new FormData();
 			fd.append('file', file, file.name);
 			xhr = new XMLHttpRequest();
-			xhr.open('POST', L.url('admin', 'services', 'filexplorer', 'upload') +
+			xhr.open('POST', L.url('admin', 'services', 'wrtcommander', 'upload') +
 				'?dest=' + encodeURIComponent(dest) + '&overwrite=' + (overwrite ? '1' : '0'));
 			xhr.upload.addEventListener('progress', function (ev) {
 				if (ev.lengthComputable)
@@ -2222,7 +2222,7 @@ return view.extend({
 								for (var k in COLUMNS)
 									self.resetColumnWidth(k);
 							}
-						}, _('Reset', 'filexplorer'))
+						}, _('Reset', 'wrtcommander'))
 					])
 				]),
 				group(_('Editor'), [
@@ -2269,7 +2269,7 @@ return view.extend({
 		group(_('File actions'));
 		row(['F2'], _('Rename'));
 		row(['F3'], _('View'));
-		row(['F4'], _('Edit', 'filexplorer'));
+		row(['F4'], _('Edit', 'wrtcommander'));
 		row(['F5'], _('Copy'));
 		row(['F6'], _('Move'));
 		row(['F7'], _('New folder'));

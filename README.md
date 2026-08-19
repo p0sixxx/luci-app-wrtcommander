@@ -1,8 +1,8 @@
-# FileXplorer
+# Wrt Commander
 
-**Русский** · [English](#filexplorer-english)
+**Русский** · [English](#wrt-commander-english)
 
-**Пакет:** `luci-app-filexplorer` — в LuCI отображается как **FileXplorer**.
+**Пакет:** `luci-app-wrtcommander` — в LuCI отображается как **Wrt Commander**.
 
 Полноценный файловый менеджер для LuCI на OpenWrt, рассчитанный на
 администратора. **Это runtime-редакция для разработки**, описанная в
@@ -20,7 +20,7 @@ Norton / Midnight / Total Commander: две независимые панели 
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ FileXplorer   F3 Просмотр  F4 Правка  F5 Копир.  F6 Перем.   │
+│ Wrt Commander   F3 Просмотр  F4 Правка  F5 Копир.  F6 Перем.   │
 ├───────────────────────────────┬──────────────────────────────┤
 │ /etc/config                   │ /tmp                         │
 ├───────────────────────────────┼──────────────────────────────┤
@@ -82,16 +82,16 @@ Norton / Midnight / Total Commander: две независимые панели 
 ## Архитектура
 
 ```
-Представление LuCI JS (www/luci-static/resources/view/filexplorer.js)
+Представление LuCI JS (www/luci-static/resources/view/wrtcommander.js)
         |
-        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/filexplorer.uc
-        |     (list, stat, read, write,        ubus-объект "luci.filexplorer"
+        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/wrtcommander.uc
+        |     (list, stat, read, write,        ubus-объект "luci.wrtcommander"
         |      mkdir, create, rename,           - каждый метод проходит через
         |      remove, copy, move, chmod,         canon() прежде, чем тронуть
         |      chown, search, disk_info,          файловую систему (см. ниже)
         |      dirsize)
         |
-        `-- обычный HTTP  ---------------->  usr/lib/lua/luci/controller/filexplorer.lua
+        `-- обычный HTTP  ---------------->  usr/lib/lua/luci/controller/wrtcommander.lua
               (GET .../download?path=...        только потоковая передача -
                POST .../upload?dest=...)         сколь угодно большие файлы
                                                   никогда не идут через JSON/ubus
@@ -107,9 +107,9 @@ Norton / Midnight / Total Commander: две независимые панели 
 будущих правок, см. в **Известных ограничениях**.
 
 > **Перенос пункта меню переносит и эти эндпоинты.** Приложение живёт по
-> адресу `admin/services/filexplorer`, а URL загрузки/скачивания —
-> `admin/services/filexplorer/upload` и `…/download`. Этот путь прописан
-> в четырёх местах: `menu.d/luci-app-filexplorer.json`, вызовы `entry()`
+> адресу `admin/services/wrtcommander`, а URL загрузки/скачивания —
+> `admin/services/wrtcommander/upload` и `…/download`. Этот путь прописан
+> в четырёх местах: `menu.d/luci-app-wrtcommander.json`, вызовы `entry()`
 > в Lua-контроллере, вызовы `L.url(…)` в JS-представлении и два
 > тестовых HTTP-скрипта. Поменяете одно — передача файлов молча
 > сломается (интерфейс продолжит работать, загрузка просто получит 404),
@@ -157,11 +157,11 @@ README.md   этот файл
 
 ```sh
 # с рабочей машины
-scp -r runtime deploy root@ROUTER:/tmp/filexplorer/
+scp -r runtime deploy root@ROUTER:/tmp/wrtcommander/
 ssh root@ROUTER
 
 # на роутере
-cd /tmp/filexplorer/deploy
+cd /tmp/wrtcommander/deploy
 sh install.sh
 ```
 
@@ -171,20 +171,20 @@ sh install.sh
 2. проверяет, что это действительно система OpenWrt с `ubus`, `rpcd`,
    `ucode` и LuCI, и предупреждает (но не прерывается), если нет
    `luci-lua-runtime`
-3. разбирает ucode-бэкенд командой `ucode filexplorer.uc` и прерывается
+3. разбирает ucode-бэкенд командой `ucode wrtcommander.uc` и прерывается
    *до того, как тронет рабочую установку*, если разбор не удался
 4. копирует каждый файл из `deploy/MANIFEST` по его абсолютному пути,
-   не трогая существующий `/etc/config/filexplorer`, если не передать
+   не трогая существующий `/etc/config/wrtcommander`, если не передать
    `--force-config`
 5. перезагружает `rpcd` (подхватывает новый ACL-файл и ucode-плагин) и
    чистит кэш индекса диспетчера LuCI
-6. проверяет, что `luci.filexplorer` действительно зарегистрирован в
+6. проверяет, что `luci.wrtcommander` действительно зарегистрирован в
    `ubus list`, и внятно сообщает, если это не так
 
 Скрипт намеренно никогда не перезапускает `uhttpd` — статика и
 Lua-контроллер подхватываются на следующем запросе без перезапуска.
 
-Откройте **LuCI → Службы → FileXplorer**.
+Откройте **LuCI → Службы → Wrt Commander**.
 
 ### Повторное развёртывание после правок
 
@@ -192,7 +192,7 @@ Lua-контроллер подхватываются на следующем з
 затем:
 
 ```sh
-sh /tmp/filexplorer/deploy/restart.sh
+sh /tmp/wrtcommander/deploy/restart.sh
 ```
 
 Скрипт заново проверяет синтаксис ucode, перезагружает `rpcd` и чистит
@@ -201,8 +201,8 @@ sh /tmp/filexplorer/deploy/restart.sh
 ### Удаление
 
 ```sh
-sh /tmp/filexplorer/deploy/uninstall.sh          # конфиг остаётся
-sh /tmp/filexplorer/deploy/uninstall.sh --purge   # удаляет и его
+sh /tmp/wrtcommander/deploy/uninstall.sh          # конфиг остаётся
+sh /tmp/wrtcommander/deploy/uninstall.sh --purge   # удаляет и его
 ```
 
 `uninstall.sh` трогает только те точные абсолютные пути, что перечислены
@@ -213,11 +213,11 @@ sh /tmp/filexplorer/deploy/uninstall.sh --purge   # удаляет и его
 ## Тестирование
 
 ```sh
-cd /tmp/filexplorer/tests
+cd /tmp/wrtcommander/tests
 sh run-all.sh
 ```
 
-Скрипт строит одноразовое тестовое дерево в `/tmp/filexplorer-test/`
+Скрипт строит одноразовое тестовое дерево в `/tmp/wrtcommander-test/`
 (имена в Unicode, пробелы, скрытые файлы, большой файл, симлинки, в том
 числе намеренно битый) и запускает по порядку:
 
@@ -257,7 +257,7 @@ C-строки, протолкнуть NUL через CLI попросту не�
 отказано» для привилегированного инструмента такого рода — это
 файловая система только для чтения, то есть `/rom`).
 
-## API бэкенда (ubus-объект `luci.filexplorer`)
+## API бэкенда (ubus-объект `luci.wrtcommander`)
 
 | Метод | Назначение |
 |---|---|
@@ -282,15 +282,15 @@ C-строки, протолкнуть NUL через CLI попросту не�
 
 ## ACL
 
-`usr/share/rpcd/acl.d/luci-app-filexplorer.json` определяет отдельные
-области — `luci-app-filexplorer-read`, `-write`, `-delete`, `-chmod`,
-`-chown` — плюс `luci-app-filexplorer`, который нужен пункту меню и
+`usr/share/rpcd/acl.d/luci-app-wrtcommander.json` определяет отдельные
+области — `luci-app-wrtcommander-read`, `-write`, `-delete`, `-chmod`,
+`-chown` — плюс `luci-app-wrtcommander`, который нужен пункту меню и
 сессии администратора с полным доступом. Сессии root/admin в LuCI
 получают все области автоматически (штатный вход `root` в OpenWrt даёт
 `read '*'` / `write '*'`); ограниченный пользователь LuCI получает
 только то, что вы явно назначили в `/etc/config/rpcd`. Загрузка и
 скачивание проверяются в самом Lua-контроллере — он спрашивает у rpcd,
-есть ли у текущей сессии доступ `ubus`/`luci.filexplorer`/`list`
+есть ли у текущей сессии доступ `ubus`/`luci.wrtcommander`/`list`
 (чтение) или `write`, прежде чем тронуть файловую систему, — а не
 прятанием кнопки.
 
@@ -318,8 +318,8 @@ canon()                 ЕДИНСТВЕННЫЙ слой проверки пу�
 системный вызов POSIX    (модуль fs в ucode / io+nixio в Lua — никогда шелл)
 ```
 
-Ни один метод в `filexplorer.uc`, влияющий на файловую систему, и ни одно
-HTTP-действие в `filexplorer.lua` не трогают путь, который не пришёл из
+Ни один метод в `wrtcommander.uc`, влияющий на файловую систему, и ни одно
+HTTP-действие в `wrtcommander.lua` не трогают путь, который не пришёл из
 этой функции. Конкретно вот что покрыто в `security-tests.sh`:
 
 - `../`, `../../`, глубокий обход `../../../`
@@ -349,10 +349,10 @@ HTTP-действие в `filexplorer.lua` не трогают путь, кот�
 использует `df`, а не рекурсивный `du`; листинг каталога никогда не
 считает рекурсивный размер папок.
 
-## Настройки (`/etc/config/filexplorer`)
+## Настройки (`/etc/config/wrtcommander`)
 
 ```
-config filexplorer 'main'
+config wrtcommander 'main'
 	option enabled '1'
 	option allowed_root '/'
 	option show_hidden '1'
@@ -374,10 +374,10 @@ config filexplorer 'main'
 ### Режим отладки
 
 ```sh
-uci set filexplorer.main.debug='1'
-uci commit filexplorer
+uci set wrtcommander.main.debug='1'
+uci commit wrtcommander
 sh deploy/restart.sh
-tail -f /tmp/filexplorer-debug.log
+tail -f /tmp/wrtcommander-debug.log
 ```
 
 Каждая строка фиксирует метод, путь, длительность и успех/неудачу —
@@ -385,10 +385,10 @@ tail -f /tmp/filexplorer-debug.log
 
 ## Заметки по интерфейсу
 
-Представление на JS (`filexplorer.js`) использует только собственный
+Представление на JS (`wrtcommander.js`) использует только собственный
 фреймворк LuCI (`ui`, `dom`, `rpc`, `E()`), Unicode-глифы в качестве
 иконок плюс одну нарисованную пару inline-SVG (никаких иконочных
-библиотек) и сопутствующую таблицу стилей (`filexplorer.css`).
+библиотек) и сопутствующую таблицу стилей (`wrtcommander.css`).
 
 Раскладка сверху вниз: одна строка шапки, затем две панели.
 
@@ -673,18 +673,18 @@ uci commit luci
 `Accept-Language` браузера.
 
 Скомпилированный каталог устанавливается в
-`/usr/lib/lua/luci/i18n/filexplorer.ru.lmo`. Учтите, что он переводит
-*FileXplorer*; чтобы окружающий интерфейс LuCI тоже был русским, нужен
+`/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo`. Учтите, что он переводит
+*Wrt Commander*; чтобы окружающий интерфейс LuCI тоже был русским, нужен
 собственный каталог LuCI (`luci-i18n-base-ru`) — `install.sh`
 предупреждает, если его нет.
 
 **Пункт меню тоже проходит через каталог**, хотя и разрешается в
-«FileXplorer» на любом языке: имя продукта — это имя, а не описание,
+«Wrt Commander» на любом языке: имя продукта — это имя, а не описание,
 поэтому оно не переводится. Заголовки меню используют тот же каталог,
 что и всё остальное (апстримные приложения указывают `menu.d/…json`
 источником msgid своего заголовка), поэтому строка лежит в `po/` рядом с
 прочими, и `po/extract.py` подхватывает её из
-`menu.d/luci-app-filexplorer.json` автоматически.
+`menu.d/luci-app-wrtcommander.json` автоматически.
 
 Исходники, инструменты и инструкция по добавлению языка — в
 [`po/README.md`](po/README.md). Русский использует правильные три формы
@@ -739,7 +739,7 @@ uci commit luci
    который писался ровно с расчётом на такое повторное использование).
 2. Объявить настоящие `DEPENDS` (`rpcd`, `rpcd-mod-ucode`, `ucode`,
    `uhttpd`, `luci-base`, `luci-lua-runtime`).
-3. Перенести `/etc/config/filexplorer` под `define Package/conffiles`,
+3. Перенести `/etc/config/wrtcommander` под `define Package/conffiles`,
    чтобы opkg считал его пользовательской конфигурацией при обновлениях.
 4. Добавить скрипты `postinst`/`prerm`, делающие то же, что уже делают
    `install.sh`/`uninstall.sh` (перезагрузка `rpcd`, очистка кэша
@@ -747,7 +747,7 @@ uci commit luci
 5. Убрать закоммиченный `.lmo` и дать сборке производить его: подключение
    `$(TOPDIR)/feeds/luci/luci.mk` заставляет `luci.mk` компилировать
    `po/<lang>/*.po` и автоматически выпускать подпакеты
-   `luci-i18n-filexplorer-<lang>`, что и есть обычный способ поставки
+   `luci-i18n-wrtcommander-<lang>`, что и есть обычный способ поставки
    переводов. Раскладка `po/` здесь уже соответствует ожиданиям
    `luci.mk`, так что этот шаг должен быть удалением, а не переписыванием.
 6. Собрать и протестировать `.ipk` с помощью OpenWrt SDK, затем прогнать
@@ -756,11 +756,11 @@ uci commit luci
 
 ---
 
-# FileXplorer (English)
+# Wrt Commander (English)
 
-[Русский](#filexplorer) · **English**
+[Русский](#wrt-commander) · **English**
 
-**Package:** `luci-app-filexplorer` — displayed in LuCI as **FileXplorer**.
+**Package:** `luci-app-wrtcommander` — displayed in LuCI as **Wrt Commander**.
 
 A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
 runtime/development edition** described in the project brief: a
@@ -778,7 +778,7 @@ other one".
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ FileXplorer   F3 View  F4 Edit  F5 Copy  F6 Move  F7 New dir │
+│ Wrt Commander   F3 View  F4 Edit  F5 Copy  F6 Move  F7 New dir │
 ├───────────────────────────────┬──────────────────────────────┤
 │ /etc/config                   │ /tmp                         │
 ├───────────────────────────────┼──────────────────────────────┤
@@ -836,16 +836,16 @@ except `ucode`/`rpcd-mod-ucode` if your image is unusually minimal.
 ## Architecture
 
 ```
-LuCI JS view (www/luci-static/resources/view/filexplorer.js)
+LuCI JS view (www/luci-static/resources/view/wrtcommander.js)
         |
-        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/filexplorer.uc
-        |     (list, stat, read, write,        "luci.filexplorer" ubus object
+        |-- ubus/rpcd  ------------------->  usr/share/rpcd/ucode/wrtcommander.uc
+        |     (list, stat, read, write,        "luci.wrtcommander" ubus object
         |      mkdir, create, rename,           - every method funnels through
         |      remove, copy, move, chmod,         canon() before touching the
         |      chown, search, disk_info,          filesystem (see below)
         |      dirsize)
         |
-        `-- plain HTTP  ------------------->  usr/lib/lua/luci/controller/filexplorer.lua
+        `-- plain HTTP  ------------------->  usr/lib/lua/luci/controller/wrtcommander.lua
               (GET .../download?path=...        streamed upload/download only -
                POST .../upload?dest=...)         arbitrarily large files never
                                                   go through JSON/ubus
@@ -861,9 +861,9 @@ see **Known limitations** for why this one piece of logic exists
 twice, and what that implies for future changes.
 
 > **Moving the menu entry moves those endpoints too.** The app lives at
-> `admin/services/filexplorer`, and the upload/download URLs are
-> `admin/services/filexplorer/upload` and `…/download`. That path is
-> spelled out in four places - `menu.d/luci-app-filexplorer.json`, the
+> `admin/services/wrtcommander`, and the upload/download URLs are
+> `admin/services/wrtcommander/upload` and `…/download`. That path is
+> spelled out in four places - `menu.d/luci-app-wrtcommander.json`, the
 > `entry()` calls in the Lua controller, the `L.url(…)` calls in the JS
 > view, and the two HTTP test scripts. Change one and the file transfers
 > break silently (the UI keeps working, uploads just 404), so change all
@@ -910,11 +910,11 @@ README.md   this file
 
 ```sh
 # from your workstation
-scp -r runtime deploy root@ROUTER:/tmp/filexplorer/
+scp -r runtime deploy root@ROUTER:/tmp/wrtcommander/
 ssh root@ROUTER
 
 # on the router
-cd /tmp/filexplorer/deploy
+cd /tmp/wrtcommander/deploy
 sh install.sh
 ```
 
@@ -924,27 +924,27 @@ sh install.sh
 2. checks this is actually an OpenWrt system with `ubus`, `rpcd`,
    `ucode` and LuCI present, and warns (but doesn't abort) if
    `luci-lua-runtime` is missing
-3. parses the ucode backend with `ucode filexplorer.uc` and aborts
+3. parses the ucode backend with `ucode wrtcommander.uc` and aborts
    *before touching the live install* if it fails to parse
 4. copies every file listed in `deploy/MANIFEST` to its absolute
-   destination, leaving an existing `/etc/config/filexplorer` alone
+   destination, leaving an existing `/etc/config/wrtcommander` alone
    unless you pass `--force-config`
 5. reloads `rpcd` (picks up the new ACL file and ucode plugin) and
    clears LuCI's dispatch index cache
-6. verifies `luci.filexplorer` is actually registered on `ubus list`
+6. verifies `luci.wrtcommander` is actually registered on `ubus list`
    and reports clearly if it isn't
 
 It deliberately never restarts `uhttpd` - static files and the Lua
 controller are picked up on the next request with no restart needed.
 
-Open **LuCI -> Services -> FileXplorer**.
+Open **LuCI -> Services -> Wrt Commander**.
 
 ### Re-deploying after a change
 
 Edit files under `runtime/`, `scp` the changed one(s) over, then:
 
 ```sh
-sh /tmp/filexplorer/deploy/restart.sh
+sh /tmp/wrtcommander/deploy/restart.sh
 ```
 
 This re-validates the ucode syntax, reloads `rpcd`, and clears the
@@ -953,8 +953,8 @@ index cache - the fast inner loop for iterating on the app.
 ### Uninstalling
 
 ```sh
-sh /tmp/filexplorer/deploy/uninstall.sh          # keeps your config
-sh /tmp/filexplorer/deploy/uninstall.sh --purge   # also removes it
+sh /tmp/wrtcommander/deploy/uninstall.sh          # keeps your config
+sh /tmp/wrtcommander/deploy/uninstall.sh --purge   # also removes it
 ```
 
 `uninstall.sh` only ever touches the exact absolute paths listed in
@@ -965,11 +965,11 @@ OpenWrt files by construction.
 ## Testing
 
 ```sh
-cd /tmp/filexplorer/tests
+cd /tmp/wrtcommander/tests
 sh run-all.sh
 ```
 
-This builds a disposable test tree at `/tmp/filexplorer-test/`
+This builds a disposable test tree at `/tmp/wrtcommander-test/`
 (Unicode names, spaces, hidden files, a large file, symlinks including
 a deliberately broken one) and runs, in order:
 
@@ -1009,7 +1009,7 @@ definition - the read-only-filesystem case against `/rom` is the
 realistic "write denied" scenario for a privileged whole-filesystem
 tool like this one).
 
-## Backend API (`luci.filexplorer` ubus object)
+## Backend API (`luci.wrtcommander` ubus object)
 
 | Method | Purpose |
 |---|---|
@@ -1034,15 +1034,15 @@ partially succeed.
 
 ## ACL
 
-`usr/share/rpcd/acl.d/luci-app-filexplorer.json` defines separate
-scopes - `luci-app-filexplorer-read`, `-write`, `-delete`, `-chmod`,
-`-chown` - plus `luci-app-filexplorer`, which is what the menu entry
+`usr/share/rpcd/acl.d/luci-app-wrtcommander.json` defines separate
+scopes - `luci-app-wrtcommander-read`, `-write`, `-delete`, `-chmod`,
+`-chown` - plus `luci-app-wrtcommander`, which is what the menu entry
 and a full-access admin session need. Root/admin LuCI sessions get
 every scope automatically (stock OpenWrt's default `root` login grants
 `read '*'` / `write '*'`); a restricted, non-root LuCI user only gets
 what you explicitly assign in `/etc/config/rpcd`. Upload and download
 are gated in the Lua controller itself, by asking rpcd whether the
-current session has `ubus`/`luci.filexplorer`/`list` (read) or `write`
+current session has `ubus`/`luci.wrtcommander`/`list` (read) or `write`
 access before touching the filesystem - never by hiding the button.
 
 ## Security model
@@ -1068,8 +1068,8 @@ canon()                 the ONE path validation layer:
 POSIX filesystem call    (ucode fs module / Lua io+nixio - never a shell)
 ```
 
-No filesystem-affecting method in `filexplorer.uc`, and no HTTP action
-in `filexplorer.lua`, touches a path it did not get back from this
+No filesystem-affecting method in `wrtcommander.uc`, and no HTTP action
+in `wrtcommander.lua`, touches a path it did not get back from this
 function. Concretely, this is what's covered by `security-tests.sh`:
 
 - `../`, `../../`, deep `../../../` traversal
@@ -1097,10 +1097,10 @@ producing a corrupt or misleading copy; `disk_info` uses `df`, never a
 recursive `du`; directory listings never compute recursive directory
 size.
 
-## Configuration (`/etc/config/filexplorer`)
+## Configuration (`/etc/config/wrtcommander`)
 
 ```
-config filexplorer 'main'
+config wrtcommander 'main'
 	option enabled '1'
 	option allowed_root '/'
 	option show_hidden '1'
@@ -1122,10 +1122,10 @@ only reflects whatever `list`/`stat` tell it.
 ### Debug mode
 
 ```sh
-uci set filexplorer.main.debug='1'
-uci commit filexplorer
+uci set wrtcommander.main.debug='1'
+uci commit wrtcommander
 sh deploy/restart.sh
-tail -f /tmp/filexplorer-debug.log
+tail -f /tmp/wrtcommander-debug.log
 ```
 
 Each line records method, path, duration and success/failure -
@@ -1133,10 +1133,10 @@ Each line records method, path, duration and success/failure -
 
 ## UI notes
 
-The JS view (`filexplorer.js`) uses only LuCI's own framework (`ui`,
+The JS view (`wrtcommander.js`) uses only LuCI's own framework (`ui`,
 `dom`, `rpc`, `E()`), Unicode glyphs for icons plus one drawn pair of
 inline SVG paths (no icon library), and a companion stylesheet
-(`filexplorer.css`).
+(`wrtcommander.css`).
 
 Layout, top to bottom: a single header row, then the two panels.
 
@@ -1416,17 +1416,17 @@ or **System → System → Language**. With `lang=auto` LuCI follows the
 browser's `Accept-Language`.
 
 The compiled catalog installs to
-`/usr/lib/lua/luci/i18n/filexplorer.ru.lmo`. Note that this translates
-*FileXplorer*; for the surrounding LuCI chrome to be Russian too you
+`/usr/lib/lua/luci/i18n/wrtcommander.ru.lmo`. Note that this translates
+*Wrt Commander*; for the surrounding LuCI chrome to be Russian too you
 need LuCI's own catalog (`luci-i18n-base-ru`) — `install.sh` warns if
 it is missing.
 
 The **menu entry goes through the catalog too**, though it resolves to
-"FileXplorer" in every language: the product name is a name, not a
+"Wrt Commander" in every language: the product name is a name, not a
 description, so it is not translated. Menu titles use the same catalog as
 everything else (upstream apps list `menu.d/…json` as a source for their
 title msgid), so the string lives in `po/` next to the rest and
-`po/extract.py` picks it up from `menu.d/luci-app-filexplorer.json`
+`po/extract.py` picks it up from `menu.d/luci-app-wrtcommander.json`
 automatically.
 
 Sources, tooling and instructions for adding a language live in
@@ -1481,14 +1481,14 @@ Sources, tooling and instructions for adding a language live in
    with exactly this reuse in mind).
 2. Declare real `DEPENDS` (`rpcd`, `rpcd-mod-ucode`, `ucode`, `uhttpd`,
    `luci-base`, `luci-lua-runtime`).
-3. Move `/etc/config/filexplorer` under `define Package/conffiles` so
+3. Move `/etc/config/wrtcommander` under `define Package/conffiles` so
    opkg treats it as user configuration across upgrades.
 4. Add `postinst`/`prerm` scripts that do what `install.sh`/
    `uninstall.sh` already do (reload `rpcd`, clear the index cache),
    minus the manual-copy-specific bits.
 5. Drop the committed `.lmo` and let the build produce it instead:
    including `$(TOPDIR)/feeds/luci/luci.mk` makes `luci.mk` compile
-   `po/<lang>/*.po` and emit `luci-i18n-filexplorer-<lang>` subpackages
+   `po/<lang>/*.po` and emit `luci-i18n-wrtcommander-<lang>` subpackages
    automatically, which is the normal way translations ship. The
    `po/` layout here already matches what `luci.mk` expects, so this
    step should be a deletion rather than a rewrite.

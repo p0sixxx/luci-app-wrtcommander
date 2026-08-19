@@ -1,18 +1,18 @@
 #!/bin/sh
-# Shared helpers for the FileXplorer on-router test suite.
+# Shared helpers for the Wrt Commander on-router test suite.
 # Source this from the other tests/*.sh scripts:  . "$(dirname "$0")/lib.sh"
 #
 # These tests talk to the real ubus object, so they must run ON the
 # router (or against a router reachable via `ubus -s`), after
 # deploy/install.sh has been run.
 
-TESTFS="/tmp/filexplorer-test"
+TESTFS="/tmp/wrtcommander-test"
 PASS=0
 FAIL=0
 
 ubus_call() {
 	# ubus_call <method> <json-args>
-	ubus call luci.filexplorer "$1" "$2" 2>&1
+	ubus call luci.wrtcommander "$1" "$2" 2>&1
 }
 
 # top-level {"ok": true, ...} expected (list/stat/read/write/mkdir/

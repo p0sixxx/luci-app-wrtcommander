@@ -1,5 +1,5 @@
 
-config filexplorer 'main'
+config wrtcommander 'main'
 	option enabled '1'
 	option allowed_root '/'
 	option show_hidden '1'
