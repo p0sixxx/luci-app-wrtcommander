@@ -2,8 +2,6 @@
 
 **Русский** · [English](#wrt-commander-english)
 
-**Пакет:** `luci-app-wrtcommander` — в LuCI отображается как **Wrt Commander**.
-
 Полноценный файловый менеджер для LuCI на OpenWrt, рассчитанный на
 администратора. **Это runtime-редакция для разработки**, описанная в
 техническом задании: готовое рабочее приложение, которое копируется на
@@ -850,8 +848,6 @@ uci commit luci
 # Wrt Commander (English)
 
 [Русский](#wrt-commander) · **English**
-
-**Package:** `luci-app-wrtcommander` — displayed in LuCI as **Wrt Commander**.
 
 A native, admin-grade file explorer for LuCI on OpenWrt. **This is the
 runtime/development edition** described in the project brief: a
