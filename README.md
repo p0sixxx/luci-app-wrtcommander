@@ -33,11 +33,6 @@ Norton / Midnight / Total Commander: две независимые панели 
 
 </details>
 
-<sub>Снимки отрисованы на настоящей таблице стилей Proton2025 и разметке
-приложения, с примерным содержимым каталогов. Шапка LuCI воспроизведена по
-реальному роутеру на OpenWrt 25.12.5; акцентный цвет — штатный для темы,
-в её настройках он меняется.</sub>
-
 - Две панели с независимыми путём, сортировкой и выделением; **Tab**
   переключает, активная обведена рамкой
 - **F5 Копировать / F6 Переместить по умолчанию целятся в каталог
@@ -886,11 +881,6 @@ other one".
 </p>
 
 </details>
-
-<sub>Rendered against the real Proton2025 stylesheet and the app's own
-markup, with sample directory contents. The LuCI header reproduces a real
-OpenWrt 25.12.5 router; the accent colour is the theme's stock one and is
-configurable in its settings.</sub>
 
 - Two panels with independent path, sorting and selection; **Tab**
   switches, the active one is outlined
