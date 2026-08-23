@@ -63,11 +63,16 @@ end
 local function canon_path(rawpath, must_exist)
 	local fs = require "nixio.fs"
 
-	if type(rawpath) ~= "string" or rawpath == "" then
-		return nil, "Invalid path"
+	-- distinct messages on purpose, so a rejection that reaches the UI
+	-- names the rule that fired instead of a catch-all "Invalid path"
+	if type(rawpath) ~= "string" then
+		return nil, "Path is not a string"
+	end
+	if rawpath == "" then
+		return nil, "Path is empty"
 	end
 	if rawpath:find("\0", 1, true) then
-		return nil, "Invalid path"
+		return nil, "Path contains a NUL byte"
 	end
 	if rawpath:sub(1, 1) ~= "/" then
 		return nil, "Path must be absolute"

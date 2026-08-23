@@ -158,10 +158,20 @@ function canon(rawpath, opts) {
 	opts = opts || {};
 	let must_exist = exists(opts, 'must_exist') ? opts.must_exist : true;
 
-	if (type(rawpath) != 'string' || rawpath == '')
-		return { err: fail('EINVAL', 'Invalid path') };
-	if (match(rawpath, /\x00/))
-		return { err: fail('EINVAL', 'Invalid path') };
+	/* The three rejections below carry distinct messages on purpose: when
+	   one of them shows up in the UI it should say which rule fired,
+	   rather than leaving "Invalid path" to stand for any of them. */
+	if (type(rawpath) != 'string')
+		return { err: fail('EINVAL', 'Path is not a string') };
+	if (rawpath == '')
+		return { err: fail('EINVAL', 'Path is empty') };
+	/* NUL check by index(), not by a regex. ucode's regex literals do not
+	   give you a NUL matcher here: /\x00/ compiles to a pattern that
+	   matches the empty string, so `match(anything, /\x00/)` is truthy for
+	   every string and this rejected every path outright. index() against
+	   chr(0) is exact - it returns the byte offset, or -1. */
+	if (index(rawpath, chr(0)) >= 0)
+		return { err: fail('EINVAL', 'Path contains a NUL byte') };
 	if (substr(rawpath, 0, 1) != '/')
 		return { err: fail('EINVAL', 'Path must be absolute') };
 
@@ -351,7 +361,9 @@ function detect_binary(data) {
 	if (!data)
 		return false;
 	let sample = (length(data) > 8000) ? substr(data, 0, 8000) : data;
-	return !!match(sample, /\x00/);
+	/* same reason as canon(): a regex literal will not find a NUL here,
+	   and with /\x00/ this reported every file as binary */
+	return index(sample, chr(0)) >= 0;
 }
 
 /* ------------------------------------------------------------------ */

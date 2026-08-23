@@ -279,6 +279,12 @@ sh run-all.sh
 - `fs-tests.sh` — create, mkdir, list, stat, read, write, rename, copy,
   move, delete, chmod, search, disk_info; Unicode, пробелы, скрытые
   файлы, длинные имена, симлинки
+- `canon-path-tests.sh` — проверка слоя валидации путей: `canon()` и
+  `detect_binary()` поднимаются прямо из кода бэкенда и вызываются
+  напрямую, так что тест не может разойтись с тем, что он охраняет.
+  Обычные имена с пробелами, скобками и кириллицей должны проходить;
+  пустая строка, не-строка, относительный путь и байт NUL внутри пути —
+  отвергаться, каждый со своим сообщением. Ubus и роутер не нужны
 - `dirsize-tests.sh` — подсчёт размера каталога: сумма по дереву с
   известными размерами, симлинки не разыменовываются (в том числе петля
   на самого себя), упор в лимиты по числу записей и глубине, отказ на
@@ -391,6 +397,21 @@ HTTP-действие в `wrtcommander.lua` не трогают путь, кот
 - та же проверка вложенности применяется к каждому изменяющему методу
   (`write`, `remove`, `mkdir`, `chmod`, …), а не только к `list`/`stat`
 - удаление и переименование самого разрешённого корня запрещены наотрез
+
+Ещё одну ловушку стоит зафиксировать, потому что она молчаливая и портит
+именно проверку безопасности: в ucode **литерал регулярного выражения не
+даёт матчера для байта NUL**. `/\x00/` компилируется в шаблон, который
+совпадает с пустой строкой, поэтому `match(что_угодно, /\x00/)` истинно
+для любой строки. Проверка на NUL, написанная так, отвергает не
+подозрительные пути, а *все*, и это выглядит как «Invalid path» на
+совершенно обычном имени вроде `_normal (1).jpg`. Та же запись стояла и в
+`detect_binary()`, где объявляла двоичным каждый файл. Правильный примитив
+здесь — `index(str, chr(0)) >= 0`: он возвращает смещение байта или `-1`.
+Сообщения у трёх ранних отказов `canon()` теперь разные («Path is not a
+string», «Path is empty», «Path contains a NUL byte»), чтобы отказ,
+дошедший до интерфейса, называл сработавшее правило. Покрыто в
+`tests/canon-path-tests.sh`, который поднимает обе функции прямо из кода
+бэкенда: на старой записи тест валится 14 проверками, на нынешней проходит.
 
 Другие намеренные решения: загрузка и скачивание никогда не буферизуют
 файл целиком в ОЗУ (везде фиксированные куски по 64 КиБ); `read()`
@@ -1106,6 +1127,13 @@ a deliberately broken one) and runs, in order:
 - `fs-tests.sh` - create, mkdir, list, stat, read, write, rename,
   copy, move, delete, chmod, search, disk_info; Unicode, spaces,
   hidden files, long names, symlinks
+- `canon-path-tests.sh` - the path validation layer: `canon()` and
+  `detect_binary()` are lifted straight out of the backend and called
+  directly, so the test cannot drift away from the code it guards.
+  Ordinary names with spaces, brackets and Cyrillic must be accepted;
+  the empty string, a non-string, a relative path and an embedded NUL
+  byte must be rejected, each with its own message. Needs neither ubus
+  nor a router
 - `dirsize-tests.sh` - directory size: the total over a tree of known
   sizes, symlinks not followed (including one pointing at its own
   parent), the entry and depth caps, refusing a plain file, and refusing
@@ -1215,6 +1243,21 @@ function. Concretely, this is what's covered by `security-tests.sh`:
 - the same containment check applied to every mutating method
   (`write`, `remove`, `mkdir`, `chmod`, ...), not only `list`/`stat`
 - deleting/renaming the allowed root itself is refused outright
+
+One more trap worth recording, because it is silent and it breaks the
+safety check itself: in ucode a **regex literal gives you no matcher for
+a NUL byte**. `/\x00/` compiles to a pattern that matches the empty
+string, so `match(anything, /\x00/)` is true for every string. A NUL
+check written that way rejects not suspicious paths but *all* of them,
+and it surfaces as "Invalid path" on a perfectly ordinary name such as
+`_normal (1).jpg`. The same idiom sat in `detect_binary()`, where it
+called every file binary. The right primitive is `index(str, chr(0)) >=
+0`, which returns a byte offset or `-1`. The three early rejections in
+`canon()` now carry distinct messages ("Path is not a string", "Path is
+empty", "Path contains a NUL byte") so that a rejection reaching the UI
+names the rule that fired. `tests/canon-path-tests.sh` covers it by
+lifting both functions straight out of the backend: the old idiom fails
+14 of its assertions, the current one passes all of them.
 
 Other deliberate choices: uploads and downloads never buffer a whole
 file in RAM (fixed 64 KiB chunks throughout); `read()` enforces
