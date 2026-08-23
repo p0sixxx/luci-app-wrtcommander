@@ -53,6 +53,10 @@ msgid "At least %s: the folder is too large to measure in full."
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Behaviour"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Binary"
 msgstr ""
 
@@ -122,6 +126,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Clear selection"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Click"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -357,11 +365,19 @@ msgid "Nothing found"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "One click or tap opens a folder or a file. With this off it takes two, as on a desktop. Ctrl-click marks a row either way."
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Open"
 msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Open both panels where you left them last time."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Open with a single click"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -510,6 +526,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Select or unselect"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Select or unselect without opening"
 msgstr ""
 
 msgctxt "wrtcommander"

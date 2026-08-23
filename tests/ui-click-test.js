@@ -1,0 +1,200 @@
+/*
+ * Row-interaction regression test for the LuCI view.
+ *
+ * Loads the *real* view module into a headless browser the way LuCI's
+ * loader does - strip the 'require x' statements, wrap the body, hand it
+ * stubbed view/rpc/ui/dom modules - and then clicks on it. The backend is
+ * a fake directory tree in the harness, so this needs no router.
+ *
+ * What it guards: a click opens a row, a stray second tap does not open a
+ * second time (the list under the finger has already been replaced),
+ * Ctrl-click marks a row instead of opening it, and turning the setting
+ * off puts double-click behaviour back.
+ *
+ * Needs node and playwright, which a router does not have - the shell
+ * wrapper skips it there.
+ *
+ *   node ui-click-test.js
+ *   PLAYWRIGHT=/path/to/playwright CHROMIUM=/path/to/chrome node ui-click-test.js
+ */
+const path = require('path');
+const fs = require('fs');
+
+const PLAYWRIGHT = process.env.PLAYWRIGHT || 'playwright';
+const CHROMIUM = process.env.CHROMIUM || undefined;
+const { chromium } = require(PLAYWRIGHT);
+
+const SRC = path.resolve(__dirname,
+  '../runtime/www/luci-static/resources/view/wrtcommander.js');
+
+let fail = 0;
+const check = (name, ok, extra) => {
+  console.log((ok ? '  ok   ' : '  FAIL ') + name + (extra ? '   ' + extra : ''));
+  if (!ok) fail++;
+};
+
+(async () => {
+  const b = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : {});
+  const p = await b.newPage({ viewport: { width: 1200, height: 800 } });
+  p.on('pageerror', e => { console.log('  PAGE ERROR: ' + e.message); fail++; });
+  await p.goto('file://' + path.resolve(__dirname, 'ui-click-harness.html'));
+
+  const src = fs.readFileSync(SRC, 'utf8');
+  await p.evaluate(s => window.__boot(s), src);
+  await p.waitForTimeout(300);
+
+  const leftPath = () => p.$eval('.fx-pane:nth-child(1) .fx-path-input', e => e.value);
+  const rows = () => p.$$eval('.fx-pane:nth-child(1) .fx-item .fx-nm', ns => ns.map(n => n.textContent));
+  const setPref = (k, v) => p.evaluate(([k, v]) => { window.__view[k] = v; }, [k, v]);
+  const nav = async (to) => {
+    await p.evaluate(t => window.__view.navigate('left', t), to);
+    await p.waitForTimeout(150);
+  };
+  // a deliberate click: a person has looked at the new list first, so
+  // leave the guard's window behind before clicking again
+  const clickRow = async (name) => {
+    await p.waitForTimeout(300);
+    await p.evaluate(n => {
+      const el = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+        .find(r => r.querySelector('.fx-nm').textContent.startsWith(n));
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    }, name);
+    await p.waitForTimeout(150);
+  };
+
+  console.log('single-click mode (the default)');
+  const dflt = await p.evaluate(() => window.__view.singleClick);
+  check('singleClick defaults to on', dflt === true, 'value=' + dflt);
+
+  await nav('/');
+  check('starts at /', (await leftPath()) === '/', await leftPath());
+
+  await clickRow('etc');
+  check('one click on a folder opens it', (await leftPath()) === '/etc', await leftPath());
+
+  await clickRow('config');
+  check('and again, one level deeper', (await leftPath()) === '/etc/config', await leftPath());
+
+  // the "up" row, one click
+  await p.waitForTimeout(300);
+  await p.evaluate(() => document.querySelector('.fx-pane:nth-child(1) .fx-updir')
+    .dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
+  await p.waitForTimeout(150);
+  check('one click on ".." goes up one level', (await leftPath()) === '/etc', await leftPath());
+
+  console.log('the double-tap guard');
+  await nav('/');
+  // two clicks in quick succession on the SAME row: must land one level down,
+  // not two - the second click lands on a list that no longer holds that row
+  await p.waitForTimeout(300);
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+      .find(r => r.querySelector('.fx-nm').textContent.startsWith('etc'));
+    row.dispatchEvent(new MouseEvent('click',    { bubbles: true, detail: 1 }));
+    row.dispatchEvent(new MouseEvent('click',    { bubbles: true, detail: 2 }));
+    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }));
+  });
+  await p.waitForTimeout(250);
+  check('a double tap opens once, not twice', (await leftPath()) === '/etc', await leftPath());
+
+  // and ".." twice quickly must not climb two levels
+  await nav('/etc/config');
+  await p.waitForTimeout(300);
+  await p.evaluate(() => {
+    const u = document.querySelector('.fx-pane:nth-child(1) .fx-updir');
+    u.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    u.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
+  });
+  await p.waitForTimeout(250);
+  check('a double tap on ".." climbs one level', (await leftPath()) === '/etc', await leftPath());
+
+  // a touch stack that never sets `detail`: the time window is the only
+  // thing standing between a stray second tap and a second open
+  await nav('/');
+  await p.waitForTimeout(300);
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+      .find(r => r.querySelector('.fx-nm').textContent.startsWith('etc'));
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+  });
+  await p.waitForTimeout(250);
+  check('a double tap with no click counter still opens once',
+    (await leftPath()) === '/etc', await leftPath());
+
+  console.log('opening a file');
+  await p.waitForTimeout(500);   // let the guard lapse
+  await nav('/etc');
+  await clickRow('passwd');
+  const modal = await p.evaluate(() => {
+    const m = document.getElementById('the-modal');
+    return m ? m.getAttribute('data-title') : null;
+  });
+  check('one click on a file opens the viewer', modal === '/etc/passwd', 'modal=' + modal);
+  await p.evaluate(() => document.getElementById('the-modal').remove());
+
+  console.log('ctrl-click marks instead of opening');
+  await p.waitForTimeout(500);
+  await nav('/');
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+      .find(r => r.querySelector('.fx-nm').textContent.startsWith('etc'));
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true, detail: 1 }));
+  });
+  await p.waitForTimeout(150);
+  check('ctrl-click does not navigate', (await leftPath()) === '/', await leftPath());
+  const marked = await p.evaluate(() => Object.keys(window.__view.panes.left.selected));
+  check('ctrl-click marks the row', marked.length === 1 && marked[0] === '/etc', JSON.stringify(marked));
+  // and again to unmark
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+      .find(r => r.querySelector('.fx-nm').textContent.startsWith('etc'));
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true, detail: 1 }));
+  });
+  await p.waitForTimeout(150);
+  const marked2 = await p.evaluate(() => Object.keys(window.__view.panes.left.selected));
+  check('ctrl-click again unmarks it', marked2.length === 0, JSON.stringify(marked2));
+
+  console.log('double-click mode, turned off through the settings dialog');
+  await p.evaluate(() => window.__view.actSettings());
+  await p.waitForTimeout(150);
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('#the-modal .fx-set-row')]
+      .find(r => { const l = r.querySelector('.fx-set-label');
+                   return l && l.textContent === 'Open with a single click'; });
+    const cb = row.querySelector('input[type=checkbox]');
+    cb.checked = false;
+    cb.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  const storedOff = await p.evaluate(() => window.localStorage.getItem('wrtcommander.singleClick'));
+  check('unticking it is stored', storedOff === 'false', 'stored=' + storedOff);
+  const propOff = await p.evaluate(() => window.__view.singleClick);
+  check('and the view followed', propOff === false, 'value=' + propOff);
+  await p.evaluate(() => { const m = document.getElementById('the-modal'); if (m) m.remove(); });
+  await p.waitForTimeout(300);
+  await nav('/');
+  await clickRow('etc');
+  check('one click no longer opens', (await leftPath()) === '/', await leftPath());
+  const cursor = await p.evaluate(() => window.__view.panes.left.cursor);
+  check('but the cursor still moved', typeof cursor === 'number', 'cursor=' + cursor);
+  await p.evaluate(() => {
+    const row = [...document.querySelectorAll('.fx-pane:nth-child(1) .fx-item')]
+      .find(r => r.querySelector('.fx-nm').textContent.startsWith('etc'));
+    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }));
+  });
+  await p.waitForTimeout(200);
+  check('a double click still opens', (await leftPath()) === '/etc', await leftPath());
+
+  console.log('the switch is where a user can find it');
+  await p.evaluate(() => window.__view.actSettings());
+  await p.waitForTimeout(150);
+  const labels = await p.$$eval('#the-modal .fx-set-label', ns => ns.map(n => n.textContent));
+  check('settings dialog lists the switch',
+    labels.indexOf('Open with a single click') >= 0, JSON.stringify(labels));
+  const groups = await p.$$eval('#the-modal .fx-set-group-title', ns => ns.map(n => n.textContent));
+  check('under a group of its own', groups.indexOf('Behaviour') >= 0, JSON.stringify(groups));
+
+  console.log('\n== ' + (fail ? fail + ' FAILED' : 'all passed') + ' ==');
+  await b.close();
+  process.exit(fail ? 1 : 0);
+})();

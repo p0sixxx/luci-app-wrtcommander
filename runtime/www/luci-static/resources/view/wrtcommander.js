@@ -260,6 +260,7 @@ return view.extend({
 		this.dirsFirst = lsGet('dirsFirst', true);
 		this.rememberPaths = lsGet('rememberPaths', true);
 		this.wrapEditor = lsGet('wrapEditor', true);
+		this.singleClick = lsGet('singleClick', true);
 		this.mobilePane = 'left';
 
 		/* with "remember panel paths" off, both panels open where they
@@ -960,8 +961,18 @@ return view.extend({
 		if (p.parent) {
 			rows.push(E('div', {
 				class: 'fx-row fx-updir',
-				dblclick: function () { self.navigate(id, p.parent); },
-				click: function (ev) { ev.stopPropagation(); self.setActive(id); self.navigate(id, p.parent); }
+				/* both handlers go through claimOpen(), so a double
+				   click here goes up one level and not two */
+				dblclick: function (ev) {
+					if (!self.singleClick && self.claimOpen(ev))
+						self.navigate(id, p.parent);
+				},
+				click: function (ev) {
+					ev.stopPropagation();
+					self.setActive(id);
+					if (self.claimOpen(ev))
+						self.navigate(id, p.parent);
+				}
 			}, [
 				E('div', { class: 'fx-cell fx-c-mark' }, ''),
 				E('div', { class: 'fx-cell fx-c-name' }, '↑ ..'),
@@ -1059,14 +1070,35 @@ return view.extend({
 				ev.stopPropagation();
 				self.setActive(id);
 				p.cursor = idx;
+
+				/* Ctrl/Cmd-click marks the row instead of opening it.
+				   With "open with a single click" on, a plain click is
+				   spoken for, and this is the way back to touching a row
+				   without opening it - the mark box in the first column
+				   being the other one. */
+				if (ev.ctrlKey || ev.metaKey) {
+					self.toggleSelect(id, entry);
+					self.renderBody(id);
+					self.renderFoot(id);
+					self.renderHeader();
+					return;
+				}
+
 				self.renderBody(id);
 				self.renderFoot(id);
+
+				if (self.singleClick && self.claimOpen(ev))
+					self.openEntry(id, entry);
 			},
 			dblclick: function (ev) {
 				ev.stopPropagation();
 				self.setActive(id);
 				p.cursor = idx;
-				self.openEntry(id, entry);
+				/* in single-click mode the first of the two clicks has
+				   already opened this row, and the list under the pointer
+				   is no longer the list that was clicked */
+				if (!self.singleClick && self.claimOpen(ev))
+					self.openEntry(id, entry);
 			},
 			contextmenu: function (ev) {
 				ev.preventDefault();
@@ -1237,6 +1269,38 @@ return view.extend({
 			delete p.selected[entry.path];
 		else
 			p.selected[entry.path] = true;
+	},
+
+	/* One open per gesture, whichever handler asks for it.
+
+	   A tap is very often a double tap, and with "open with a single
+	   click" on, the second click lands on a list the first click has
+	   already replaced - so it would open whatever now happens to sit
+	   under the finger. Two signals, because neither covers both input
+	   methods on its own:
+
+	     - `ev.detail` is the browser's own click counter, so the second
+	       *click* of a real double-click carries 2 and is refused
+	       however slowly it was made. It is read only on a click: a
+	       dblclick event legitimately carries 2 as well, and that one is
+	       the open in double-click mode. Synthesised events and some
+	       touch stacks leave it at 0 or 1, which is why it is not the
+	       only test.
+	     - a short window since the last open, deliberately shorter than
+	       a double-click threshold: a stray second tap arrives inside
+	       it, while someone who has seen the new list and picked a row
+	       cannot.
+
+	   Only the *open* is suppressed. The cursor still moves and the
+	   panel still becomes active. */
+	claimOpen: function (ev) {
+		if (ev && ev.type === 'click' && ev.detail > 1)
+			return false;
+		var now = Date.now();
+		if (now - (this._lastOpen || 0) < 250)
+			return false;
+		this._lastOpen = now;
+		return true;
 	},
 
 	openEntry: function (id, entry) {
@@ -2219,6 +2283,11 @@ return view.extend({
 						_('Sort folders above files, whatever the sort column.', 'wrtcommander'),
 						'dirsFirst', 'dirsFirst', true)
 				]),
+				group(_('Behaviour', 'wrtcommander'), [
+					check(_('Open with a single click', 'wrtcommander'),
+						_('One click or tap opens a folder or a file. With this off it takes two, as on a desktop. Ctrl-click marks a row either way.', 'wrtcommander'),
+						'singleClick', 'singleClick', false)
+				]),
 				group(_('Panels', 'wrtcommander'), [
 					check(_('Remember panel paths', 'wrtcommander'),
 						_('Open both panels where you left them last time.', 'wrtcommander'),
@@ -2277,6 +2346,7 @@ return view.extend({
 		group(_('Selection', 'wrtcommander'));
 		row(['Insert', 'Space'], _('Select or unselect', 'wrtcommander'));
 		row(['Ctrl', 'A'], _('Select all', 'wrtcommander'));
+		row(['Ctrl', _('Click', 'wrtcommander')], _('Select or unselect without opening', 'wrtcommander'));
 		row(['Ctrl', 'Space'], _('Calculate folder size', 'wrtcommander'));
 
 		group(_('File actions', 'wrtcommander'));

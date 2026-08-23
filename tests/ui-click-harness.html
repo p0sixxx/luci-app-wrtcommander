@@ -1,0 +1,122 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>wrtcommander behaviour harness</title>
+<style>body{margin:0;font-family:sans-serif;font-size:14px}
+#maincontent{max-width:1170px;margin:0 auto;padding:1em}</style>
+</head><body>
+<div id="maincontent" class="container"></div>
+<script>
+/* ---- a minimal stand-in for the LuCI runtime the view is loaded into.
+   Only what wrtcommander.js actually touches: view/rpc/ui/dom, E(), L,
+   _()/N_() and String.format(). ---- */
+window.__calls = [];
+window.__modals = [];
+
+function E(tag, attrs, children) {
+  if (typeof tag === 'string' && tag[0] === '<') { var d=document.createElement('div'); d.innerHTML=tag; return d.firstChild; }
+  var n = document.createElement(tag);
+  if (attrs && typeof attrs === 'object' && !Array.isArray(attrs) && !(attrs instanceof Node)) {
+    for (var k in attrs) {
+      var v = attrs[k];
+      if (typeof v === 'function') n.addEventListener(k, v);
+      else if (v !== null && v !== undefined) n.setAttribute(k, v);
+    }
+  } else { children = attrs; }
+  append(n, children);
+  return n;
+}
+function append(n, c) {
+  if (c === null || c === undefined || c === '') return;
+  if (Array.isArray(c)) { c.forEach(function (x) { append(n, x); }); return; }
+  if (c instanceof Node) { n.appendChild(c); return; }
+  n.appendChild(document.createTextNode(String(c)));
+}
+window.E = E;
+
+String.prototype.format = function () {
+  var a = arguments, i = 0;
+  return this.replace(/%[sd]/g, function () { return String(a[i++]); });
+};
+
+window._ = function (s) { return s; };
+window.N_ = function (n, s, p) { return n === 1 ? s : p; };
+
+window.L = {
+  url: function () { return '/cgi-bin/luci/' + Array.prototype.join.call(arguments, '/'); },
+  resource: function (p) { return '/luci-static/resources/' + p; }
+};
+
+var dom = { content: function (n, c) { while (n.firstChild) n.removeChild(n.firstChild); append(n, c); } };
+
+var ui = {
+  showModal: function (title, kids, cls) {
+    var m = E('div', { class: 'modal ' + (cls || ''), 'data-title': title }, kids);
+    m.id = 'the-modal';
+    ui.hideModal();
+    document.body.appendChild(m);
+    window.__modals.push(title);
+    return m;
+  },
+  hideModal: function () { var m = document.getElementById('the-modal'); if (m) m.remove(); },
+  addNotification: function (t, kids) { window.__modals.push('notification'); },
+  createHandlerFn: function (self, fn) { return function (ev) { return fn.call(self, ev); }; },
+  changes: { apply: function () {} }
+};
+
+var view = { extend: function (o) { return o; } };
+
+/* ---- the fake filesystem the view will browse ---- */
+var FS = {
+  '/':      { parent: null, entries: [
+      { name: 'etc',  path: '/etc',  type: 'directory', size: 0,    mtime: 1700000000, mode_string: 'drwxr-xr-x', mode_octal: '755' },
+      { name: 'tmp',  path: '/tmp',  type: 'directory', size: 0,    mtime: 1700000000, mode_string: 'drwxrwxrwt', mode_octal: '1777' },
+      { name: 'a.txt',path: '/a.txt',type: 'file',      size: 12,   mtime: 1700000000, mode_string: '-rw-r--r--', mode_octal: '644' }
+  ]},
+  '/etc':   { parent: '/', entries: [
+      { name: 'config',  path: '/etc/config',  type: 'directory', size: 0,  mtime: 1700000000, mode_string: 'drwxr-xr-x', mode_octal: '755' },
+      { name: 'passwd',  path: '/etc/passwd',  type: 'file',      size: 90, mtime: 1700000000, mode_string: '-rw-r--r--', mode_octal: '644' }
+  ]},
+  '/etc/config': { parent: '/etc', entries: [
+      { name: 'network', path: '/etc/config/network', type: 'file', size: 40, mtime: 1700000000, mode_string: '-rw-------', mode_octal: '600' }
+  ]},
+  '/tmp':   { parent: '/', entries: [] }
+};
+
+var rpc = {
+  declare: function (spec) {
+    return function () {
+      var args = Array.prototype.slice.call(arguments);
+      window.__calls.push({ method: spec.method, args: args });
+      if (spec.method === 'list') {
+        var d = FS[args[0]];
+        if (!d) return Promise.resolve({ ok: false, error: { code: 'ENOENT', message: 'no' } });
+        return Promise.resolve({ ok: true, path: args[0], parent: d.parent,
+                                 allowed_root: '/', entries: d.entries });
+      }
+      if (spec.method === 'read')
+        return Promise.resolve({ ok: true, data: btoa('hello'), is_binary: false,
+                                 truncated: false, size: 5, mtime: 1700000000 });
+      if (spec.method === 'disk_info')
+        return Promise.resolve({ ok: true, total: 1000, used: 100, free: 900 });
+      return Promise.resolve({ ok: true });
+    };
+  }
+};
+</script>
+<script>
+/* ---- load the real view module the way LuCI's loader does: strip the
+   'require x' statements, wrap the body in a function, hand it the
+   stubbed modules, and mount whatever render() returns ---- */
+window.__boot = function (src) {
+  var body = src.replace(/^\s*'require [^']+';\s*$/gm, '');
+  var factory = new Function('view', 'rpc', 'ui', 'dom', body);
+  var v = factory(view, rpc, ui, dom);
+  window.__view = v;
+  return Promise.resolve(v.load()).then(function () {
+    return Promise.resolve(v.render());
+  }).then(function (node) {
+    document.getElementById('maincontent').appendChild(node);
+    return true;
+  });
+};
+</script>
+</body></html>

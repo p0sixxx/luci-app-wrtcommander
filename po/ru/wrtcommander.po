@@ -39,6 +39,10 @@ msgid "Archive"
 msgstr "Архив"
 
 msgctxt "wrtcommander"
+msgid "Behaviour"
+msgstr "Поведение"
+
+msgctxt "wrtcommander"
 msgid "Binary"
 msgstr "Двоичный"
 
@@ -100,6 +104,10 @@ msgstr "Изменение метаданных"
 msgctxt "wrtcommander"
 msgid "Clear selection"
 msgstr "Снять отметки"
+
+msgctxt "wrtcommander"
+msgid "Click"
+msgstr "Щелчок"
 
 msgctxt "wrtcommander"
 msgid "Close"
@@ -313,8 +321,16 @@ msgid "Nothing found"
 msgstr "Ничего не найдено"
 
 msgctxt "wrtcommander"
+msgid "One click or tap opens a folder or a file. With this off it takes two, as on a desktop. Ctrl-click marks a row either way."
+msgstr "Один щелчок или касание открывает папку или файл. Если выключено — нужны два, как на компьютере. Ctrl+щелчок отмечает строку в любом случае."
+
+msgctxt "wrtcommander"
 msgid "Open"
 msgstr "Открыть"
+
+msgctxt "wrtcommander"
+msgid "Open with a single click"
+msgstr "Открывать одним щелчком"
 
 msgctxt "wrtcommander"
 msgid "Operation failed"
@@ -431,6 +447,10 @@ msgstr "Для скачивания выберите ровно один фай�
 msgctxt "wrtcommander"
 msgid "Select exactly one item to rename."
 msgstr "Для переименования выберите ровно один объект."
+
+msgctxt "wrtcommander"
+msgid "Select or unselect without opening"
+msgstr "Отметить или снять отметку, не открывая"
 
 msgctxt "wrtcommander"
 msgid "Select this folder"

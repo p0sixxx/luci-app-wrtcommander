@@ -29,6 +29,8 @@
   Ctrl+A, Ctrl+R
 - Каждое действие продублировано иконкой в шапке, так что клавиатура
   не обязательна
+- Папка или файл открывается одним щелчком или касанием; двойной
+  щелчок возвращается одной галочкой в настройках
 - Строка состояния у каждой панели: число объектов, размер выделенного,
   свободное место на этой файловой системе
 - Создание / переименование / удаление / копирование / перемещение,
@@ -279,6 +281,12 @@ sh run-all.sh
 - `fs-tests.sh` — create, mkdir, list, stat, read, write, rename, copy,
   move, delete, chmod, search, disk_info; Unicode, пробелы, скрытые
   файлы, длинные имена, симлинки
+- `ui-click-tests.sh` — поведение строки списка: настоящий модуль
+  представления грузится в headless-браузер так же, как его грузит
+  загрузчик LuCI, и по нему кликают. Щелчок открывает строку, лишнее
+  второе касание не открывает второй раз, Ctrl+щелчок отмечает вместо
+  открытия, а снятая галочка в настройках возвращает двойной щелчок.
+  Нужны node и playwright, поэтому на роутере тест пропускается
 - `canon-path-tests.sh` — проверка слоя валидации путей: `canon()` и
   `detect_binary()` поднимаются прямо из кода бэкенда и вызываются
   напрямую, так что тест не может разойтись с тем, что он охраняет.
@@ -654,6 +662,32 @@ CSS-переменными на корне приложения, а не на я
 максимум для своего столбца, чтобы никаким перетаскиванием нельзя было
 схлопнуть столбец «Имя».
 
+### Открытие: один щелчок или два
+
+По умолчанию папка или файл открывается **одним щелчком или касанием**.
+Это выбрано ради телефона, где двойное касание — жест неудобный и
+ненадёжный, и ради того, что в списке файлов открытие и есть основное
+действие. Переключатель — в настройках, «Поведение → Открывать одним
+щелчком»; сняв галочку, вы возвращаете привычное для десктопа поведение
+с двойным щелчком.
+
+Раз обычный щелчок занят открытием, отметить строку, не открывая её,
+можно двумя способами: квадратик в первом столбце и **Ctrl+щелчок** по
+строке. Оба работают независимо от того, включён ли одинарный щелчок.
+
+Одно касание нередко оказывается двойным — палец срабатывает дважды, — а
+к моменту второго щелчка список под пальцем уже другой, и открылось бы
+то, что теперь оказалось на этом месте. Поэтому открытие проходит через
+`claimOpen()`, который пропускает одно открытие на жест по двум
+признакам: `ev.detail` (собственный счётчик щелчков браузера — второй
+щелчок настоящего двойного несёт 2; у события `dblclick` он тоже равен 2,
+поэтому там этот признак не читается) и короткое окно с момента прошлого
+открытия, заведомо короче порога двойного щелчка. Подавляется только
+*открытие*: курсор всё равно переезжает, панель всё равно становится
+активной. Тот же приём заодно вылечил старую оплошность в строке `..`,
+где двойной щелчок поднимал на два уровня вместо одного. Покрыто в
+`tests/ui-click-tests.sh`.
+
 ### Контекстное меню
 
 Правый клик — полноценная замена шапке и клавиатуре, а не подмножество.
@@ -882,6 +916,8 @@ phone as readily as from a desktop.
   Backspace to go up, Insert/Space to mark, Ctrl+A, Ctrl+R
 - Every action is also an icon button in the header, so nothing depends
   on having a keyboard
+- A folder or a file opens on a single click or tap; one setting puts
+  the double click back
 - Per-panel status line: item count, selected size, free space on that
   filesystem
 - Create / rename / delete / copy / move, one item or many
@@ -1127,6 +1163,12 @@ a deliberately broken one) and runs, in order:
 - `fs-tests.sh` - create, mkdir, list, stat, read, write, rename,
   copy, move, delete, chmod, search, disk_info; Unicode, spaces,
   hidden files, long names, symlinks
+- `ui-click-tests.sh` - row interaction: the real view module is loaded
+  into a headless browser the way LuCI's own loader loads it, and then
+  clicked on. A click opens a row, a stray second tap does not open a
+  second time, Ctrl-click marks instead of opening, and unticking the
+  setting puts the double click back. Needs node and playwright, so it
+  skips on a router
 - `canon-path-tests.sh` - the path validation layer: `canon()` and
   `detect_binary()` are lifted straight out of the backend and called
   directly, so the test cannot drift away from the code it guards.
@@ -1494,6 +1536,31 @@ shared `all .2s` transition, or the header cell animates its flex-basis
 and lags a fifth of a second behind the pointer while the rows below it
 track it exactly; and each drag is clamped to a per-column minimum and
 maximum, so no drag can squeeze the Name column away.
+
+### Opening: one click or two
+
+A folder or a file opens on a **single click or tap** by default. That is
+chosen for the phone, where a double tap is an awkward and unreliable
+gesture, and because opening is what a file list is mostly for. The switch
+is in the settings, under "Behaviour → Open with a single click"; unticking
+it puts the familiar desktop double-click back.
+
+Since a plain click is now spoken for, there are two ways to mark a row
+without opening it: the box in the first column, and **Ctrl-click** on the
+row. Both work whichever way the setting is set.
+
+One tap is often really two - a finger bounces - and by the time the
+second click lands the list underneath has already been replaced, so what
+would open is whatever now sits in that spot. Opening therefore goes
+through `claimOpen()`, which allows one open per gesture on two signals:
+`ev.detail` (the browser's own click counter - the second click of a real
+double-click carries 2; a `dblclick` event carries 2 as well, which is why
+the signal is read only on a click) and a short window since the last
+open, deliberately shorter than a double-click threshold. Only the *open*
+is suppressed: the cursor still moves and the panel still becomes active.
+The same mechanism incidentally fixed an old slip in the `..` row, where a
+double click went up two levels instead of one. Covered by
+`tests/ui-click-tests.sh`.
 
 ### Context menu
 
