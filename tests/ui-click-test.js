@@ -194,6 +194,136 @@ const check = (name, ok, extra) => {
   const groups = await p.$$eval('#the-modal .fx-set-group-title', ns => ns.map(n => n.textContent));
   check('under a group of its own', groups.indexOf('Behaviour') >= 0, JSON.stringify(groups));
 
+  // ---------------------------------------------------------- uploads
+  //
+  // A folder upload is driven entirely from the browser: create every
+  // directory, then POST one file per request to the directory it
+  // belongs in. These check the shape of what the view sends, since that
+  // is the whole of the feature - the router side is unchanged.
+  console.log('folder upload');
+  await p.evaluate(() => { window.__uploads = []; window.__calls = []; });
+  await nav('/tmp');
+
+  const tree = [
+    ['site/index.html', 'a'],
+    ['site/css/main.css', 'bb'],
+    ['site/css/img/logo.png', 'ccc'],
+    ['site/js/app.js', 'dddd']
+  ];
+  await p.evaluate(t => {
+    const files = t.map(([rel, body]) => {
+      const f = new File([body], rel.split('/').pop(), { type: 'text/plain' });
+      Object.defineProperty(f, 'webkitRelativePath', { value: rel });
+      return f;
+    });
+    return window.__view.uploadTree(files, '/tmp', 'left');
+  }, tree);
+  await p.waitForTimeout(600);
+
+  const mkdirs = await p.evaluate(() =>
+    window.__calls.filter(c => c.method === 'mkdir').map(c => c.args[0]));
+  check('creates every directory in the tree',
+    JSON.stringify(mkdirs) === JSON.stringify(
+      ['/tmp/site', '/tmp/site/css', '/tmp/site/js', '/tmp/site/css/img']),
+    JSON.stringify(mkdirs));
+  check('parents before children',
+    mkdirs.every((d, i) => i === 0 || d.split('/').length >= mkdirs[i - 1].split('/').length),
+    JSON.stringify(mkdirs));
+
+  const ups = await p.evaluate(() => window.__uploads);
+  check('one request per file', ups.length === 4, 'n=' + ups.length);
+  const placed = ups.map(u => u.dest + '/' + u.name).sort();
+  check('each file lands in its own directory',
+    JSON.stringify(placed) === JSON.stringify([
+      '/tmp/site/css/img/logo.png', '/tmp/site/css/main.css',
+      '/tmp/site/index.html', '/tmp/site/js/app.js'].sort()),
+    JSON.stringify(placed));
+  check('nothing is sent with overwrite set', ups.every(u => !u.overwrite));
+
+  console.log('a path that tries to climb out is dropped, not sent');
+  await p.evaluate(() => { window.__uploads = []; window.__calls = []; });
+  await p.evaluate(() => {
+    const mk = (rel) => {
+      const f = new File(['x'], rel.split('/').pop(), { type: 'text/plain' });
+      Object.defineProperty(f, 'webkitRelativePath', { value: rel });
+      return f;
+    };
+    return window.__view.uploadTree([mk('evil/../../etc/passwd'), mk('ok/fine.txt')], '/tmp', 'left');
+  });
+  await p.waitForTimeout(400);
+  const ups2 = await p.evaluate(() => window.__uploads);
+  const mk2 = await p.evaluate(() =>
+    window.__calls.filter(c => c.method === 'mkdir').map(c => c.args[0]));
+  check('the ".." file is dropped', ups2.length === 1 && ups2[0].name === 'fine.txt',
+    JSON.stringify(ups2.map(u => u.dest + '/' + u.name)));
+  check('and no directory is created for it',
+    JSON.stringify(mk2) === JSON.stringify(['/tmp/ok']), JSON.stringify(mk2));
+  await p.evaluate(() => { const m = document.getElementById('the-modal'); if (m) m.remove(); });
+
+  console.log('re-uploading over what is already there');
+  await p.evaluate(() => {
+    window.__uploads = []; window.__calls = [];
+    window.__existing = { '/tmp/site/index.html': true, '/tmp/site/js/app.js': true };
+  });
+  await p.evaluate(t => {
+    const files = t.map(([rel, body]) => {
+      const f = new File([body], rel.split('/').pop(), { type: 'text/plain' });
+      Object.defineProperty(f, 'webkitRelativePath', { value: rel });
+      return f;
+    });
+    return window.__view.uploadTree(files, '/tmp', 'left');
+  }, tree);
+  await p.waitForTimeout(600);
+
+  const prompt = await p.evaluate(() => {
+    const m = document.getElementById('the-modal');
+    return m ? m.getAttribute('data-title') : null;
+  });
+  check('the first clash prompts once', prompt === 'File already exists', 'modal=' + prompt);
+  const hasAll = await p.evaluate(() =>
+    !!document.querySelector('#the-modal input[type=checkbox]'));
+  check('the prompt offers "apply to the rest"', hasAll === true);
+
+  // tick "apply to the rest" and overwrite: the second clash must not ask
+  await p.evaluate(() => {
+    document.querySelector('#the-modal input[type=checkbox]').checked = true;
+    const btns = [...document.querySelectorAll('#the-modal button')];
+    btns.find(b => b.textContent === 'Overwrite').click();
+  });
+  await p.waitForTimeout(600);
+  const stillOpen = await p.evaluate(() => {
+    const m = document.getElementById('the-modal');
+    return m ? m.getAttribute('data-title') : null;
+  });
+  check('the second clash is not prompted again',
+    stillOpen !== 'File already exists', 'modal=' + stillOpen);
+  // "apply to the rest" means exactly that: everything from the answer
+  // onwards carries the overwrite flag, clash or not, so a re-uploaded
+  // folder costs one request per file rather than two.
+  const ups3 = await p.evaluate(() => window.__uploads);
+  const forced = ups3.filter(u => u.overwrite).map(u => u.name).sort();
+  check('both files that clashed are re-sent with overwrite',
+    forced.indexOf('index.html') >= 0 && forced.indexOf('app.js') >= 0,
+    JSON.stringify(forced));
+  const landed = await p.evaluate(() => Object.keys(window.__existing).sort());
+  check('and the whole tree ends up on the router',
+    JSON.stringify(landed) === JSON.stringify([
+      '/tmp/site/css/img/logo.png', '/tmp/site/css/main.css',
+      '/tmp/site/index.html', '/tmp/site/js/app.js'].sort()),
+    JSON.stringify(landed));
+
+  console.log('the plain file upload still goes to the current directory');
+  await p.evaluate(() => { window.__uploads = []; window.__existing = {}; });
+  await p.evaluate(() => {
+    const f = new File(['z'], 'loose.txt', { type: 'text/plain' });
+    return window.__view.uploadFiles([{ file: f, dest: '/tmp', label: 'loose.txt' }], '/tmp', 'left', []);
+  });
+  await p.waitForTimeout(400);
+  const ups4 = await p.evaluate(() => window.__uploads);
+  check('one file, one request, no mkdir',
+    ups4.length === 1 && ups4[0].dest === '/tmp' && ups4[0].name === 'loose.txt',
+    JSON.stringify(ups4));
+
   console.log('\n== ' + (fail ? fail + ' FAILED' : 'all passed') + ' ==');
   await b.close();
   process.exit(fail ? 1 : 0);

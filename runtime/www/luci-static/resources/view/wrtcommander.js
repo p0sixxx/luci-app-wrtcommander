@@ -1389,6 +1389,8 @@ return view.extend({
 		items.push([_('New file', 'wrtcommander'), '', function () { self.setActive(id); self.newFile(); }]);
 		items.push([_('New folder', 'wrtcommander'), 'F7', function () { self.setActive(id); self.newDirectory(); }]);
 		items.push([_('Upload', 'wrtcommander'), '', function () { self.setActive(id); self.actUpload(); }]);
+		if (this.folderUploadSupported())
+			items.push([_('Upload folder', 'wrtcommander'), '', function () { self.setActive(id); self.actUploadFolder(); }]);
 		items.push(SEP);
 
 		if (one && one.type !== 'link')
@@ -2078,47 +2080,151 @@ return view.extend({
 	/* -------------------------------------------------------- upload */
 
 	actUpload: function () {
+		this.pickAndUpload(this.active, false);
+	},
+
+	/* A folder upload is the same upload, run once per file, with the
+	   directories created first. It adds nothing to the router: the
+	   relative paths the browser hands over are turned into absolute
+	   destinations here, and each one then goes through a door that was
+	   already there - mkdir on the ubus object, and the upload endpoint -
+	   both of which put the path through canon()/canon_path() before
+	   touching the filesystem. So an upload still cannot leave the
+	   allowed root, whatever this code computes. */
+	actUploadFolder: function () {
+		this.pickAndUpload(this.active, true);
+	},
+
+	/* Picking a directory needs `webkitdirectory`, which desktop browsers
+	   have and phone browsers generally do not. Asked for and missing, say
+	   so plainly rather than opening a file picker that silently uploads
+	   the wrong thing. */
+	folderUploadSupported: function () {
+		return 'webkitdirectory' in document.createElement('input');
+	},
+
+	pickAndUpload: function (id, wantFolder) {
 		var self = this;
-		var id = this.active;
 		var dest = this.panes[id].path;
-		var input = E('input', { type: 'file', multiple: true, style: 'display:none' });
+
+		if (wantFolder && !this.folderUploadSupported()) {
+			ui.addNotification(null, E('p', {},
+				_('This browser cannot pick a folder. Phone browsers usually cannot - upload the files themselves, or use a computer.', 'wrtcommander')), 'warning');
+			return;
+		}
+
+		var attrs = { type: 'file', multiple: true, style: 'display:none' };
+		if (wantFolder) {
+			attrs.webkitdirectory = '';
+			attrs.directory = '';
+		}
+		var input = E('input', attrs);
 		document.body.appendChild(input);
 		input.addEventListener('change', function () {
 			var files = Array.prototype.slice.call(input.files || []);
 			input.remove();
-			if (files.length) self.uploadFiles(files, dest, id);
+			if (!files.length)
+				return;
+			if (wantFolder)
+				self.uploadTree(files, dest, id);
+			else
+				self.uploadFiles(files.map(function (f) {
+					return { file: f, dest: dest, label: f.name };
+				}), dest, id, []);
 		});
 		input.click();
 	},
 
-	uploadFiles: function (files, dest, paneId) {
+	/* The browser hands over a flat list of files, each carrying the path
+	   it had inside the picked folder. Turn that into the directories that
+	   have to exist and a destination for every file.
+
+	   A segment that is empty, "." or ".." is refused and the file is
+	   dropped with a note. Browsers do not produce those, so this is about
+	   not passing on something unexpected - it is not the permission
+	   check, which is on the router and applies to every path regardless.
+
+	   Empty directories do not survive the trip: a directory input reports
+	   files, so a folder with nothing in it is not in the list and is not
+	   created. */
+	uploadTree: function (files, dest, paneId) {
+		var items = [], dirs = {}, skipped = 0;
+
+		files.forEach(function (f) {
+			var rel = f.webkitRelativePath || f.name;
+			var parts = rel.split('/');
+			var bad = parts.some(function (seg) {
+				return seg === '' || seg === '.' || seg === '..' || seg.indexOf('\u0000') >= 0;
+			});
+			if (bad) { skipped++; return; }
+
+			parts.pop();
+			var dir = dest;
+			parts.forEach(function (seg) {
+				dir = (dir === '/') ? ('/' + seg) : (dir + '/' + seg);
+				dirs[dir] = true;
+			});
+			items.push({ file: f, dest: dir, label: rel });
+		});
+
+		if (skipped)
+			ui.addNotification(null, E('p', {},
+				N_(skipped, 'Skipped %d file with an unusable path.',
+					'Skipped %d files with unusable paths.', 'wrtcommander').format(skipped)), 'warning');
+
+		if (!items.length)
+			return;
+
+		/* shallowest first: mkdir makes one level at a time, so every
+		   parent has to be created before its children */
+		var dirList = Object.keys(dirs).sort(function (a, b) {
+			var d = a.split('/').length - b.split('/').length;
+			return d !== 0 ? d : (a < b ? -1 : 1);
+		});
+
+		this.uploadFiles(items, dest, paneId, dirList);
+	},
+
+	/* items: [{ file, dest, label }], dirList: absolute directories to
+	   create first, shallowest first. A plain file upload passes an empty
+	   dirList and one item per file, so both paths share this. */
+	uploadFiles: function (items, dest, paneId, dirList) {
 		var self = this;
-		var total = files.length;
+		var total = items.length;
 		var idx = 0;
+		var done = 0;
 		var cancelled = false;
 		var xhr = null;
+		var overwriteAll = false;
+		var skipAll = false;
 
 		var overall = E('div', { class: 'fx-up-overall' });
 		var fileLabel = E('div', { class: 'fx-up-name' });
 		var fill = E('div', { class: 'fx-bar-fill' });
 		var destLine = E('div', { class: 'fx-up-dest' }, _('Destination: %s', 'wrtcommander').format(dest));
 
+		function stop() {
+			cancelled = true;
+			if (xhr) xhr.abort();
+			ui.hideModal();
+			/* a cancelled tree leaves part of itself behind, so the panel
+			   has to be re-read rather than left showing the old listing */
+			self.loadPane(paneId, true);
+		}
+
 		ui.showModal(_('Uploading', 'wrtcommander'), [
 			destLine, overall, fileLabel,
 			E('div', { class: 'fx-bar' }, fill),
 			E('div', { class: 'right fx-modal-actions' },
-				E('button', {
-					class: 'btn',
-					click: function () { cancelled = true; if (xhr) xhr.abort(); ui.hideModal(); }
-				}, _('Cancel', 'wrtcommander')))
+				E('button', { class: 'btn', click: stop }, _('Cancel', 'wrtcommander')))
 		]);
 
-		function post(file, overwrite, onDone) {
+		function post(item, overwrite, onDone) {
 			var fd = new FormData();
-			fd.append('file', file, file.name);
+			fd.append('file', item.file, item.file.name);
 			xhr = new XMLHttpRequest();
 			xhr.open('POST', L.url('admin', 'services', 'wrtcommander', 'upload') +
-				'?dest=' + encodeURIComponent(dest) + '&overwrite=' + (overwrite ? '1' : '0'));
+				'?dest=' + encodeURIComponent(item.dest) + '&overwrite=' + (overwrite ? '1' : '0'));
 			xhr.upload.addEventListener('progress', function (ev) {
 				if (ev.lengthComputable)
 					fill.style.width = Math.round((ev.loaded / ev.total) * 100) + '%';
@@ -2132,36 +2238,110 @@ return view.extend({
 			xhr.send(fd);
 		}
 
-		function next() {
-			if (cancelled) return;
-			if (idx >= total) {
-				ui.hideModal();
-				notifyOk(N_(total, 'Uploaded %d file', 'Uploaded %d files', 'wrtcommander').format(total));
-				self.loadPane(paneId, true);
-				return;
-			}
-			var file = files[idx];
-			fileLabel.textContent = file.name;
-			overall.textContent = _('File %d of %d', 'wrtcommander').format(idx + 1, total);
-			fill.style.width = '0%';
+		function report(item, resp) {
+			ui.addNotification(null, E('p', {},
+				item.label + ': ' + errorMessage(resp, _('Upload failed', 'wrtcommander'))), 'error');
+		}
 
-			post(file, false, function (status, resp) {
+		function finish() {
+			ui.hideModal();
+			if (done === total)
+				notifyOk(N_(total, 'Uploaded %d file', 'Uploaded %d files', 'wrtcommander').format(total));
+			else
+				ui.addNotification(null, E('p', {},
+					_('Uploaded %d of %d.', 'wrtcommander').format(done, total)), 'warning');
+			self.loadPane(paneId, true);
+		}
+
+		function send(item, overwrite) {
+			post(item, overwrite, function (status, resp) {
 				if (cancelled) return;
-				if (status === 200 && resp && resp.ok) { idx++; next(); return; }
-				if (resp && resp.error && resp.error.code === 'EEXIST') {
-					self.confirmOverwrite(1, function () {
-						post(file, true, function () { idx++; next(); });
+				if (status === 200 && resp && resp.ok) { done++; idx++; next(); return; }
+				if (resp && resp.error && resp.error.code === 'EEXIST' && !overwrite) {
+					if (skipAll) { idx++; next(); return; }
+					if (overwriteAll) { send(item, true); return; }
+					self.confirmUploadOverwrite(item.label, total - idx > 1, function (what, forAll) {
+						if (what === 'cancel') { stop(); return; }
+						if (what === 'skip') {
+							if (forAll) skipAll = true;
+							idx++; next();
+							return;
+						}
+						if (forAll) overwriteAll = true;
+						send(item, true);
 					});
 					return;
 				}
-				ui.addNotification(null, E('p', {},
-					file.name + ': ' + errorMessage(resp, _('Upload failed', 'wrtcommander'))), 'error');
+				report(item, resp);
 				idx++;
 				next();
 			});
 		}
 
-		next();
+		function next() {
+			if (cancelled) return;
+			if (idx >= total) { finish(); return; }
+			var item = items[idx];
+			fileLabel.textContent = item.label;
+			overall.textContent = _('File %d of %d', 'wrtcommander').format(idx + 1, total);
+			fill.style.width = '0%';
+			send(item, overwriteAll);
+		}
+
+		/* Directories first. An EEXIST here is the ordinary case - part of
+		   the tree is already on the router - and is not an error. */
+		function makeDirs(i) {
+			if (cancelled) return;
+			if (i >= dirList.length) { next(); return; }
+			overall.textContent = _('Creating folders: %d of %d', 'wrtcommander').format(i + 1, dirList.length);
+			fileLabel.textContent = dirList[i];
+			fill.style.width = '0%';
+			callMkdir(dirList[i]).then(function (r) {
+				if (cancelled) return;
+				if (r && r.ok === false && !(r.error && r.error.code === 'EEXIST')) {
+					ui.hideModal();
+					notifyError(r, _('Cannot create folder', 'wrtcommander'));
+					self.loadPane(paneId, true);
+					return;
+				}
+				makeDirs(i + 1);
+			});
+		}
+
+		if (dirList && dirList.length)
+			makeDirs(0);
+		else
+			next();
+	},
+
+	/* Overwrite prompt for uploads. Separate from confirmOverwrite(),
+	   which copy and move use for a whole batch at once: here the files
+	   arrive one at a time, so the answer needs a "and the rest of them
+	   too" - otherwise re-uploading a folder asks once per file.
+	   `onAnswer(what, forAll)` with what = cancel | skip | overwrite. */
+	confirmUploadOverwrite: function (label, more, onAnswer) {
+		var all = E('input', { type: 'checkbox' });
+
+		function answer(what) {
+			return function () { ui.hideModal(); onAnswer(what, all.checked); };
+		}
+
+		ui.showModal(_('File already exists', 'wrtcommander'), [
+			E('p', {}, _('"%s" already exists at the destination.', 'wrtcommander').format(label)),
+			more ? E('label', { class: 'fx-set-row' }, [
+				all,
+				E('span', { class: 'fx-set-text' },
+					E('span', { class: 'fx-set-label' }, _('Apply to the rest', 'wrtcommander')))
+			]) : '',
+			E('div', { class: 'right fx-modal-actions' }, [
+				E('button', { class: 'btn', click: answer('cancel') }, _('Cancel', 'wrtcommander')),
+				' ',
+				E('button', { class: 'btn', click: answer('skip') }, _('Skip', 'wrtcommander')),
+				' ',
+				E('button', { class: 'btn cbi-button-negative', click: answer('overwrite') },
+					_('Overwrite', 'wrtcommander'))
+			])
+		]);
 	},
 
 	/* -------------------------------------------------------- search */

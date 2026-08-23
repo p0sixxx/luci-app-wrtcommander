@@ -9,6 +9,10 @@ msgid "Wrt Commander"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "\"%s\" already exists at the destination."
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "%d B"
 msgstr ""
 
@@ -42,6 +46,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Apply"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Apply to the rest"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -161,6 +169,10 @@ msgid "Create"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Creating folders: %d of %d"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Ctrl+Space calculates the size of this folder"
 msgstr ""
 
@@ -234,6 +246,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "File actions"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "File already exists"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -557,6 +573,10 @@ msgid "Size"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Skip"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Socket"
 msgstr ""
 
@@ -590,6 +610,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "This action cannot be undone."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This browser cannot pick a folder. Phone browsers usually cannot - upload the files themselves, or use a computer."
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -642,6 +666,14 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Upload failed"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Upload folder"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Uploaded %d of %d."
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -733,6 +765,12 @@ msgstr[1] ""
 msgctxt "wrtcommander"
 msgid "Move %d item to:"
 msgid_plural "Move %d items to:"
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "wrtcommander"
+msgid "Skipped %d file with an unusable path."
+msgid_plural "Skipped %d files with unusable paths."
 msgstr[0] ""
 msgstr[1] ""
 

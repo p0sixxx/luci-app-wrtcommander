@@ -36,6 +36,8 @@
 - Создание / переименование / удаление / копирование / перемещение,
   одного объекта или сразу многих
 - Потоковая загрузка и скачивание по HTTP (никогда не base64 через JSON)
+- Загрузка папки целиком, со всей вложенностью (там, где браузер умеет
+  выбирать каталог, то есть на компьютере)
 - Просмотрщик и редактор текста с атомарным сохранением и обнаружением
   конфликта
 - Правка прав доступа (chmod) и владельца/группы (chown)
@@ -286,7 +288,11 @@ sh run-all.sh
   загрузчик LuCI, и по нему кликают. Щелчок открывает строку, лишнее
   второе касание не открывает второй раз, Ctrl+щелчок отмечает вместо
   открытия, а снятая галочка в настройках возвращает двойной щелчок.
-  Нужны node и playwright, поэтому на роутере тест пропускается
+  Там же загрузка папки: каталоги создаются от мелких к глубоким, каждый
+  файл уходит в свой каталог одним запросом, сегмент `..` отбрасывается и
+  на роутер не отправляется, а «Применить к остальным» избавляет от
+  вопроса на каждый следующий файл. Нужны node и playwright, поэтому на
+  роутере тест пропускается
 - `canon-path-tests.sh` — проверка слоя валидации путей: `canon()` и
   `detect_binary()` поднимаются прямо из кода бэкенда и вызываются
   напрямую, так что тест не может разойтись с тем, что он охраняет.
@@ -688,6 +694,43 @@ CSS-переменными на корне приложения, а не на я
 где двойной щелчок поднимал на два уровня вместо одного. Покрыто в
 `tests/ui-click-tests.sh`.
 
+### Загрузка папки
+
+Кроме отдельных файлов можно загрузить папку целиком, со всем её
+содержимым и вложенностью: правый клик → **Загрузить папку**. Пункт
+появляется только там, где браузер умеет выбирать каталог
+(`webkitdirectory`), то есть на компьютере; браузеры на телефонах этого
+обычно не умеют, и там пункта не будет.
+
+Делается это целиком на стороне браузера и **ничего не добавляет на
+роутере**. Браузер отдаёт плоский список файлов, у каждого — путь внутри
+выбранной папки; представление превращает его в список каталогов и
+назначение для каждого файла, после чего:
+
+1. создаёт каталоги по одному, от мелких к глубоким, через тот же
+   ubus-метод `mkdir` (он делает один уровень за вызов, поэтому порядок
+   важен); `EEXIST` здесь — обычное дело, часть дерева уже могла быть на
+   месте;
+2. отправляет по одному POST на файл на тот же эндпоинт загрузки, каждый
+   со своим `dest`.
+
+То есть каждый путь проходит ровно через те же двери, что и раньше:
+`canon()` в ucode для `mkdir` и `canon_path()` в Lua для загрузки. Новой
+поверхности не появилось, и загрузка по-прежнему не может выйти за
+`allowed_root`, что бы ни насчитал браузер. Сегменты `..`, `.` и пустые
+представление отбрасывает само, но это ради предсказуемости, а не вместо
+проверки — проверка на роутере и применяется к любому пути.
+
+При совпадении имени спрашивается один раз, и в вопросе есть галочка
+**«Применить к остальным»**: без неё повторная заливка папки на сто
+файлов задала бы сто вопросов. Отмеченная галочка вместе с «Заменить»
+означает «заменять и дальше», поэтому остаток уходит с флагом замены
+сразу — один запрос на файл, а не два.
+
+Чего это не делает: **пустые папки не переносятся**. Каталог, выбранный
+через `input[type=file]`, отдаёт браузеру только файлы, поэтому папка без
+содержимого в список не попадает и создана не будет.
+
 ### Контекстное меню
 
 Правый клик — полноценная замена шапке и клавиатуре, а не подмножество.
@@ -922,6 +965,8 @@ phone as readily as from a desktop.
   filesystem
 - Create / rename / delete / copy / move, one item or many
 - Streamed HTTP upload and download (never base64-through-JSON)
+- Whole-folder upload, nesting and all (where the browser can pick a
+  directory, i.e. on a computer)
 - Text viewer and editor with atomic save and conflict detection
 - Permissions (chmod) and owner/group (chown) editing
 - Filename search, current directory or recursive, with result caps
@@ -1167,8 +1212,11 @@ a deliberately broken one) and runs, in order:
   into a headless browser the way LuCI's own loader loads it, and then
   clicked on. A click opens a row, a stray second tap does not open a
   second time, Ctrl-click marks instead of opening, and unticking the
-  setting puts the double click back. Needs node and playwright, so it
-  skips on a router
+  setting puts the double click back. Folder upload too: every directory
+  is created shallowest first, each file goes to its own directory in one
+  request, a `..` segment is dropped rather than sent, and "apply to the
+  rest" stops the question repeating per file. Needs node and playwright,
+  so it skips on a router
 - `canon-path-tests.sh` - the path validation layer: `canon()` and
   `detect_binary()` are lifted straight out of the backend and called
   directly, so the test cannot drift away from the code it guards.
@@ -1561,6 +1609,42 @@ is suppressed: the cursor still moves and the panel still becomes active.
 The same mechanism incidentally fixed an old slip in the `..` row, where a
 double click went up two levels instead of one. Covered by
 `tests/ui-click-tests.sh`.
+
+### Uploading a folder
+
+Besides individual files, a whole folder can be uploaded with everything
+in it: right-click → **Upload folder**. The item appears only where the
+browser can pick a directory (`webkitdirectory`), which means on a
+computer; phone browsers generally cannot, and there the item is absent.
+
+This happens entirely in the browser and **adds nothing to the router**.
+The browser hands over a flat list of files, each carrying the path it
+had inside the picked folder; the view turns that into a list of
+directories and a destination per file, and then:
+
+1. creates the directories one at a time, shallowest first, through the
+   same `mkdir` ubus method (it makes one level per call, so the order
+   matters); an `EEXIST` here is the ordinary case, since part of the
+   tree may already be there;
+2. sends one POST per file to the same upload endpoint, each with its own
+   `dest`.
+
+Every path therefore goes through exactly the doors that were already
+there: `canon()` in ucode for `mkdir`, `canon_path()` in Lua for the
+upload. No new surface, and an upload still cannot leave `allowed_root`
+whatever the browser computed. The view drops `..`, `.` and empty
+segments itself, but that is for predictability, not instead of the
+check - the check is on the router and applies to every path.
+
+A name clash asks once, and the question carries an **"Apply to the
+rest"** tickbox: without it, re-uploading a hundred-file folder would ask
+a hundred times. Ticked together with Overwrite it means "keep
+overwriting", so the remainder goes out with the flag already set - one
+request per file rather than two.
+
+What it does not do: **empty folders are not carried over**. A directory
+picked through `input[type=file]` reports files to the browser, so a
+folder with nothing in it never appears in the list and is never created.
 
 ### Context menu
 
