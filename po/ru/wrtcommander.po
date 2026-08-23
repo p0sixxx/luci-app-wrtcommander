@@ -87,12 +87,20 @@ msgid "Cannot read permissions"
 msgstr "Не удалось прочитать права"
 
 msgctxt "wrtcommander"
+msgid "Cannot read the archive."
+msgstr "Не удалось прочитать архив."
+
+msgctxt "wrtcommander"
 msgid "Cannot read properties"
 msgstr "Не удалось прочитать свойства"
 
 msgctxt "wrtcommander"
 msgid "Cannot rename"
 msgstr "Не удалось переименовать"
+
+msgctxt "wrtcommander"
+msgid "Cannot unpack \"%s\"."
+msgstr "Не удалось распаковать «%s»."
 
 msgctxt "wrtcommander"
 msgid "Cannot save file"
@@ -223,6 +231,10 @@ msgid "File created"
 msgstr "Файл создан"
 
 msgctxt "wrtcommander"
+msgid "Files: %d, folders: %d"
+msgstr "Файлов: %d, папок: %d"
+
+msgctxt "wrtcommander"
 msgid "Filesystem"
 msgstr "Файловая система"
 
@@ -329,6 +341,10 @@ msgid "No subdirectories"
 msgstr "Вложенных папок нет"
 
 msgctxt "wrtcommander"
+msgid "Not a ZIP archive, or it is damaged."
+msgstr "Это не ZIP-архив или он повреждён."
+
+msgctxt "wrtcommander"
 msgid "Nothing found"
 msgstr "Ничего не найдено"
 
@@ -391,6 +407,10 @@ msgstr "Свойства"
 msgctxt "wrtcommander"
 msgid "Read"
 msgstr "Чтение"
+
+msgctxt "wrtcommander"
+msgid "Reading %s…"
+msgstr "Чтение %s…"
 
 msgctxt "wrtcommander"
 msgid "Refresh"
@@ -513,8 +533,16 @@ msgid "This action cannot be undone."
 msgstr "Это действие нельзя отменить."
 
 msgctxt "wrtcommander"
-msgid "This browser cannot pick a folder. Phone browsers usually cannot - upload the files themselves, or use a computer."
-msgstr "Этот браузер не умеет выбирать папку. Браузеры на телефонах обычно не умеют — загрузите сами файлы или воспользуйтесь компьютером."
+msgid "The archive has nothing that can be uploaded."
+msgstr "В архиве нет ничего, что можно загрузить."
+
+msgctxt "wrtcommander"
+msgid "This browser cannot pick a folder. Use \"Upload folder from a ZIP\" instead - that works everywhere, phones included."
+msgstr "Этот браузер не умеет выбирать папку. Возьмите «Загрузить папку из ZIP» — это работает везде, включая телефоны."
+
+msgctxt "wrtcommander"
+msgid "This browser cannot unpack a compressed archive. Only a ZIP stored without compression can be used here."
+msgstr "Этот браузер не умеет распаковывать сжатые архивы. Здесь подойдёт только ZIP, сохранённый без сжатия."
 
 msgctxt "wrtcommander"
 msgid "This directory is empty"
@@ -575,6 +603,10 @@ msgid "Upload folder"
 msgstr "Загрузить папку"
 
 msgctxt "wrtcommander"
+msgid "Upload folder from a ZIP"
+msgstr "Загрузить папку из ZIP"
+
+msgctxt "wrtcommander"
 msgid "Uploaded %d of %d."
 msgstr "Загружено %d из %d."
 
@@ -597,6 +629,10 @@ msgstr "ВНИМАНИЕ: среди выбранного есть систем�
 msgctxt "wrtcommander"
 msgid "Write"
 msgstr "Запись"
+
+msgctxt "wrtcommander"
+msgid "ZIP64 archives are not supported."
+msgstr "Архивы ZIP64 не поддерживаются."
 
 msgctxt "wrtcommander"
 msgid "You have unsaved changes. Discard them?"
@@ -756,6 +792,13 @@ msgid_plural "Move %d items to:"
 msgstr[0] "Переместить %d объект в:"
 msgstr[1] "Переместить %d объекта в:"
 msgstr[2] "Переместить %d объектов в:"
+
+msgctxt "wrtcommander"
+msgid "Skipping %d entry that cannot be unpacked."
+msgid_plural "Skipping %d entries that cannot be unpacked."
+msgstr[0] "Пропущена %d запись, которую не удаётся распаковать."
+msgstr[1] "Пропущено %d записи, которые не удаётся распаковать."
+msgstr[2] "Пропущено %d записей, которые не удаётся распаковать."
 
 msgctxt "wrtcommander"
 msgid "Skipped %d file with an unusable path."

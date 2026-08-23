@@ -27,6 +27,25 @@ const { chromium } = require(PLAYWRIGHT);
 const SRC = path.resolve(__dirname,
   '../runtime/www/luci-static/resources/view/wrtcommander.js');
 
+// a small archive built by python's zipfile - see the ZIP block below
+const ZIP_B64 =
+  'UEsDBBQAAAAAAAAAIQCGphA2BQAAAAUAAAAPAAAAc2l0ZS9pbmRleC5odG1saGVsbG9QSwMEFAAA' +
+  'AAgAAAAhAIXflVsYAAAAWAIAABEAAABzaXRlL2Nzcy9tYWluLmNzc0vKT6msTs7PyS+yKkpNqU0a' +
+  '5Y5yqcEFAFBLAwQUAAAACAAAACEAaP4BQxAAAAAOAAAADgAAAHNpdGUvanMvYXBwLmpzS87PK87P' +
+  'SdXLyU/XMNQEAFBLAwQUAAAIAAAAACEAI2QnpxIAAAASAAAAIgAAAHNpdGUv0YTQvtGC0L4v0YHQ' +
+  'vdC40LzQvtC6ICgxKS50eHTQutC40YDQuNC70LvQuNGG0LBQSwMEFAAAAAAAAAAhAKqCySsIAAAA' +
+  'CAAAAA0AAABzaXRlL2NhZoIudHh0ZXNwcmVzc29QSwMEFAAAAAAAAAAhAAAAAAAAAAAAAAAAAAsA' +
+  'AABzaXRlL2VtcHR5L1BLAwQUAAAAAAAAACEAzKnOVwoAAAAKAAAAFQAAAGV2aWwvLi4vLi4vZXRj' +
+  'L3Bhc3N3ZHJvb3Q6eDowOjBQSwECFAMUAAAAAAAAACEAhqYQNgUAAAAFAAAADwAAAAAAAAAAAAAA' +
+  'gAEAAAAAc2l0ZS9pbmRleC5odG1sUEsBAhQDFAAAAAgAAAAhAIXflVsYAAAAWAIAABEAAAAAAAAA' +
+  'AAAAAIABMgAAAHNpdGUvY3NzL21haW4uY3NzUEsBAhQDFAAAAAgAAAAhAGj+AUMQAAAADgAAAA4A' +
+  'AAAAAAAAAAAAAIABeQAAAHNpdGUvanMvYXBwLmpzUEsBAhQDFAAACAAAAAAhACNkJ6cSAAAAEgAA' +
+  'ACIAAAAAAAAAAAAAAIABtQAAAHNpdGUv0YTQvtGC0L4v0YHQvdC40LzQvtC6ICgxKS50eHRQSwEC' +
+  'FAMUAAAAAAAAACEAqoLJKwgAAAAIAAAADQAAAAAAAAAAAAAAgAEHAQAAc2l0ZS9jYWaCLnR4dFBL' +
+  'AQIUAxQAAAAAAAAAIQAAAAAAAAAAAAAAAAALAAAAAAAAAAAAEADtQToBAABzaXRlL2VtcHR5L1BL' +
+  'AQIUAxQAAAAAAAAAIQDMqc5XCgAAAAoAAAAVAAAAAAAAAAAAAACAAWMBAABldmlsLy4uLy4uL2V0' +
+  'Yy9wYXNzd2RQSwUGAAAAAAcABwC/AQAAoAEAAAAA';
+
 let fail = 0;
 const check = (name, ok, extra) => {
   console.log((ok ? '  ok   ' : '  FAIL ') + name + (extra ? '   ' + extra : ''));
@@ -323,6 +342,112 @@ const check = (name, ok, extra) => {
   check('one file, one request, no mkdir',
     ups4.length === 1 && ups4[0].dest === '/tmp' && ups4[0].name === 'loose.txt',
     JSON.stringify(ups4));
+
+
+  // ------------------------------------------------------------ ZIP
+  //
+  // The route a phone has to use, since no mobile browser can pick a
+  // folder. The archive below is built by python's zipfile and holds one
+  // of everything that matters: a stored entry, two deflated ones, a
+  // UTF-8 flagged Cyrillic name, an explicit empty-directory entry, and
+  // an entry whose name tries to climb out of the destination.
+  console.log('uploading a folder from a ZIP');
+  await p.evaluate(() => {
+    window.__uploads = []; window.__calls = []; window.__existing = {};
+  });
+  await nav('/tmp');
+  await p.evaluate(b64 => {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const f = new File([bytes], 'site.zip', { type: 'application/zip' });
+    return window.__view.openZip(f, '/tmp', 'left');
+  }, ZIP_B64);
+  await p.waitForTimeout(400);
+
+  const zipTitle = await p.evaluate(() => {
+    const m = document.getElementById('the-modal');
+    return m ? m.getAttribute('data-title') : null;
+  });
+  check('the archive is read and confirmed first',
+    zipTitle === 'Upload folder from a ZIP', 'modal=' + zipTitle);
+  const summary = await p.evaluate(() =>
+    [...document.querySelectorAll('#the-modal p')].map(n => n.textContent));
+  check('the summary counts what will be written',
+    summary.some(t => t === 'Files: 5, folders: 5'), JSON.stringify(summary));
+  check('and says one entry is being skipped',
+    summary.some(t => t.indexOf('Skipping 1 entry') === 0), JSON.stringify(summary));
+  check('nothing is written before the confirmation',
+    (await p.evaluate(() => window.__uploads.length)) === 0);
+
+  await p.evaluate(() => {
+    [...document.querySelectorAll('#the-modal button')]
+      .find(b => b.textContent === 'Upload').click();
+  });
+  await p.waitForTimeout(900);
+
+  const zdirs = await p.evaluate(() =>
+    window.__calls.filter(c => c.method === 'mkdir').map(c => c.args[0]));
+  check('every folder in the archive is created, shallowest first',
+    JSON.stringify(zdirs) === JSON.stringify(['/tmp/site', '/tmp/site/css',
+      '/tmp/site/empty', '/tmp/site/js', '/tmp/site/\u0444\u043e\u0442\u043e']),
+    JSON.stringify(zdirs));
+  check('an empty folder in the archive is created too',
+    zdirs.indexOf('/tmp/site/empty') >= 0, JSON.stringify(zdirs));
+
+  const zups = await p.evaluate(() => window.__uploads);
+  const zplaced = zups.map(u => u.dest + '/' + u.name).sort();
+  check('every file lands where the archive put it',
+    JSON.stringify(zplaced) === JSON.stringify([
+      '/tmp/site/css/main.css', '/tmp/site/index.html', '/tmp/site/js/app.js',
+      '/tmp/site/caf\u00e9.txt',
+      '/tmp/site/\u0444\u043e\u0442\u043e/\u0441\u043d\u0438\u043c\u043e\u043a (1).txt'].sort()),
+    JSON.stringify(zplaced));
+  check('the "../" entry never reaches the router',
+    !zups.some(u => u.name === 'passwd') && !zdirs.some(d => d.indexOf('evil') >= 0));
+
+  const stored = zups.find(u => u.name === 'index.html');
+  check('a stored entry comes out byte for byte',
+    stored && stored.text === 'hello', stored && JSON.stringify(stored.text));
+  const deflated = zups.find(u => u.name === 'main.css');
+  check('a deflated entry is inflated by the browser',
+    deflated && deflated.text === 'body{color:red}'.repeat(40) && deflated.size === 600,
+    deflated && ('size=' + deflated.size));
+  const cyr = zups.find(u => u.name.indexOf('(1).txt') >= 0);
+  check('a UTF-8 flagged name is decoded',
+    cyr && cyr.name === '\u0441\u043d\u0438\u043c\u043e\u043a (1).txt' && cyr.text === '\u043a\u0438\u0440\u0438\u043b\u043b\u0438\u0446\u0430',
+    cyr && JSON.stringify(cyr.name));
+
+  // the entry above carries CP437 bytes and no UTF-8 flag, the way an
+  // older Windows zip writes a name - that is what the CP437 table is for
+  const legacy = zups.find(u => u.name.indexOf('caf') === 0);
+  check('a name with no UTF-8 flag is decoded as CP437',
+    legacy && legacy.name === 'caf\u00e9.txt' && legacy.text === 'espresso',
+    legacy && JSON.stringify(legacy.name));
+
+  console.log('a file that is not an archive');
+  await p.evaluate(() => { window.__uploads = []; });
+  await p.evaluate(() => {
+    const f = new File(['this is not a zip at all, not even close'], 'notes.txt');
+    return window.__view.openZip(f, '/tmp', 'left');
+  });
+  await p.waitForTimeout(300);
+  check('is refused, and nothing is uploaded',
+    (await p.evaluate(() => window.__uploads.length)) === 0);
+  const noModal = await p.evaluate(() => !document.getElementById('the-modal'));
+  check('and the dialog is closed rather than left hanging', noModal === true);
+
+  console.log('the folder picker is not offered where it cannot work');
+  const picker = await p.evaluate(() => window.__view.folderPickerSupported());
+  check('a desktop viewport is offered the folder picker', picker === true);
+  const phone = await b.newPage({ viewport: { width: 390, height: 780 },
+                                  hasTouch: true, isMobile: true });
+  await phone.goto('file://' + path.resolve(__dirname, 'ui-click-harness.html'));
+  await phone.evaluate(s => window.__boot(s), src);
+  await phone.waitForTimeout(200);
+  const phonePicker = await phone.evaluate(() => window.__view.folderPickerSupported());
+  check('a touch-primary device is not', phonePicker === false);
+  await phone.close();
 
   console.log('\n== ' + (fail ? fail + ' FAILED' : 'all passed') + ' ==');
   await b.close();

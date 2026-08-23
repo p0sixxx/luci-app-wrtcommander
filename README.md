@@ -36,8 +36,8 @@
 - Создание / переименование / удаление / копирование / перемещение,
   одного объекта или сразу многих
 - Потоковая загрузка и скачивание по HTTP (никогда не base64 через JSON)
-- Загрузка папки целиком, со всей вложенностью (там, где браузер умеет
-  выбирать каталог, то есть на компьютере)
+- Загрузка папки целиком, со всей вложенностью: выбором каталога на
+  компьютере или ZIP-архивом — с телефона тоже
 - Просмотрщик и редактор текста с атомарным сохранением и обнаружением
   конфликта
 - Правка прав доступа (chmod) и владельца/группы (chown)
@@ -291,8 +291,11 @@ sh run-all.sh
   Там же загрузка папки: каталоги создаются от мелких к глубоким, каждый
   файл уходит в свой каталог одним запросом, сегмент `..` отбрасывается и
   на роутер не отправляется, а «Применить к остальным» избавляет от
-  вопроса на каждый следующий файл. Нужны node и playwright, поэтому на
-  роутере тест пропускается
+  вопроса на каждый следующий файл. Отдельно — загрузка из ZIP на
+  настоящем архиве, собранном `zipfile`: записи `stored` и `deflate`,
+  имя с флагом UTF-8 и имя в CP437, пустая папка отдельной записью,
+  запись с `..` в имени, и то, что до подтверждения не пишется ничего.
+  Нужны node и playwright, поэтому на роутере тест пропускается
 - `canon-path-tests.sh` — проверка слоя валидации путей: `canon()` и
   `detect_binary()` поднимаются прямо из кода бэкенда и вызываются
   напрямую, так что тест не может разойтись с тем, что он охраняет.
@@ -696,11 +699,24 @@ CSS-переменными на корне приложения, а не на я
 
 ### Загрузка папки
 
-Кроме отдельных файлов можно загрузить папку целиком, со всем её
-содержимым и вложенностью: правый клик → **Загрузить папку**. Пункт
-появляется только там, где браузер умеет выбирать каталог
-(`webkitdirectory`), то есть на компьютере; браузеры на телефонах этого
-обычно не умеют, и там пункта не будет.
+Папку можно загрузить целиком, со всем её содержимым и вложенностью.
+Способа два, и оба в контекстном меню по правому клику (на телефоне —
+долгое нажатие):
+
+- **Загрузить папку** — обычный выбор каталога. Требует
+  `webkitdirectory`, то есть работает на компьютере.
+- **Загрузить папку из ZIP** — выбирается один `.zip`, а распаковывается
+  он **в браузере**. Работает везде, включая телефоны.
+
+Второй пункт существует именно ради телефона: `webkitdirectory` не
+реализован **ни в одном** мобильном браузере — ни в Chrome на Android, ни
+в Safari на iOS, ни в Firefox. Хуже того, само свойство в Chrome на
+Android *присутствует*, хотя выбрать папку нельзя, поэтому проверка «есть
+ли свойство» врёт. Честного способа это определить нет, так что устройство
+с сенсорным вводом как основным (`pointer: coarse` без `any-hover: hover`)
+считается неспособным, и ему предлагается путь через ZIP. Архив на телефоне
+делается штатно: в iOS Files есть «Сжать», в большинстве файловых
+менеджеров на Android — тоже.
 
 Делается это целиком на стороне браузера и **ничего не добавляет на
 роутере**. Браузер отдаёт плоский список файлов, у каждого — путь внутри
@@ -727,9 +743,31 @@ CSS-переменными на корне приложения, а не на я
 означает «заменять и дальше», поэтому остаток уходит с флагом замены
 сразу — один запрос на файл, а не два.
 
-Чего это не делает: **пустые папки не переносятся**. Каталог, выбранный
-через `input[type=file]`, отдаёт браузеру только файлы, поэтому папка без
-содержимого в список не попадает и создана не будет.
+Чего **выбор каталога** не делает: пустые папки не переносятся. Каталог,
+выбранный через `input[type=file]`, отдаёт браузеру только файлы, поэтому
+папка без содержимого в список не попадает и создана не будет. У ZIP такой
+беды нет — в архиве есть отдельные записи для каталогов, и пустые папки
+создаются.
+
+#### Что читается из ZIP
+
+Разбор архива живёт в самом представлении и занимает пару сотен строк:
+хвост файла, центральный каталог, локальные заголовки. Данные записи
+читаются по одной, ровно перед её отправкой (`File.slice()`), поэтому
+большой архив не приходится целиком держать в памяти. Распаковку делает
+сам браузер — `DecompressionStream('deflate-raw')`, который есть во всех
+браузерах с мая 2023 года; никакой библиотеки не подключается.
+
+Поддерживается то, что делает кнопка «Сжать» на телефоне: записи
+`stored` и `deflate`. Отказ, а не порча, на: ZIP64, зашифрованных записях
+и прочих методах сжатия — такие записи пропускаются, и в подтверждении
+пишется, сколько их. Имена декодируются в UTF-8, если у записи взведён
+флаг 11, иначе как CP437 — так их пишет старый Windows.
+
+Перед началом показывается подтверждение: имя архива, сколько файлов и
+папок будет создано, куда именно и сколько записей пропущено. Архив может
+содержать сотни файлов, а назначение — это просто текущий каталог панели,
+так что спросить стоит.
 
 ### Контекстное меню
 
@@ -965,8 +1003,8 @@ phone as readily as from a desktop.
   filesystem
 - Create / rename / delete / copy / move, one item or many
 - Streamed HTTP upload and download (never base64-through-JSON)
-- Whole-folder upload, nesting and all (where the browser can pick a
-  directory, i.e. on a computer)
+- Whole-folder upload, nesting and all: by picking the directory on a
+  computer, or from a ZIP - which works from a phone too
 - Text viewer and editor with atomic save and conflict detection
 - Permissions (chmod) and owner/group (chown) editing
 - Filename search, current directory or recursive, with result caps
@@ -1215,8 +1253,12 @@ a deliberately broken one) and runs, in order:
   setting puts the double click back. Folder upload too: every directory
   is created shallowest first, each file goes to its own directory in one
   request, a `..` segment is dropped rather than sent, and "apply to the
-  rest" stops the question repeating per file. Needs node and playwright,
-  so it skips on a router
+  rest" stops the question repeating per file. Separately, the ZIP route
+  against a real archive built by `zipfile`: `stored` and `deflate`
+  entries, a UTF-8 flagged name and a CP437 one, an empty folder as its
+  own entry, an entry with `..` in its name, and that nothing is written
+  before the confirmation. Needs node and playwright, so it skips on a
+  router
 - `canon-path-tests.sh` - the path validation layer: `canon()` and
   `detect_binary()` are lifted straight out of the backend and called
   directly, so the test cannot drift away from the code it guards.
@@ -1612,10 +1654,23 @@ double click went up two levels instead of one. Covered by
 
 ### Uploading a folder
 
-Besides individual files, a whole folder can be uploaded with everything
-in it: right-click → **Upload folder**. The item appears only where the
-browser can pick a directory (`webkitdirectory`), which means on a
-computer; phone browsers generally cannot, and there the item is absent.
+A whole folder can be uploaded with everything in it, nesting included.
+There are two ways, both in the right-click menu (long press on a phone):
+
+- **Upload folder** - the ordinary directory picker. It needs
+  `webkitdirectory`, so it works on a computer.
+- **Upload folder from a ZIP** - one `.zip` is picked and unpacked **in
+  the browser**. This works everywhere, phones included.
+
+The second exists precisely for the phone: `webkitdirectory` is
+implemented by **no** mobile browser - not Chrome on Android, not Safari
+on iOS, not Firefox. Worse, the property itself *is* present in Chrome on
+Android even though a folder cannot be chosen, so testing for the
+property lies. There is no honest way to detect it, so a device whose
+primary input is touch (`pointer: coarse` without `any-hover: hover`) is
+treated as unable and offered the ZIP route. Making the archive on a
+phone is a built-in: iOS Files has "Compress", and most Android file
+managers do too.
 
 This happens entirely in the browser and **adds nothing to the router**.
 The browser hands over a flat list of files, each carrying the path it
@@ -1642,9 +1697,33 @@ a hundred times. Ticked together with Overwrite it means "keep
 overwriting", so the remainder goes out with the flag already set - one
 request per file rather than two.
 
-What it does not do: **empty folders are not carried over**. A directory
-picked through `input[type=file]` reports files to the browser, so a
-folder with nothing in it never appears in the list and is never created.
+What the **directory picker** does not do: empty folders are not carried
+over. A directory picked through `input[type=file]` reports files to the
+browser, so a folder with nothing in it never appears in the list and is
+never created. The ZIP route does not have that problem - an archive has
+its own entries for directories, and empty ones do get created.
+
+#### What is read out of a ZIP
+
+The archive parsing lives in the view and is a couple of hundred lines:
+the tail of the file, the central directory, the local headers. An
+entry's data is read one entry at a time, right before it is sent
+(`File.slice()`), so a large archive never has to be held in memory.
+The browser does the decompression itself through
+`DecompressionStream('deflate-raw')`, which every browser has had since
+May 2023; no library is pulled in.
+
+Supported is what a phone's "Compress" button produces: `stored` and
+`deflate` entries. Refused rather than mangled: ZIP64, encrypted entries,
+and any other compression method - those entries are skipped and the
+confirmation says how many.  Names are decoded as UTF-8 when the entry
+sets flag 11, and as CP437 otherwise, which is how older Windows writes
+them.
+
+A confirmation comes first: the archive name, how many files and folders
+will be created, where, and how many entries are being skipped. An
+archive can hold hundreds of files and the destination is just whatever
+directory the panel is showing, so it is worth asking.
 
 ### Context menu
 

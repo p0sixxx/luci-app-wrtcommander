@@ -242,6 +242,144 @@ function pickDirectory(initialPath) {
 	});
 }
 
+
+/* ------------------------------------------------------------------
+ * ZIP reading
+ *
+ * Enough of the format to unpack what a phone's "Compress" button
+ * produces, and no more.
+ *
+ * Why in the browser: a phone cannot pick a folder - `webkitdirectory`
+ * is implemented by no mobile browser - but it can pick a .zip. Reading
+ * the archive here rather than on the router means the router gains
+ * nothing to attack: every entry becomes an ordinary upload through the
+ * endpoint that was already there, with the same canon_path() in front
+ * of it, so Zip Slip has nowhere to land. It also keeps `unzip` off the
+ * list of things the router has to have installed.
+ *
+ * Refused rather than mangled: ZIP64, encrypted entries, and compression
+ * methods other than stored and deflate. Deflate is unpacked by the
+ * browser itself through DecompressionStream, which every browser has
+ * had since May 2023; without it only a stored archive can be read.
+ * ------------------------------------------------------------------ */
+
+var ZIP_EOCD = 0x06054b50, ZIP_CD = 0x02014b50, ZIP_LFH = 0x04034b50;
+
+/* IBM code page 437, upper half: what a ZIP filename is in when the
+   entry does not carry the UTF-8 flag (bit 11). Archives made on a
+   phone set that flag; ones made by Windows Explorer often do not. */
+var CP437_HIGH =
+	'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ' +
+	'áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐' +
+	'└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀' +
+	'αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0';
+
+function zipDecodeName(bytes, utf8) {
+	if (utf8)
+		return new TextDecoder('utf-8').decode(bytes);
+	var out = '';
+	for (var i = 0; i < bytes.length; i++)
+		out += (bytes[i] < 0x80)
+			? String.fromCharCode(bytes[i])
+			: CP437_HIGH.charAt(bytes[i] - 0x80);
+	return out;
+}
+
+function zipSlice(file, from, len) {
+	return file.slice(from, from + len).arrayBuffer();
+}
+
+function zipInflateAvailable() {
+	try {
+		return (typeof DecompressionStream !== 'undefined') && !!new DecompressionStream('deflate-raw');
+	} catch (e) {
+		return false;
+	}
+}
+
+/* Reads the central directory and returns a Promise of the entry list.
+   Nothing but the directory is read here - entry data is fetched one
+   entry at a time, when it is about to be uploaded, so a large archive
+   never has to fit in memory. */
+function zipList(file) {
+	if (file.size < 22)
+		return Promise.reject(_('Not a ZIP archive, or it is damaged.', 'wrtcommander'));
+
+	/* the end-of-central-directory record is last, but a trailing comment
+	   of up to 64 KiB may follow it, so scan back over that much */
+	var tailLen = Math.min(file.size, 65558);
+
+	return zipSlice(file, file.size - tailLen, tailLen).then(function (buf) {
+		var tail = new DataView(buf);
+		var eocd = -1;
+		for (var i = tail.byteLength - 22; i >= 0; i--) {
+			if (tail.getUint32(i, true) === ZIP_EOCD) { eocd = i; break; }
+		}
+		if (eocd < 0)
+			return Promise.reject(_('Not a ZIP archive, or it is damaged.', 'wrtcommander'));
+
+		var count = tail.getUint16(eocd + 10, true);
+		var cdSize = tail.getUint32(eocd + 12, true);
+		var cdOff = tail.getUint32(eocd + 16, true);
+
+		/* the all-ones markers mean the real values live in a ZIP64 record */
+		if (count === 0xFFFF || cdSize === 0xFFFFFFFF || cdOff === 0xFFFFFFFF)
+			return Promise.reject(_('ZIP64 archives are not supported.', 'wrtcommander'));
+
+		return zipSlice(file, cdOff, cdSize).then(function (cdBuf) {
+			var cd = new DataView(cdBuf);
+			var raw = new Uint8Array(cdBuf);
+			var entries = [];
+			var off = 0;
+
+			for (var n = 0; n < count; n++) {
+				if (off + 46 > cd.byteLength || cd.getUint32(off, true) !== ZIP_CD)
+					return Promise.reject(_('Not a ZIP archive, or it is damaged.', 'wrtcommander'));
+
+				var flags = cd.getUint16(off + 8, true);
+				var nlen = cd.getUint16(off + 28, true);
+				var elen = cd.getUint16(off + 30, true);
+				var clen = cd.getUint16(off + 32, true);
+
+				entries.push({
+					name: zipDecodeName(raw.subarray(off + 46, off + 46 + nlen), !!(flags & 0x800)),
+					encrypted: !!(flags & 1),
+					method: cd.getUint16(off + 10, true),
+					csize: cd.getUint32(off + 20, true),
+					usize: cd.getUint32(off + 24, true),
+					lho: cd.getUint32(off + 42, true)
+				});
+
+				off += 46 + nlen + elen + clen;
+			}
+
+			return entries;
+		});
+	});
+}
+
+/* One entry's contents as a File. The local header has to be read too:
+   its name and extra fields are not always the same length as the ones
+   in the central directory, and the data starts after them. */
+function zipEntryFile(file, entry, name) {
+	return zipSlice(file, entry.lho, 30).then(function (buf) {
+		var lh = new DataView(buf);
+		if (lh.getUint32(0, true) !== ZIP_LFH)
+			return Promise.reject(_('Cannot unpack "%s".', 'wrtcommander').format(entry.name));
+
+		var start = entry.lho + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+		var blob = file.slice(start, start + entry.csize);
+
+		if (entry.method === 0)
+			return new File([blob], name);
+
+		return new Response(blob.stream().pipeThrough(new DecompressionStream('deflate-raw')))
+			.blob()
+			.then(function (out) { return new File([out], name); },
+			      function () { return Promise.reject(_('Cannot unpack "%s".', 'wrtcommander').format(entry.name)); });
+	});
+}
+
 /* ==================================================================
  * main view
  * ================================================================ */
@@ -1389,8 +1527,9 @@ return view.extend({
 		items.push([_('New file', 'wrtcommander'), '', function () { self.setActive(id); self.newFile(); }]);
 		items.push([_('New folder', 'wrtcommander'), 'F7', function () { self.setActive(id); self.newDirectory(); }]);
 		items.push([_('Upload', 'wrtcommander'), '', function () { self.setActive(id); self.actUpload(); }]);
-		if (this.folderUploadSupported())
+		if (this.folderPickerSupported())
 			items.push([_('Upload folder', 'wrtcommander'), '', function () { self.setActive(id); self.actUploadFolder(); }]);
+		items.push([_('Upload folder from a ZIP', 'wrtcommander'), '', function () { self.setActive(id); self.actUploadZip(); }]);
 		items.push(SEP);
 
 		if (one && one.type !== 'link')
@@ -2095,21 +2234,29 @@ return view.extend({
 		this.pickAndUpload(this.active, true);
 	},
 
-	/* Picking a directory needs `webkitdirectory`, which desktop browsers
-	   have and phone browsers generally do not. Asked for and missing, say
-	   so plainly rather than opening a file picker that silently uploads
-	   the wrong thing. */
-	folderUploadSupported: function () {
-		return 'webkitdirectory' in document.createElement('input');
+	/* Picking a directory needs `webkitdirectory`, which no mobile browser
+	   implements - and the property alone does not tell you that, because
+	   it sits in the IDL of every Chromium build including Android, where
+	   choosing a folder simply does not happen. There is no honest feature
+	   test for it, so a touch-primary device is treated as not having it
+	   and is offered the ZIP route instead, which works everywhere. */
+	folderPickerSupported: function () {
+		if (!('webkitdirectory' in document.createElement('input')))
+			return false;
+		if (window.matchMedia &&
+		    window.matchMedia('(pointer: coarse)').matches &&
+		    !window.matchMedia('(any-hover: hover)').matches)
+			return false;
+		return true;
 	},
 
 	pickAndUpload: function (id, wantFolder) {
 		var self = this;
 		var dest = this.panes[id].path;
 
-		if (wantFolder && !this.folderUploadSupported()) {
+		if (wantFolder && !this.folderPickerSupported()) {
 			ui.addNotification(null, E('p', {},
-				_('This browser cannot pick a folder. Phone browsers usually cannot - upload the files themselves, or use a computer.', 'wrtcommander')), 'warning');
+				_('This browser cannot pick a folder. Use "Upload folder from a ZIP" instead - that works everywhere, phones included.', 'wrtcommander')), 'warning');
 			return;
 		}
 
@@ -2133,6 +2280,145 @@ return view.extend({
 				}), dest, id, []);
 		});
 		input.click();
+	},
+
+	/* The route that works on a phone.
+
+	   No mobile browser can pick a folder, but every one of them can pick
+	   a .zip - and both iOS Files and most Android file managers have a
+	   "Compress" that makes one. The archive is read here in the browser
+	   and turned into exactly the same upload as a picked folder: the
+	   directories first, then one POST per file. The router is not told
+	   an archive was involved and needs no unzip of its own, which is
+	   also why Zip Slip has nowhere to land - every entry goes through
+	   canon_path() as an ordinary upload. */
+	actUploadZip: function () {
+		var self = this;
+		var id = this.active;
+		var dest = this.panes[id].path;
+
+		var input = E('input', {
+			type: 'file',
+			accept: '.zip,application/zip,application/x-zip-compressed',
+			style: 'display:none'
+		});
+		document.body.appendChild(input);
+		input.addEventListener('change', function () {
+			var file = (input.files || [])[0];
+			input.remove();
+			if (file) self.openZip(file, dest, id);
+		});
+		input.click();
+	},
+
+	openZip: function (file, dest, paneId) {
+		var self = this;
+
+		ui.showModal(_('Upload folder from a ZIP', 'wrtcommander'), [
+			E('p', {}, _('Reading %s…', 'wrtcommander').format(file.name))
+		]);
+
+		zipList(file).then(function (entries) {
+			self.confirmZip(file, entries, dest, paneId);
+		}, function (err) {
+			ui.hideModal();
+			ui.addNotification(null, E('p', {},
+				(typeof err === 'string') ? err
+					: _('Cannot read the archive.', 'wrtcommander')), 'error');
+		});
+	},
+
+	/* Turn the entry list into directories and upload items, then say what
+	   is about to happen before anything is written. An archive can hold
+	   several hundred files and the destination is whichever directory the
+	   panel happens to be showing, so this is worth confirming. */
+	confirmZip: function (file, entries, dest, paneId) {
+		var self = this;
+		var items = [], dirs = {}, skipped = 0;
+		var canInflate = zipInflateAvailable();
+		var needInflate = false;
+
+		function segments(name) {
+			/* some archives use a backslash as the separator; the router
+			   strips both from a filename anyway, so split on both here
+			   rather than letting one become part of a name */
+			var parts = name.split(/[/\\]/);
+			var bad = parts.some(function (seg, i) {
+				if (seg === '' && i === parts.length - 1)
+					return false;               /* trailing "/" marks a directory */
+				return seg === '' || seg === '.' || seg === '..' || seg.indexOf('\u0000') >= 0;
+			});
+			return bad ? null : parts;
+		}
+
+		function addDirs(parts) {
+			var dir = dest;
+			parts.forEach(function (seg) {
+				dir = (dir === '/') ? ('/' + seg) : (dir + '/' + seg);
+				dirs[dir] = true;
+			});
+			return dir;
+		}
+
+		entries.forEach(function (e) {
+			var parts = segments(e.name);
+			if (!parts) { skipped++; return; }
+
+			var isDir = (parts[parts.length - 1] === '');
+			if (isDir) {
+				parts.pop();
+				if (parts.length) addDirs(parts);
+				return;                          /* an empty folder still gets made */
+			}
+			if (e.encrypted || (e.method !== 0 && e.method !== 8)) { skipped++; return; }
+			if (e.method === 8) needInflate = true;
+
+			var name = parts.pop();
+			var dir = parts.length ? addDirs(parts) : dest;
+			items.push({
+				dest: dir,
+				label: e.name,
+				load: function () { return zipEntryFile(file, e, name); }
+			});
+		});
+
+		ui.hideModal();
+
+		if (needInflate && !canInflate) {
+			ui.addNotification(null, E('p', {},
+				_('This browser cannot unpack a compressed archive. Only a ZIP stored without compression can be used here.', 'wrtcommander')), 'error');
+			return;
+		}
+		if (!items.length && !Object.keys(dirs).length) {
+			ui.addNotification(null, E('p', {},
+				_('The archive has nothing that can be uploaded.', 'wrtcommander')), 'warning');
+			return;
+		}
+
+		var dirList = Object.keys(dirs).sort(function (a, b) {
+			var d = a.split('/').length - b.split('/').length;
+			return d !== 0 ? d : (a < b ? -1 : 1);
+		});
+
+		ui.showModal(_('Upload folder from a ZIP', 'wrtcommander'), [
+			E('p', {}, file.name),
+			E('p', {}, _('Files: %d, folders: %d', 'wrtcommander').format(items.length, dirList.length)),
+			E('p', { class: 'fx-up-dest' }, _('Destination: %s', 'wrtcommander').format(dest)),
+			skipped ? E('p', { class: 'fx-warn' },
+				N_(skipped, 'Skipping %d entry that cannot be unpacked.',
+					'Skipping %d entries that cannot be unpacked.', 'wrtcommander').format(skipped)) : '',
+			E('div', { class: 'right fx-modal-actions' }, [
+				E('button', { class: 'btn', click: ui.hideModal }, _('Cancel', 'wrtcommander')),
+				' ',
+				E('button', {
+					class: 'btn cbi-button-action',
+					click: function () {
+						ui.hideModal();
+						self.uploadFiles(items, dest, paneId, dirList);
+					}
+				}, _('Upload', 'wrtcommander'))
+			])
+		]);
 	},
 
 	/* The browser hands over a flat list of files, each carrying the path
@@ -2219,9 +2505,23 @@ return view.extend({
 				E('button', { class: 'btn', click: stop }, _('Cancel', 'wrtcommander')))
 		]);
 
+		/* An item is either a File already (a picked file) or a loader that
+		   produces one (a ZIP entry, unpacked when its turn comes so a big
+		   archive never has to be held in memory all at once). */
 		function post(item, overwrite, onDone) {
+			var pending = item.file ? Promise.resolve(item.file) : item.load();
+			pending.then(function (file) { send_it(file); },
+				/* hand the reason back the same shape the endpoint uses, so
+				   the one reporting path below says why rather than
+				   "Upload failed" on top of a message already shown */
+				function (err) {
+					onDone(0, { ok: false, error: { code: 'EIO', message:
+						(typeof err === 'string') ? err : _('Upload failed', 'wrtcommander') } });
+				});
+
+			function send_it(file) {
 			var fd = new FormData();
-			fd.append('file', item.file, item.file.name);
+			fd.append('file', file, file.name);
 			xhr = new XMLHttpRequest();
 			xhr.open('POST', L.url('admin', 'services', 'wrtcommander', 'upload') +
 				'?dest=' + encodeURIComponent(item.dest) + '&overwrite=' + (overwrite ? '1' : '0'));
@@ -2236,6 +2536,7 @@ return view.extend({
 			};
 			xhr.onerror = function () { onDone(0, null); };
 			xhr.send(fd);
+			}
 		}
 
 		function report(item, resp) {

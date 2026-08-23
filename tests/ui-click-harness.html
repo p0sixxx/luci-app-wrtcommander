@@ -129,8 +129,9 @@ window.XMLHttpRequest = function () {
     var overwrite = u.searchParams.get('overwrite') === '1';
     var file = fd.get('file');
     var full = (dest === '/' ? '' : dest) + '/' + file.name;
-    window.__uploads.push({ dest: dest, name: file.name, overwrite: overwrite, size: file.size });
-    setTimeout(function () {
+    file.text().then(function (text) {
+      window.__uploads.push({ dest: dest, name: file.name, overwrite: overwrite,
+                              size: file.size, text: text });
       if (window.__existing[full] && !overwrite) {
         self.status = 400;
         self.responseText = JSON.stringify({ ok: false,
@@ -141,7 +142,7 @@ window.XMLHttpRequest = function () {
         self.responseText = JSON.stringify({ ok: true, path: full, name: file.name, size: file.size });
       }
       self.onload();
-    }, 0);
+    });
   };
 };
 </script>

@@ -121,11 +121,19 @@ msgid "Cannot read properties"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Cannot read the archive."
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Cannot rename"
 msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Cannot save file"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Cannot unpack \"%s\"."
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -265,6 +273,10 @@ msgid "Files and folders whose name starts with a dot."
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Files: %d, folders: %d"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Filesystem"
 msgstr ""
 
@@ -377,6 +389,10 @@ msgid "No subdirectories"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Not a ZIP archive, or it is damaged."
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Nothing found"
 msgstr ""
 
@@ -446,6 +462,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "Read"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "Reading %s…"
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -601,6 +621,10 @@ msgid "Text"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "The archive has nothing that can be uploaded."
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "The file is too large to edit. Download it instead."
 msgstr ""
 
@@ -613,7 +637,11 @@ msgid "This action cannot be undone."
 msgstr ""
 
 msgctxt "wrtcommander"
-msgid "This browser cannot pick a folder. Phone browsers usually cannot - upload the files themselves, or use a computer."
+msgid "This browser cannot pick a folder. Use \"Upload folder from a ZIP\" instead - that works everywhere, phones included."
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "This browser cannot unpack a compressed archive. Only a ZIP stored without compression can be used here."
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -673,6 +701,10 @@ msgid "Upload folder"
 msgstr ""
 
 msgctxt "wrtcommander"
+msgid "Upload folder from a ZIP"
+msgstr ""
+
+msgctxt "wrtcommander"
 msgid "Uploaded %d of %d."
 msgstr ""
 
@@ -702,6 +734,10 @@ msgstr ""
 
 msgctxt "wrtcommander"
 msgid "You have unsaved changes. Discard them?"
+msgstr ""
+
+msgctxt "wrtcommander"
+msgid "ZIP64 archives are not supported."
 msgstr ""
 
 msgctxt "wrtcommander"
@@ -771,6 +807,12 @@ msgstr[1] ""
 msgctxt "wrtcommander"
 msgid "Skipped %d file with an unusable path."
 msgid_plural "Skipped %d files with unusable paths."
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "wrtcommander"
+msgid "Skipping %d entry that cannot be unpacked."
+msgid_plural "Skipping %d entries that cannot be unpacked."
 msgstr[0] ""
 msgstr[1] ""
 
