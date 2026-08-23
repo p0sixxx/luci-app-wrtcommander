@@ -35,6 +35,7 @@ ubus list 2>/dev/null | grep -qx 'luci.wrtcommander' || {
 
 sh make-testfs.sh
 
+run_stage upload-handler-tests.sh
 run_stage fs-tests.sh
 run_stage dirsize-tests.sh
 run_stage security-tests.sh

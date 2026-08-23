@@ -247,8 +247,14 @@ function action_upload()
 		return send_json_error(http, 403, "EACCES", "Permission denied")
 	end
 
-	local dest_raw = http.formvalue("dest")
-	local overwrite = http.formvalue("overwrite") == "1"
+	-- Read these with noparse=true. They arrive in the query string, which
+	-- luci.http has already decoded into the parameter table when the
+	-- request object was built, so they are available without touching the
+	-- body. A plain formvalue() here would parse the multipart body
+	-- *before* the file handler exists - see the handler below for what
+	-- that costs.
+	local dest_raw = http.formvalue("dest", true)
+	local overwrite = http.formvalue("overwrite", true) == "1"
 
 	local dest, derr = canon_path(dest_raw, true)
 	if not dest then
@@ -265,36 +271,46 @@ function action_upload()
 	local bytes_written = 0
 	local final_name = nil
 
+	-- `meta` is not only delivered once per part. luci.http has two paths:
+	-- when the handler is installed before the body is parsed it streams,
+	-- and `meta` comes once at the start of each part; but when the body
+	-- was already parsed it replays the buffered upload and passes `meta`
+	-- with *every* chunk. Treating each `meta` as a new part there meant
+	-- reopening the target with "wb" on every chunk - truncating it - so
+	-- the last call, the empty end-of-file one, left a 0-byte file, and
+	-- the second chunk saw the file the first chunk had just created and
+	-- reported EEXIST for a name that did not exist before the upload.
+	--
+	-- So a part is only opened once: `started` guards it, and a repeat of
+	-- the same meta is ignored rather than treated as a new file.
+	local started = false
+
 	http.setfilehandler(function(meta, chunk, eof)
-		if meta then
-			if out_fh then
-				out_fh:close()
-				out_fh = nil
+		if meta and not started and meta.file and meta.file ~= "" then
+			started = true
+
+			local safe_name = meta.file:match("([^/\\]+)$") or meta.file
+			if safe_name == "" or safe_name == "." or safe_name == ".." then
+				upload_error = { code = "EINVAL", message = "Invalid filename" }
+				return
 			end
-			if meta.file and meta.file ~= "" then
-				local safe_name = meta.file:match("([^/\\]+)$") or meta.file
-				if safe_name == "" or safe_name == "." or safe_name == ".." then
-					upload_error = { code = "EINVAL", message = "Invalid filename" }
-					return
-				end
-				local target, terr = canon_path(dest .. "/" .. safe_name, false)
-				if not target then
-					upload_error = { code = "EINVAL", message = terr or "Invalid target path" }
-					return
-				end
-				if fs.access(target) and not overwrite then
-					upload_error = { code = "EEXIST", message = "File already exists: " .. safe_name }
-					return
-				end
-				out_path = target
-				final_name = safe_name
-				out_fh = io.open(target, "wb")
-				if not out_fh then
-					upload_error = { code = "EACCES", message = "Cannot create destination file" }
-					return
-				end
-				bytes_written = 0
+			local target, terr = canon_path(dest .. "/" .. safe_name, false)
+			if not target then
+				upload_error = { code = "EINVAL", message = terr or "Invalid target path" }
+				return
 			end
+			if fs.access(target) and not overwrite then
+				upload_error = { code = "EEXIST", message = "File already exists: " .. safe_name }
+				return
+			end
+			out_path = target
+			final_name = safe_name
+			out_fh = io.open(target, "wb")
+			if not out_fh then
+				upload_error = { code = "EACCES", message = "Cannot create destination file" }
+				return
+			end
+			bytes_written = 0
 		end
 
 		if upload_error then

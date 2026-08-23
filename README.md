@@ -92,6 +92,22 @@
 эта логика существует в двух экземплярах и что из этого следует для
 будущих правок, см. в **Известных ограничениях**.
 
+У `luci.http` есть ловушка, стоившая двух багов. Обработчик файла
+вызывается двумя разными способами: если он установлен **до** разбора
+тела — идёт потоковая передача и `meta` приходит один раз в начале части;
+если тело уже разобрано — LuCI проигрывает буферизованную загрузку и
+передаёт `meta` **с каждым куском** (`luci-base/ucode/http.uc`,
+`setfilehandler()`). Контроллер читал `dest` обычным `formvalue()` до
+установки обработчика, чем и запускал разбор раньше времени, а обработчик
+считал каждый `meta` новой частью — заново открывал файл на «wb» и
+обрезал его. Итог: последний, пустой вызов оставлял файл в 0 байт, а
+второй кусок видел файл, который сам же и создал, и сообщал «уже
+существует» про имя, которого до загрузки не было. Теперь параметры
+читаются как `formvalue(name, true)` — они и так разобраны из строки
+запроса, тело при этом не трогается, — а часть открывается ровно один
+раз. Покрыто `tests/upload-handler-tests.sh`, который гоняет обработчик
+по обоим сценариям и не требует роутера.
+
 > **Перенос пункта меню переносит и эти эндпоинты.** Приложение живёт по
 > адресу `admin/services/wrtcommander`, а URL загрузки/скачивания —
 > `admin/services/wrtcommander/upload` и `…/download`. Этот путь прописан
@@ -904,6 +920,22 @@ the same canonical path-validation pipeline as the ucode backend
 (`canon_path()` in the Lua file mirrors `canon()` in the ucode file) -
 see **Known limitations** for why this one piece of logic exists
 twice, and what that implies for future changes.
+
+`luci.http` has a trap here that cost two bugs. A file handler gets
+called in two different ways: installed **before** the body is parsed it
+streams, and `meta` arrives once at the start of a part; if the body was
+already parsed, LuCI replays the buffered upload and passes `meta` with
+**every** chunk (`luci-base/ucode/http.uc`, `setfilehandler()`). The
+controller read `dest` with a plain `formvalue()` before installing the
+handler, which parsed the body too early, and the handler treated each
+`meta` as a new part - reopening the target with "wb" and truncating it.
+So the last, empty call left a 0-byte file, and the second chunk saw the
+file the first chunk had just created and reported "already exists" for a
+name that did not exist before the upload. The parameters are now read as
+`formvalue(name, true)` - they are already decoded from the query string,
+so the body is left alone - and a part is opened exactly once. Covered by
+`tests/upload-handler-tests.sh`, which drives the handler through both
+patterns and needs no router.
 
 > **Moving the menu entry moves those endpoints too.** The app lives at
 > `admin/services/wrtcommander`, and the upload/download URLs are
